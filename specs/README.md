@@ -26,6 +26,7 @@ specs cross-link by requirement ID (`PREFIX-n`).
 | [10-onboarding.md](10-onboarding.md) | `ONB` | First-run flow, starter worlds, deferred player customization |
 | [11-token-stats.md](11-token-stats.md) | `STAT` | Token statistics feature: capture, aggregation, surfaces |
 | [12-platform-packaging.md](12-platform-packaging.md) | `PKG` | Target platforms, packaging, data locations, build/release outcomes |
+| [13-testing.md](13-testing.md) | `TEST` | Test strategy, testability seams, coverage, traceability — how tests validate the code against the spec |
 
 ## Reading order for implementers
 
@@ -35,6 +36,7 @@ specs cross-link by requirement ID (`PREFIX-n`).
 4. `CHAT`, `CHAR`, `WORLD`, `IMG` (the three feature pillars + media)
 5. `UI` + `ONB` + `STAT` (the surface)
 6. `PKG` (shipping)
+7. `TEST` (how all of the above is validated)
 
 ## Source-of-truth conventions
 
