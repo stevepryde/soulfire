@@ -129,9 +129,12 @@ Legend: [ ] todo · [~] in progress · [x] done
   (streamed, markdown bubbles, emoji reactions); character + world editors; settings (accent, masked
   key, model, adult toggle, editable adventure defaults); profile + lock; token stats
 - [x] prompt viewer/editor (PROMPT-9/10/11); confirmation dialogs (UI-7); docs/MANUAL_SMOKE.md (TEST-6)
-- [ ] remaining: conversational builders UI (CHAR-6/WORLD-20); first-run story name-capture +
-  auto-start (ONB-2/3); image crop/transform editors + generate buttons (IMG-7); composer draft
-  persistence (DATA-26); adventure prompt viewer; list search/pagination; bundle Inter/Merriweather
+- [x] first-run story name-capture + auto-start (ONB-2/3/4); conversational character + world
+  builders with Chat/Inspect + undo (CHAR-6/WORLD-20, incl. WorldBuilderEngine in core); NPC
+  extraction from play; image generate/regenerate/clear + pan/zoom/reset framing (IMG-1..3/7/8);
+  composer draft persistence (DATA-26); list search (UI-8/17); render smoke test (TEST-6)
+- [ ] remaining polish: card thumbnails for stored portraits/covers; drag-to-pan (sliders for now);
+  adventure prompt viewer; "load more" pagination; bundle Inter/Merriweather fonts
 
 ### Layer 12 — packaging (PKG) — STARTED
 - [x] Dioxus.toml (app/bundle ids, tailwind input/output); compiled CSS committed
