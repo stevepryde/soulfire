@@ -229,6 +229,35 @@ fn unknown_character_is_none_not_error() {
     assert!(store.character(&CharacterId::new()).unwrap().is_none());
 }
 
+#[test]
+fn store_reopens_preserving_data_and_schema_version() {
+    // PKG-4: a later run opens the existing store, runs migrations forward
+    // transparently, and finds all prior data intact. With one schema version
+    // the migration is a no-op, but this pins the close → reopen contract the
+    // forward-migration mechanism relies on (idempotent migrate + stamped
+    // user_version; see store/schema.rs).
+    let dir = tempfile::tempdir().unwrap();
+    let cid;
+    {
+        let store = Store::initialize(dir.path(), "pw").unwrap();
+        let c = sample_character("Persistent");
+        cid = c.character_id.clone();
+        store.save_character(&c).unwrap();
+        // store dropped here -> connection closed, like an app restart
+    }
+
+    // A subsequent run unlocks the same directory; migrate() runs again.
+    let store = Store::unlock(dir.path(), "pw").unwrap();
+    let loaded = store.character(&cid).unwrap().unwrap();
+    assert_eq!(loaded.name.as_str(), "Persistent");
+    assert_eq!(store.count_characters().unwrap(), 1);
+    // The schema version is stamped at the current version after reopen.
+    assert_eq!(
+        store.schema_version().unwrap(),
+        soulfire_core::store::SCHEMA_VERSION
+    );
+}
+
 fn contains(haystack: &[u8], needle: &[u8]) -> bool {
     haystack.windows(needle.len()).any(|w| w == needle)
 }

@@ -7,3 +7,4 @@ pub mod schema;
 
 pub use db::{Store, StorePaths};
 pub use repo::images::{ImageOwnerKind, StoredImage};
+pub use schema::SCHEMA_VERSION;

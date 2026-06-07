@@ -202,6 +202,14 @@ impl Store {
         &self.paths
     }
 
+    /// The schema version stamped on the open database (`PKG-4`). Equals
+    /// [`crate::store::SCHEMA_VERSION`] after a successful open/migrate.
+    pub fn schema_version(&self) -> CoreResult<u32> {
+        self.with_conn(|conn| {
+            Ok(conn.pragma_query_value(None, "user_version", |row| row.get::<_, i64>(0))? as u32)
+        })
+    }
+
     fn read_meta(paths: &StorePaths) -> CoreResult<StoreMeta> {
         if !paths.is_initialized() {
             return Err(CoreError::NotInitialized);
