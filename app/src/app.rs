@@ -21,6 +21,9 @@ use crate::{data, screens};
 pub fn App() -> Element {
     let ctx = use_signal(|| None::<AppContext>);
     use_context_provider(|| ctx);
+    // True while a first-time user is in the onboarding story flow (ONB-2).
+    let onboarding = use_signal(|| false);
+    use_context_provider(|| onboarding);
 
     rsx! {
         document::Stylesheet { href: asset!("/assets/tailwind.css") }
@@ -38,6 +41,7 @@ pub fn App() -> Element {
 #[component]
 fn LockScreen() -> Element {
     let mut ctx = use_context::<Signal<Option<AppContext>>>();
+    let mut onboarding = use_context::<Signal<bool>>();
     let first_run = use_hook(is_initialized);
     let first_run = !first_run; // is_initialized() == false => first run
 
@@ -68,11 +72,10 @@ fn LockScreen() -> Element {
                             key.trim().to_string(),
                         ));
                     }
-                    // Seed starter worlds on first launch (ONB-5).
+                    // Seed starter worlds on first launch (ONB-5). `first_run_completed`
+                    // is set when the onboarding story finishes (ONB-2/4), not here.
                     let _ = seed_starter_worlds(&store, &soulfire_core::clock::SystemClock);
-                    let mut install = store.install_state().unwrap_or_default();
-                    install.first_run_completed = true;
-                    let _ = store.save_install_state(&install);
+                    onboarding.set(true);
                     ctx.set(Some(AppContext::new(store)));
                 }
                 Err(e) => error.set(Some(format!("Could not create store: {e}"))),
@@ -147,14 +150,17 @@ fn Shell() -> Element {
     let ctx_sig = use_context::<Signal<Option<AppContext>>>();
     let app = ctx_sig().expect("shell requires an unlocked context");
     use_context_provider(|| app.clone());
+    let onboarding = use_context::<Signal<bool>>();
 
     data::subscribe();
     let theme = app.store.app_settings().map(|s| s.color_theme).unwrap_or_default();
-    let immersive = SCREEN.read().is_immersive();
+    let immersive = SCREEN.read().is_immersive() || onboarding();
 
     rsx! {
         div { class: "{theme_class(theme)} bg-background text-primary-text min-h-screen",
-            if immersive {
+            if onboarding() {
+                {screens::onboarding::render_first_run()}
+            } else if immersive {
                 // Immersive surfaces hide all chrome (UI-4).
                 {screens::render_active()}
             } else {

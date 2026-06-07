@@ -2,6 +2,7 @@
 
 pub mod chat;
 pub mod editors;
+pub mod onboarding;
 pub mod play;
 pub mod prompt_viewer;
 pub mod settings;
