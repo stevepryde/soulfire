@@ -93,6 +93,27 @@ impl SpDateTime {
         Self(self.0 - SignedDuration::from_hours(24 * days))
     }
 
+    /// Return this instant advanced by `seconds` (negative to go back).
+    pub fn add_seconds(&self, seconds: i64) -> Self {
+        Self(self.0 + SignedDuration::from_secs(seconds))
+    }
+
+    /// Return this instant advanced by `millis` (negative to go back).
+    pub fn add_millis(&self, millis: i64) -> Self {
+        Self(self.0 + SignedDuration::from_millis(millis))
+    }
+
+    /// Whole seconds elapsed from `earlier` to `self` (negative if `self` is
+    /// before `earlier`). Useful for timeout/stale-lock checks.
+    pub fn seconds_since(&self, earlier: SpDateTime) -> i64 {
+        self.timestamp() - earlier.timestamp()
+    }
+
+    /// Whole milliseconds elapsed from `earlier` to `self`.
+    pub fn millis_since(&self, earlier: SpDateTime) -> i64 {
+        self.0.as_millisecond() - earlier.0.as_millisecond()
+    }
+
     /// Format as YYYY-MM-DD (UTC) for HTML date inputs.
     pub fn format_date(&self) -> String {
         self.format("%Y-%m-%d")

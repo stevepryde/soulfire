@@ -52,13 +52,15 @@ Legend: [ ] todo · [~] in progress · [x] done
 - Fixed `SpDateTime::now()` to millisecond resolution so values survive serialize→parse (matches
   the persisted contract form).
 
-### Layer 2 — core seams + store (`soulfire-core`, SEC + DATA persistence)
-- [ ] Clock, Keychain, Provider traits + fakes
-- [ ] crypto: Argon2id KDF, verifier, SQLCipher key derivation, versioned params
-- [ ] store: schema, migrations, repositories per entity, fresh-store init (DATA-25), cascade
-  deletes (DATA-22), singletons, drafts
-- [ ] unlock/lock/rekey; keychain remember (SEC-7); key-never-leaks
-- [ ] tests: TEST-7, TEST-8
+### Layer 2 — core seams + store (`soulfire-core`, SEC + DATA persistence) — DONE (23 tests)
+- [x] Clock (System/Mock), Keychain (trait + in-memory fake) seams; Provider trait deferred to L3
+- [x] crypto: Argon2id KDF (64MiB/3/1), SHA-256 verifier, plaintext sidecar, SQLCipher raw key,
+  versioned params
+- [x] store: schema (one table/entity + JSON blob), migrations (user_version), repositories per
+  entity, fresh-store init (DATA-25), cascade deletes (DATA-22), singletons, drafts, metrics, images
+- [x] unlock/lock/rekey (PRAGMA rekey); keychain remember/forget (SEC-7); key-never-leaks
+- [x] tests: TEST-7 (round-trip, cascades, singletons, draft lifecycle), TEST-8 (ciphertext-on-disk,
+  wrong-password lock, rekey, device-remember)
 
 ### Layer 3 — AI provider seam (`soulfire-core::ai`, AI)
 - [ ] AiProvider trait (one-shot text, streamed text, structured JSON, image)

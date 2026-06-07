@@ -32,7 +32,15 @@ soulfire-core = { path = "libs/soulfire-core" }
 # Versions track Soulfire-OG's workspace; `dioxus` targets the native
 # desktop/mobile renderers (no web), per specs/12-platform-packaging.md.
 anyhow = "1"
+argon2 = "0.5"
+async-trait = "0.1"
 bon = "3"
+getrandom = "0.3"
+hex = "0.4"
+rusqlite = { version = "0.40", features = ["bundled-sqlcipher-vendored-openssl"] }
+sha2 = "0.10"
+tempfile = "3"
+zeroize = "1.8"
 # jiff over chrono: better IANA tzdb handling across desktop + mobile (notably
 # Android's concatenated tzdata) and an actively-developed Temporal-based API.
 # Lives behind sp-core's SpDateTime wrapper, so the choice stays swappable.

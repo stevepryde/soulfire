@@ -7,3 +7,13 @@
 //! TEST-2/TEST-5).
 //!
 //! Modules are filled in layer by layer per `docs/BUILD_PLAN.md`.
+
+pub mod clock;
+pub mod error;
+pub mod keychain;
+pub mod store;
+
+pub use clock::{Clock, MockClock, SystemClock};
+pub use error::{CoreError, CoreResult};
+pub use keychain::{InMemoryKeychain, Keychain};
+pub use store::{ImageOwnerKind, Store, StorePaths, StoredImage};
