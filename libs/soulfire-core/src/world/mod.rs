@@ -8,6 +8,7 @@
 
 pub mod memory;
 pub mod prompts;
+pub mod response;
 pub mod state_patch;
 
 pub use memory::{SignificantEvent, SignificantEventUpdates};
