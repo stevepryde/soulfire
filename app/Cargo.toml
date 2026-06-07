@@ -1,0 +1,16 @@
+[package]
+name = "soulfire"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+lib-soulfire = { workspace = true }
+# Wired up as crates are vendored:
+# ai-client = { workspace = true }
+# sp-core = { workspace = true }
+# sp-markdown = { workspace = true }
+# sp-ui = { workspace = true }
+# dioxus = { version = "0.7", features = ["desktop"] }  # native UI layer

@@ -1,0 +1,27 @@
+[workspace]
+resolver = "3"
+members = [
+    "libs/lib-soulfire",
+    "libs/ai-client",
+    "libs/sp-core",
+    "libs/sp-markdown",
+    "libs/sp-ui",
+    "app",
+]
+
+[workspace.package]
+edition = "2024"
+license = "MIT OR Apache-2.0"
+authors = ["Steve Pryde <steve@stevepryde.com>"]
+repository = "https://github.com/stevepryde/soulfire"
+rust-version = "1.96"
+
+# Intra-workspace vendored crates. Source is copied/adapted from the owner's
+# private crates (ai-client, splibs) per specs/12-platform-packaging.md — no
+# git or crates.io dependency on them. Each is filled in as a deliberate slice.
+[workspace.dependencies]
+lib-soulfire = { path = "libs/lib-soulfire" }
+ai-client = { path = "libs/ai-client" }
+sp-core = { path = "libs/sp-core" }
+sp-markdown = { path = "libs/sp-markdown" }
+sp-ui = { path = "libs/sp-ui" }
