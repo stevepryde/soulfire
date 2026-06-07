@@ -1,8 +1,6 @@
 //! The root component, the lock/first-run gate (`SEC-5`, `ONB-1`), and the app
 //! shell with primary navigation (`UI-4`, `UI-5`, `UI-6`).
 
-use std::str::FromStr;
-
 use dioxus::prelude::*;
 
 use lib_soulfire::ai_model::AiVendor;
@@ -294,9 +292,4 @@ fn dest_to_screen(dest: Destination) -> Screen {
 // Re-export for use in screens.
 pub fn current_app() -> AppContext {
     use_context::<AppContext>()
-}
-
-/// Parse a non-empty trimmed string, returning a UI error message on failure.
-pub fn parse_or_err<T: FromStr>(s: &str, what: &str) -> Result<T, String> {
-    T::from_str(s.trim()).map_err(|_| format!("Invalid {what}."))
 }

@@ -46,16 +46,19 @@ pub fn CharacterBuilder(character_id: CharacterId) -> Element {
         .collect();
     let has_snapshots = !session.snapshots.is_empty();
 
+    let mut sending = use_signal(|| false);
     let send = {
         let app = app.clone();
         let id = character_id.clone();
         use_callback(move |msg: String| {
             let app = app.clone();
             let id = id.clone();
+            sending.set(true);
             spawn(async move {
                 if let Err(e) = app.character.builder_send(&id, &msg).await {
                     ToastService::error(&format!("{e}"));
                 }
+                sending.set(false);
                 data::touch();
             });
         })
@@ -76,6 +79,7 @@ pub fn CharacterBuilder(character_id: CharacterId) -> Element {
             back: Screen::Characters,
             messages,
             has_snapshots,
+            sending: sending(),
             on_send: move |m| send(m),
             on_undo: move |_| undo(()),
             on_edit: move |_| navigate(Screen::CharacterEditor(Some(edit_id.clone()))),
@@ -111,16 +115,19 @@ pub fn WorldBuilder(blueprint_id: WorldBlueprintId) -> Element {
         .collect();
     let has_snapshots = !session.snapshots.is_empty();
 
+    let mut sending = use_signal(|| false);
     let send = {
         let app = app.clone();
         let id = blueprint_id.clone();
         use_callback(move |msg: String| {
             let app = app.clone();
             let id = id.clone();
+            sending.set(true);
             spawn(async move {
                 if let Err(e) = app.world_builder.builder_send(&id, &msg).await {
                     ToastService::error(&format!("{e}"));
                 }
+                sending.set(false);
                 data::touch();
             });
         })
@@ -141,6 +148,7 @@ pub fn WorldBuilder(blueprint_id: WorldBlueprintId) -> Element {
             back: Screen::WorldsHome,
             messages,
             has_snapshots,
+            sending: sending(),
             on_send: move |m| send(m),
             on_undo: move |_| undo(()),
             on_edit: move |_| navigate(Screen::WorldEditor(Some(edit_id.clone()))),
@@ -161,6 +169,9 @@ fn BuilderShell(
     back: Screen,
     messages: Vec<(bool, String)>,
     has_snapshots: bool,
+    /// True while a builder reply is in flight (owned by the parent, which
+    /// drives the async send).
+    sending: bool,
     on_send: EventHandler<String>,
     on_undo: EventHandler<()>,
     on_edit: EventHandler<()>,
@@ -168,11 +179,10 @@ fn BuilderShell(
 ) -> Element {
     let mut tab = use_signal(|| Tab::Chat);
     let mut input = use_signal(String::new);
-    let mut busy = use_signal(|| false);
 
     let do_send = use_callback(move |_: ()| {
         let m = input().trim().to_string();
-        if m.is_empty() || busy() {
+        if m.is_empty() || sending {
             return;
         }
         input.set(String::new());
@@ -224,6 +234,13 @@ fn BuilderShell(
                                 }
                             }
                         }
+                        if sending {
+                            div { class: "flex justify-start my-2",
+                                div { class: "bg-surface border border-border text-secondary-text rounded-2xl rounded-bl-sm px-4 py-2 text-sm",
+                                    "Thinking…"
+                                }
+                            }
+                        }
                     }
                     div { class: "flex gap-2 items-end bg-surface border border-border rounded-2xl p-2 mt-2",
                         textarea {
@@ -231,7 +248,7 @@ fn BuilderShell(
                             rows: "1",
                             placeholder: "Describe or refine…",
                             value: "{input}",
-                            disabled: busy(),
+                            disabled: sending,
                             oninput: move |e| input.set(e.value()),
                             onkeydown: move |e| if e.key() == Key::Enter && !e.modifiers().shift() {
                                 e.prevent_default();
@@ -240,7 +257,7 @@ fn BuilderShell(
                         }
                         button {
                             class: "crm-primary-button px-4 py-2 rounded-xl disabled:opacity-40",
-                            disabled: busy() || input().trim().is_empty(),
+                            disabled: sending || input().trim().is_empty(),
                             onclick: move |_| do_send(()),
                             "Send"
                         }

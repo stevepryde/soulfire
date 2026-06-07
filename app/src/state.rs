@@ -31,8 +31,6 @@ impl ApiKeySource for StoreKeys {
 #[derive(Clone)]
 pub struct AppContext {
     pub store: Arc<Store>,
-    pub ai: AiService,
-    pub clock: Arc<dyn Clock>,
     pub chat: ChatEngine,
     pub world: WorldEngine,
     pub world_builder: WorldBuilderEngine,
@@ -55,8 +53,6 @@ impl AppContext {
             character: CharacterEngine::new(store.clone(), ai.clone(), clock.clone()),
             image: ImageEngine::new(store.clone(), ai.clone(), clock.clone()),
             store,
-            ai,
-            clock,
         }
     }
 
