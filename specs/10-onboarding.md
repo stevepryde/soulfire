@@ -10,7 +10,9 @@ BYOK app. Unlock/security is owned by `SEC`; screens by `UI`; worlds by `WORLD`.
 - **ONB-1** On the very first launch the user completes a minimal setup before any AI feature: set the
   **master password** (`SEC-4`) and add an **OpenAI API key** (`AI-3`). These are the only required
   steps; everything else is deferred. The app states plainly that there is no password recovery
-  (`SEC-4`).
+  (`SEC-4`). The setup also asks whether to remember unlock on this device (`SEC-7`), using the
+  platform-specific default toggle state from `SEC-7`. Biometric unlock gating (`SEC-13`) is not part
+  of required first-run setup for the first release.
 - **ONB-2** After setup, first-time users are taken **straight into a story**, not the home screen,
   reproducing Soulfire-OG's principle that the first experience is story rather than interface. The
   app seeds the bundled starter worlds (ONB-5), picks a strong starter world, captures the player's
@@ -28,7 +30,9 @@ BYOK app. Unlock/security is owned by `SEC`; screens by `UI`; worlds by `WORLD`.
 - **ONB-5** The app ships a small curated set of **starter worlds** as ordinary editable blueprints
   (`DATA-21`), seeded on first launch. They are chosen for strong cold opens (Soulfire-OG lead
   example: "Beneath Verath"). After seeding they are fully user-editable and deletable; re-seeding does
-  not duplicate or resurrect deleted starters.
+  not duplicate or resurrect deleted starters. Each starter has a stable seed id; the seed ledger
+  (`DATA-24`) records which blueprint was created for that starter and whether the user deleted it.
+  The lead starter is `beneath_verath` ("Beneath Verath").
 
 ### Returning users & deferred customization
 - **ONB-6** After first run, the app opens to the **worlds home** (`UI-8`). When an in-progress
@@ -42,14 +46,16 @@ BYOK app. Unlock/security is owned by `SEC`; screens by `UI`; worlds by `WORLD`.
 ## Acceptance criteria
 
 - **AC-ONB-a** (ONB-1) A brand-new install requires setting a master password and adding an OpenAI key
-  before any AI action, and warns that the password is unrecoverable.
+  before any AI action, warns that the password is unrecoverable, and asks whether to remember unlock
+  on this device with the correct platform default.
 - **AC-ONB-b** (ONB-2, ONB-3) After setup, the first-time user sees the name prompt over an
   atmospheric background and is dropped directly into a starter world's intro; Skip launches with a
   default name.
 - **AC-ONB-c** (ONB-4) Choosing the subtle exit lands on the worlds home and the auto-start does not
   happen again on next launch.
-- **AC-ONB-d** (ONB-5) Starter worlds appear as editable blueprints on first launch; deleting one and
-  relaunching does not bring it back or create duplicates.
+- **AC-ONB-d** (ONB-5) Starter worlds appear as editable blueprints on first launch with stable seed
+  ids recorded in the ledger; deleting one and relaunching does not bring it back or create
+  duplicates.
 - **AC-ONB-e** (ONB-6) A returning user with an in-progress adventure sees "continue" as the primary
   action; with none, sees "start a new adventure".
 

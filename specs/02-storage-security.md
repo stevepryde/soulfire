@@ -32,11 +32,18 @@ unlocked. Field-level data shapes are owned by `DATA`; credential usage is owned
   the key (or a wrapping secret for it) is stored in the operating system's secure credential store
   (platform keychain/keystore), and subsequent launches on that device unlock without prompting.
   Disabling the option, or the OS store becoming unavailable, falls back to the master-password
-  prompt. The remembered secret is removed when the user disables the option.
+  prompt. The remembered secret is removed when the user disables the option. First-run setup asks
+  whether to enable this option; the default toggle state is on for Android and iOS and off for
+  Windows, macOS, and Linux.
 - **SEC-8** The app provides a **lock** action that returns to the locked state without quitting, and
   a **change master password** action that re-keys the store (re-deriving/ re-wrapping the
   encryption key) such that the old password no longer unlocks it. Changing the password updates any
   device-remembered secret accordingly.
+- **SEC-13** The app may offer **biometric unlock gating** (fingerprint/face/device biometric) as a
+  separate, optional protection for device-remembered unlock. When enabled, the remembered unlock
+  secret is released only after successful platform biometric authentication; when disabled, remembered
+  unlock follows SEC-7 without biometric gating. Biometric unlock gating defaults to off on every
+  platform and is not required for the first release.
 
 ### BYOK credential handling
 - **SEC-9** Provider API keys (`DATA-19`) are stored only inside the encrypted store and are
@@ -62,14 +69,18 @@ unlocked. Field-level data shapes are owned by `DATA`; credential usage is owned
 - **AC-SEC-b** (SEC-4, SEC-5, SEC-6) First launch requires setting a password; later launches require
   it (or the remembered key); a wrong password leaves the app locked with all data inaccessible and
   the store intact.
-- **AC-SEC-c** (SEC-7) With "remember on this device" enabled, relaunch unlocks without a prompt;
-  disabling it removes the stored secret and the next launch prompts again.
+- **AC-SEC-c** (SEC-7) First-run setup shows "remember on this device" toggled on by default on
+  Android/iOS and off by default on Windows/macOS/Linux; with it enabled, relaunch unlocks without a
+  prompt; disabling it removes the stored secret and the next launch prompts again.
 - **AC-SEC-d** (SEC-8) After "change master password", the old password fails and the new one
   succeeds; a device-remembered unlock still works post-change.
 - **AC-SEC-e** (SEC-9, SEC-10) Triggering an error during a provider call produces no log/UI output
   containing the API key; the settings screen shows the key only masked.
 - **AC-SEC-f** (SEC-3) Generated image files (if stored as files) are unreadable as images without
   the app's key.
+- **AC-SEC-g** (SEC-13) On a platform that supports biometrics, the biometric-unlock option is off by
+  default; enabling it requires successful biometric authentication before a remembered unlock secret
+  is released, and disabling it returns remembered unlock to SEC-7 behavior.
 
 ## Design notes (non-normative)
 
@@ -81,7 +92,9 @@ unlocked. Field-level data shapes are owned by `DATA`; credential usage is owned
   cross-platform keychain crate (macOS Keychain, Windows Credential Manager/DPAPI, Linux Secret
   Service, iOS Keychain, Android Keystore). On platforms without a usable secure store, SEC-7 simply
   stays unavailable and the app falls back to the password prompt.
-- Mobile keyboards and biometric prompts can front the OS keychain unlock (e.g. Face ID gating
-  retrieval of the remembered key); this is an enhancement of SEC-7, not a separate requirement.
+- SEC-13 can be deferred behind a capability flag. Platform support may be implemented through OS
+  APIs that require user presence before keychain/keystore item release, so biometric gating protects
+  the remembered unlock path without replacing the master password or changing the encrypted store
+  format.
 - KDF parameters and the verifier scheme should themselves be versioned so they can be strengthened
   by a future migration.

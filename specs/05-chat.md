@@ -25,9 +25,9 @@ is owned by `AI`; prompt assembly is owned by `PROMPT`; the character entity and
   controls (`DATA-1`); the reply is **streamed** (`AI-10`) and rendered token-by-token; on completion
   the full character message is persisted. The character's `last_chatted_at` and the chat's
   `updated_at` advance.
-- **CHAT-5** Prompt history sent to the model is bounded to the most recent messages (Soulfire-OG:
-  last 20), in chronological order, each tagged by sender role, with any emoji reactions appended to
-  the message text.
+- **CHAT-5** Prompt history sent to the model is bounded to the most recent 20 messages, in
+  chronological order, each tagged by sender role, with any emoji reactions appended to the message
+  text.
 - **CHAT-6** A streamed reply honors the idle-timeout rule (`AI-11`): no first token within the
   timeout surfaces an error and no partial message is saved; a stall after partial text finalizes and
   saves the partial reply.
@@ -48,8 +48,8 @@ is owned by `AI`; prompt assembly is owned by `PROMPT`; the character entity and
 ### Rolling conversation summary
 - **CHAT-10** The chat maintains a rolling **conversation summary** (`Chat.chat_summary`) used as
   long-term memory in the prompt (`PROMPT-3` chat-context section). After every fixed interval of
-  messages (Soulfire-OG: 20), a background pass regenerates the summary from the recent window
-  (Soulfire-OG: last 40 messages), folding the previous summary in, and resets the
+  20 messages, a background pass regenerates the summary from the last 40 messages, folding the
+  previous summary in, and resets the
   `messages_since_summary` counter. The summary captures key topics, decisions, emotional dynamics,
   and continuing context, written in third person.
 - **CHAT-11** Summary generation is a background pass (`AI-14`): it does not block the player's next
@@ -59,8 +59,8 @@ is owned by `AI`; prompt assembly is owned by `PROMPT`; the character entity and
 - **CHAT-12** For characters that have both a persona profile (`extracted_context`) and a dynamic
   state (`character_state`) — i.e. world-extracted characters — the app runs a background
   **character-state update** after the character replies. It regenerates `character_state` from the
-  recent conversation window (Soulfire-OG: last 10 messages) using the state/utility model (`AI-8`)
-  at low temperature, treating the persona profile as immutable and producing an evolution (not a
+  last 10 messages using the state/utility model (`AI-8`) at temperature 0.3, treating the persona
+  profile as immutable and producing an evolution (not a
   rewrite) of the dynamic state across emotional state, relationship with the player, current
   concerns, and unresolved threads.
 - **CHAT-13** Character-state updates are **serialized and coalesced per character** (`AI-14`): only

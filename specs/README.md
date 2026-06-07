@@ -43,6 +43,9 @@ specs cross-link by requirement ID (`PREFIX-n`).
 - Soulfire-OG is the **behavioral reference**. Where this spec quotes prompt text or names a contract
   field, that text/field is taken from Soulfire-OG and is normative for the rebuild unless a
   requirement explicitly changes it.
+- Requirements that say to reproduce Soulfire-OG are intentional references to the OG source, not
+  permission to build a reduced summary implementation. Implementers inspect and port the relevant OG
+  behavior directly, trimming only the systems this spec explicitly removes.
 - Soulfire-OG persisted "record" shapes are the basis for `DATA`; the rebuild keeps the same field
   names and semantics so prompts and behavior port unchanged, dropping account/billing/moderation
   fields.

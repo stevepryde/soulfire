@@ -65,17 +65,17 @@ game-master instruction text is carried verbatim in implementation (`PROD-7`).
     stable `evt_N` ids and weight 1–5, capped at 30 via weighted age-decay pruning (priority falls
     as events age relative to `next_significant_event_id`).
   - **Story summary** (`story_summary`): a markdown blob with a `## Rolling Story` recap (a few
-    past-tense third-person paragraphs) and a `## Recent Turns` newest-first list capped at ~5.
+    past-tense third-person paragraphs) and a `## Recent Turns` newest-first list capped at 5.
 - **WORLD-10** Memory stores tolerate legacy/garbled input (a non-JSON value is coerced to a single
   entry) and are never silently wiped: a state update that returns empty memory while prior memory
   was non-empty keeps the prior memory.
 
 ### State-update reconciliation (diff-first with full fallback)
 - **WORLD-11** The state-update phase chooses a path: if the live state is large (Soulfire-OG
-  threshold ≈10,000 chars) a compaction directive is injected; if a fixed number of diff updates have
-  accumulated (Soulfire-OG threshold 15) a **full** reconciliation runs; otherwise a **diff** update
-  runs and, on any diff error, falls back to a full reconciliation. State-update calls run at low
-  temperature (Soulfire-OG ≈0.15) and request JSON.
+  threshold: more than 10,000 chars) a compaction directive is injected; if 15 diff updates have
+  accumulated a **full** reconciliation runs; otherwise a **diff** update runs and, on any diff
+  error, falls back to a full reconciliation. State-update calls run at temperature 0.15 and request
+  JSON.
 - **WORLD-12** A **diff update** returns dot-notation **patches** plus memory updates. Each patch has
   a `path` (dot-delimited; numeric segments index arrays), an op (**set** default, **append**,
   **remove**), and a value; setting a value to null removes a key; append spreads array values;

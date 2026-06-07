@@ -115,18 +115,26 @@ Image bytes/storage are owned by `IMG`.
   `prompt_extension` (0,10000) injected into adventures. Editing it affects only adventures started
   afterward.
 - **DATA-18** **AppSettings** (one row) holds: the active accent **color theme** (one of seven, see
-  UI), and the content/prompt toggles owned by `PROMPT` (including the adult-content toggle).
+  UI), and the content/prompt toggles owned by `PROMPT` (including the adult-content toggle). The
+  default color theme is Purple; the adult-content toggle defaults to off (`PROMPT-8`).
 - **DATA-19** **Credentials** (provider API keys) are stored encrypted (see SEC). Each entry records
   the provider and the secret key value; the key value is never logged or shown in full after entry
   (masked display).
+- **DATA-24** **InstallState** (one row) holds first-run and seed bookkeeping: `first_run_completed`
+  (default false), `starter_seed_version` (default 0), and a `starter_worlds` ledger keyed by stable
+  starter seed id, recording the created `blueprint_id?`, `seeded_at?`, and whether the user deleted
+  that seeded starter. This state prevents first-run auto-start and starter seeding from recurring.
 
 ### Metrics
 - **DATA-20a** A **UsageMetric** record (one per metered AI request) has: `metric_id` (prefix
   `metric`), `created_at`, a `label` (what the request was for, e.g. `chat_message`,
   `chat_summary`, `character_state_update`, `adventure_action`, `adventure_diff_state_update`,
-  `world_builder`, `image_generation`), an optional `chat_id`, `input_tokens`, `output_tokens`,
-  optional `cached_input_tokens`, and `ai_model` (`AI`). This is the basis for token statistics
-  (`STAT`). Records with zero input, cached input and output tokens are not written.
+  `world_builder`, `image_generation`), optional `chat_id`, optional `adventure_id`, optional
+  `blueprint_id`, optional `character_id`, `input_tokens`, `output_tokens`, optional
+  `cached_input_tokens`, and `ai_model` (`AI`). These associations are populated whenever the request
+  belongs to that entity, so token statistics can roll up by chat, adventure, world, character,
+  model, operation, and time (`STAT`). Records with zero input, cached input and output tokens are not
+  written.
 
 ### Shared enums & assets
 - **DATA-20** **Avatar/cover emoji selections** are fixed enumerations matching Soulfire-OG:
@@ -136,13 +144,24 @@ Image bytes/storage are owned by `IMG`.
   Soulfire-OG.
 - **DATA-21** **Bundled starter content** (curated starter worlds shipped with the app, see ONB) is
   seeded as ordinary `WorldBlueprint` rows on first launch and is thereafter user-editable and
-  user-deletable like any other world.
+  user-deletable like any other world. The shipped starter catalog is explicit data with stable
+  `seed_id`, `title`, `description`, `world_prompt`, `image`, and `image_transform` values; the launch
+  catalog includes `beneath_verath` ("Beneath Verath") as the lead starter.
+- **DATA-25** A fresh encrypted store is initialized with exactly one `AppProfile`, one
+  `PlayerProfile`, one `AppSettings`, one `InstallState`, and no characters, chats, adventures,
+  messages, metrics, or credentials until first-run setup saves the OpenAI key. Starter worlds are
+  seeded only by the onboarding flow (`ONB-5`) using the `InstallState` ledger.
+- **DATA-26** A **Draft** record stores unsent composer text: `draft_id` (prefix `draft`), `version`,
+  `created_at`, `updated_at`, `scope` (`chat` with `chat_id` | `adventure` with `adventure_id`), and
+  `content` (0,10000). At most one draft exists per scope. Drafts are local UI state, are never sent to
+  the AI until the user submits them, and are deleted when their chat or adventure is deleted.
 
 ### Integrity
 - **DATA-22** Deleting a Character deletes its chat and that chat's messages and builder session.
   Deleting a Chat deletes its messages but not the Character. Deleting a WorldBlueprint deletes its
   builder session; its Adventures are also removed (and their messages and any pending GmProposals).
-  Deleting an Adventure deletes its messages and pending proposals only. No orphan rows remain.
+  Deleting an Adventure deletes its messages and pending proposals only. Deleting a Chat or Adventure
+  deletes its draft. No orphan rows remain.
 - **DATA-23** All reads and writes are consistent within a single process: a saved change is visible
   to subsequent reads, and the persisted record is the single source of truth for what the UI shows
   and what the AI layer sends.
@@ -157,12 +176,16 @@ Image bytes/storage are owned by `IMG`.
 - **AC-DATA-c** (DATA-10, DATA-11) An adventure round-trips with its live `adventure_state` and all
   three memory layers, `story_status`, and turn bookkeeping intact; the per-adventure `world_prompt`
   copy is independent of the source blueprint.
-- **AC-DATA-d** (DATA-16..19) Exactly one AppProfile, one PlayerProfile, one AppSettings row exist;
-  credentials persist across restarts and never appear unmasked in logs or UI.
+- **AC-DATA-d** (DATA-16..19, DATA-24, DATA-25) A fresh store contains exactly one AppProfile, one
+  PlayerProfile, one AppSettings, and one InstallState row, with the documented defaults and no
+  characters/chats/adventures/messages/metrics/credentials until setup creates them; credentials
+  persist across restarts and never appear unmasked in logs or UI.
 - **AC-DATA-e** (DATA-22) After deleting a character/world/adventure, a store scan finds no messages,
-  builder sessions, proposals, or chats referencing the deleted entity.
-- **AC-DATA-f** (DATA-20a) Each metered AI call writes exactly one UsageMetric with correct label and
-  token counts; a zero/zero call writes none.
+  builder sessions, proposals, drafts, or chats referencing the deleted entity.
+- **AC-DATA-f** (DATA-20a) Each metered AI call writes exactly one UsageMetric with correct label,
+  token counts, and applicable entity associations; a zero/zero call writes none.
+- **AC-DATA-g** (DATA-26) Saving a chat or adventure draft replaces any prior draft for that scope;
+  reopening the same chat/adventure restores the draft; submitting or deleting the parent clears it.
 
 ## Design notes (non-normative)
 

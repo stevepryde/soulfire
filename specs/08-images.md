@@ -33,8 +33,8 @@ provider call by `AI`; at-rest protection by `SEC`; screens by `UI`.
 ### Rendering precedence & framing
 - **IMG-7** When an entity has a stored image (generated or uploaded), it is rendered with the
   entity's stored **transform** (pan x/y percent, zoom percent). The character editor frames within a
-  **round** crop (zoom up to ~240%); the world editor frames within a **16:6** rectangle (zoom up to
-  ~220%). Both editors support drag-to-pan, a zoom control, and a reset-framing action, on pointer and
+  **round** crop (zoom up to 240%); the world editor frames within a **16:6** rectangle (zoom up to
+  220%). Both editors support drag-to-pan, a zoom control, and a reset-framing action, on pointer and
   touch input. The transform persists with the entity (`DATA-1`/`DATA-8`).
 - **IMG-8** Rendering precedence matches Soulfire-OG: a stored image (with transform) takes precedence
   over the entity's emoji selection, which takes precedence over a bundled default. World cover

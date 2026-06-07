@@ -48,14 +48,15 @@ Prefix: `TEST`.
   fields intact; ID prefix correctness; validation and clamping on save (creativity controls, length
   bounds); reaction filtering to the allowed emoji set; singleton enforcement (one app profile, one
   player profile, one settings row); and referential integrity / cascade deletes leaving no orphans.
-  (Validates [data-model.md](01-data-model.md) DATA-1..23.)
+  (Validates [data-model.md](01-data-model.md) DATA-1..26, including DATA-20a.)
 - **TEST-8 Security coverage.** Automated tests prove at-rest protection and unlock: stored content and
   credentials are **unreadable on disk without the key**; opening data requires the correct master
   password; a wrong password leaves the store locked, intact, and inaccessible; re-key makes the old
   password fail and the new one succeed; the device-remembered unlock (via the substituted keychain,
-  TEST-5) unlocks without a prompt and is removed when disabled; and an API key never appears
-  unmasked in any error, log line, or returned value. (Validates [storage-security.md](02-storage-security.md)
-  SEC-1..12.)
+  TEST-5) unlocks without a prompt and is removed when disabled; biometric unlock gating, when
+  implemented, defaults off and requires the substituted biometric gate before releasing a remembered
+  unlock secret; and an API key never appears unmasked in any error, log line, or returned value.
+  (Validates [storage-security.md](02-storage-security.md) SEC-1..13.)
 - **TEST-9 AI layer coverage.** Against the substituted provider (TEST-5): a missing key for the
   required provider produces an actionable "add your API key" condition and sends nothing; structured
   calls return schema-conforming objects and a fenced ```` ```json ```` response parses; model
@@ -143,8 +144,8 @@ as they land. Each landed test names, in its body or name, the requirement ID(s)
 
 | Area | Requirements | Validated by |
 |------|--------------|--------------|
-| Data model & store | [01-data-model.md](01-data-model.md) DATA-1..23 | store unit + integration tests (round-trip, id prefixes, validation/clamping, reaction filtering, singletons, cascade-delete integrity) |
-| Storage & security | [02-storage-security.md](02-storage-security.md) SEC-1..12 | encryption + unlock tests (ciphertext-on-disk, password required, wrong-password lock, re-key, substituted-keychain remember/remove, key-never-leaks) |
+| Data model & store | [01-data-model.md](01-data-model.md) DATA-1..26 incl. DATA-20a | store unit + integration tests (round-trip, id prefixes, validation/clamping, reaction filtering, fresh-store defaults, starter seed ledger, usage associations, draft restore/clear, singletons, cascade-delete integrity) |
+| Storage & security | [02-storage-security.md](02-storage-security.md) SEC-1..13 | encryption + unlock tests (ciphertext-on-disk, password required, wrong-password lock, re-key, substituted-keychain remember/remove, biometric gate when implemented, key-never-leaks) |
 | AI integration | [03-ai-integration.md](03-ai-integration.md) AI-1..16 | AI-layer tests vs substituted provider (missing-key, structured + fence parse, model precedence/persist, streaming + idle-timeout, retry/error, metering) |
 | System prompts | [04-system-prompts.md](04-system-prompts.md) PROMPT-1..12 | prompt assembly unit tests + golden snapshots (section order, locked/editable, toggles incl. adult content, viewer↔editor one-source) |
 | Character chat | [05-chat.md](05-chat.md) CHAT-1..14 | chat flow tests (opening, stream, reaction extraction, summary cadence/reset, per-character coalesced state update) |

@@ -46,7 +46,8 @@ by `DATA`/`STAT`.
 - **AI-8** The registry defines task **defaults**, matching Soulfire-OG's split: a default
   **chat/narrative** model (used for chat replies and adventure narration) and a default
   **state/utility** model (used for adventure state updates, summaries, classification, and other
-  background passes — a cheaper/faster model). These defaults are used when no explicit model is
+  background passes — a cheaper/faster model). The launch defaults are GPT-5.1 for chat/narrative
+  work and GPT-5.4 Nano for state/utility work. These defaults are used when no explicit model is
   chosen.
 - **AI-9** Model selection precedence for a given operation is: the entity's stored model (e.g.
   `Chat.ai_model`, `Adventure.ai_model`) if set, else the app profile's `default_ai_model`

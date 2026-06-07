@@ -46,8 +46,10 @@ sections is carried verbatim from Soulfire-OG in implementation (it is the behav
   structure and the three reusable stance blocks: the intensity/agency-balance guidance, the
   consent-gating ban, and the mature-roleplay stance. Their composition and JSON contracts are
   detailed in `WORLD`; their locked/editable classification and the content toggles (PROMPT-6) apply
-  here identically. The world blueprint prompt embedded in narration is *editable content* (it is the
-  user's world); the surrounding game-master instructions are *locked*.
+  here identically. The original world blueprint prompt is editable through the world editor and
+  affects future adventures; an adventure's private `world_prompt` snapshot is adventure-scoped and
+  can be changed only by accepting a staged `/gm` proposal (`WORLD-17`). The surrounding game-master
+  instructions are *locked*.
 
 ### Content toggles
 - **PROMPT-6** The app exposes user **content toggles** in settings (`DATA-18`) that switch defined
@@ -60,8 +62,9 @@ sections is carried verbatim from Soulfire-OG in implementation (it is the behav
   never remove a section the app requires to function (e.g. the structural wrappers, the JSON-output
   contracts for state updates, the reactions rule). The set of toggle-controlled sub-sections is
   fixed and enumerable.
-- **PROMPT-8** The default state of the Adult-content toggle is a single product default applied on
-  first run; the user can change it at any time and the change is durable (`DATA-18`).
+- **PROMPT-8** The Adult-content toggle defaults to **off** on first run; the user can change it at
+  any time and the change is durable (`DATA-18`). When off, the mature-roleplay stance is omitted
+  from prompts.
 
 ### Prompt viewer / editor (new feature)
 - **PROMPT-9** For any character and any adventure, the user can open a **prompt view** that shows
@@ -70,8 +73,11 @@ sections is carried verbatim from Soulfire-OG in implementation (it is the behav
   field, toggle, world prompt, extracted context, dynamic state, etc.).
 - **PROMPT-10** From the prompt view, **editable** sections are editable in place and saved back to
   their backing field: the Character Prompt section saves to `Character.prompt`; toggle-controlled
-  sub-sections are switched via their toggles; the world blueprint content links to the world editor.
-  **Locked** sections are read-only and visibly marked as required.
+  sub-sections are switched via their toggles; original world blueprint content links to the world
+  editor for future adventures. For an existing adventure, the private `world_prompt` snapshot is not
+  directly edited in the prompt view; current-adventure changes go through `/gm` and the staged
+  Accept/Reject proposal flow (`WORLD-17`). **Locked** sections are read-only and visibly marked as
+  required.
 - **PROMPT-11** The prompt view shows an **estimated token count** for the assembled prompt and per
   section, using the selected model's tokenizer basis (`AI-16`), so the user can see how much of the
   context budget their edits and the dynamic context (history, summaries, state) consume. (Token
@@ -85,9 +91,9 @@ sections is carried verbatim from Soulfire-OG in implementation (it is the behav
 - **AC-PROMPT-a** (PROMPT-1, PROMPT-3) For a world-linked character with a dynamic state, the
   assembled prompt contains the named sections in the specified order; for a plain character, the
   optional sections are absent but the order of present sections is unchanged.
-- **AC-PROMPT-b** (PROMPT-6, PROMPT-8) Turning the Adult-content toggle off removes the mature-stance
-  text from both a character-chat prompt and an adventure narration prompt; turning it on restores
-  it; the setting persists across restart.
+- **AC-PROMPT-b** (PROMPT-6, PROMPT-8) On a fresh install the Adult-content toggle is off and the
+  mature-stance text is absent from both a character-chat prompt and an adventure narration prompt;
+  turning it on restores it; the setting persists across restart.
 - **AC-PROMPT-c** (PROMPT-7) With every toggle off, the structural wrappers, the reactions rule, and
   the adventure state-update JSON contract are still present.
 - **AC-PROMPT-d** (PROMPT-9, PROMPT-10) The prompt view lists each section with a correct
