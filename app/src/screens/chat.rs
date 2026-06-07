@@ -157,13 +157,20 @@ pub fn Chat(character_id: CharacterId) -> Element {
 
 #[component]
 fn ChatBody(chat_id: ChatId) -> Element {
+    use lib_soulfire::draft::{Draft, DraftScope};
+    use lib_soulfire::strings::DraftContent;
     data::subscribe();
     let app = current_app();
     let messages = app.store.chat_messages(&chat_id).unwrap_or_default();
+    let scope = DraftScope::Chat { chat_id: chat_id.clone() };
 
-    let mut input = use_signal(String::new);
+    // Restore any in-progress message draft (DATA-26, UI-14).
+    let restored = app.store.draft_for_scope(&scope).ok().flatten().map(|d| d.content.to_string()).unwrap_or_default();
+    let mut input = use_signal(|| restored);
     let mut streaming = use_signal(String::new);
     let mut busy = use_signal(|| false);
+    let app_draft = app.clone();
+    let id_draft = chat_id.clone();
 
     let send = use_callback(move |_: ()| {
         let text = input().trim().to_string();
@@ -171,6 +178,7 @@ fn ChatBody(chat_id: ChatId) -> Element {
             return;
         }
         input.set(String::new());
+        let _ = app.store.delete_draft_for_scope(&DraftScope::Chat { chat_id: chat_id.clone() });
         let app = app.clone();
         let cid = chat_id.clone();
         busy.set(true);
@@ -209,7 +217,14 @@ fn ChatBody(chat_id: ChatId) -> Element {
                     placeholder: "Message…",
                     value: "{input}",
                     disabled: busy(),
-                    oninput: move |e| input.set(e.value()),
+                    oninput: move |e| {
+                        input.set(e.value());
+                        let d = Draft::builder()
+                            .scope(DraftScope::Chat { chat_id: id_draft.clone() })
+                            .content(DraftContent::coerce(&e.value()))
+                            .build();
+                        let _ = app_draft.store.save_draft(&d);
+                    },
                     onkeydown: move |e| if e.key() == Key::Enter && !e.modifiers().shift() {
                         e.prevent_default();
                         send(());

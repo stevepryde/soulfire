@@ -16,3 +16,4 @@ dioxus = { workspace = true, features = ["desktop"] }
 anyhow = { workspace = true }
 directories = "6"
 tracing = { workspace = true }
+base64 = "0.22"

@@ -6,6 +6,9 @@ use sp_ui::toast::ToastService;
 use lib_soulfire::ids::AdventureId;
 use lib_soulfire::world::{AdventureMessage, AdventureMessageType, GmProposal};
 
+use lib_soulfire::draft::{Draft, DraftScope};
+use lib_soulfire::strings::DraftContent;
+
 use soulfire_core::world::TurnOutcome;
 
 use crate::app::current_app;
@@ -17,6 +20,7 @@ pub fn Play(adventure_id: AdventureId) -> Element {
     data::subscribe();
     let app = current_app();
     let id = adventure_id.clone();
+    let scope = DraftScope::Adventure { adventure_id: adventure_id.clone() };
 
     let Some(adventure) = app.store.adventure(&id).ok().flatten() else {
         return rsx! { div { class: "p-8 text-center text-secondary-text", "Adventure not found." } };
@@ -24,13 +28,24 @@ pub fn Play(adventure_id: AdventureId) -> Element {
     let messages = app.store.adventure_messages(&id).unwrap_or_default();
     let pending = app.store.pending_gm_proposals(&id).unwrap_or_default();
 
-    let mut input = use_signal(String::new);
+    // Restore any in-progress action draft (DATA-26, UI-12).
+    let restored = app
+        .store
+        .draft_for_scope(&scope)
+        .ok()
+        .flatten()
+        .map(|d| d.content.to_string())
+        .unwrap_or_default();
+    let mut input = use_signal(|| restored);
     let mut streaming = use_signal(String::new);
     let mut busy = use_signal(|| false);
     let mut status = use_signal(|| "What do you do?".to_string());
     let mut npc_open = use_signal(|| false);
     let mut npc_name = use_signal(String::new);
     let mut extracting = use_signal(|| false);
+
+    let app_draft = app.clone();
+    let id_draft = adventure_id.clone();
 
     // Extraction is offered once the adventure has progressed (CHAR-10, UI-10).
     let progressed = !messages.is_empty();
@@ -74,6 +89,7 @@ pub fn Play(adventure_id: AdventureId) -> Element {
             return;
         }
         input.set(String::new());
+        let _ = app.store.delete_draft_for_scope(&DraftScope::Adventure { adventure_id: id.clone() });
         let app = app.clone();
         let id = id.clone();
         busy.set(true);
@@ -171,7 +187,14 @@ pub fn Play(adventure_id: AdventureId) -> Element {
                             placeholder: "Type an action, or /gm to ask the game master…",
                             value: "{input}",
                             disabled: busy(),
-                            oninput: move |e| input.set(e.value()),
+                            oninput: move |e| {
+                                input.set(e.value());
+                                let d = Draft::builder()
+                                    .scope(DraftScope::Adventure { adventure_id: id_draft.clone() })
+                                    .content(DraftContent::coerce(&e.value()))
+                                    .build();
+                                let _ = app_draft.store.save_draft(&d);
+                            },
                             onkeydown: move |e| if e.key() == Key::Enter && !e.modifiers().shift() {
                                 e.prevent_default();
                                 send(());

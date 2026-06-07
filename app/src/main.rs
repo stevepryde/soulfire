@@ -8,6 +8,7 @@
 mod app;
 mod components;
 mod data;
+mod image_util;
 mod nav;
 mod screens;
 mod state;

@@ -8,7 +8,7 @@ use sp_ui::toast::ToastService;
 
 use lib_soulfire::character::{Character, CreativityControls, InitialMessage};
 use lib_soulfire::ids::{CharacterId, WorldBlueprintId};
-use lib_soulfire::images::CharacterImage;
+use lib_soulfire::images::{CharacterImage, ImageTransform};
 use lib_soulfire::strings::{
     CharacterDescription, CharacterName, CharacterPrompt, CharacterSubtitle, InitialMessageText,
     WorldDescription, WorldPrompt, WorldTitle,
@@ -96,8 +96,10 @@ pub fn CharacterEditor(id: Option<CharacterId>) -> Element {
 
     rsx! {
         Page { title: if is_edit { "Edit Character".to_string() } else { "New Character".to_string() },
-            // Avatar.
-            Field { label: "Avatar".to_string(),
+            // Portrait (generated/uploaded) with crop, or emoji avatar (IMG-7/8).
+            Field { label: "Portrait".to_string(), PortraitSection { character_id: id.clone() } }
+            // Avatar emoji.
+            Field { label: "Avatar (used when no portrait)".to_string(),
                 div { class: "flex flex-wrap gap-2",
                     for choice in AVATAR_CHOICES {
                         button {
@@ -204,6 +206,7 @@ pub fn WorldEditor(id: Option<WorldBlueprintId>) -> Element {
 
     rsx! {
         Page { title: if is_edit { "Edit World".to_string() } else { "New World".to_string() },
+            Field { label: "Cover".to_string(), CoverSection { blueprint_id: id.clone() } }
             Field { label: "Title".to_string(),
                 input { class: "input-premium w-full", value: "{title}", oninput: move |e| title.set(e.value()) }
             }
@@ -224,6 +227,181 @@ pub fn WorldEditor(id: Option<WorldBlueprintId>) -> Element {
                     }
                 }
             }
+        }
+    }
+}
+
+/// Character portrait: generate/regenerate/clear and a pan/zoom/reset framing
+/// editor (`IMG-1`..`IMG-3`, `IMG-7`, `IMG-8`).
+#[component]
+fn PortraitSection(character_id: Option<CharacterId>) -> Element {
+    use soulfire_core::store::ImageOwnerKind;
+    let app = current_app();
+    let Some(cid) = character_id else {
+        return rsx! { p { class: "text-sm text-secondary-text", "Save the character first to add a portrait." } };
+    };
+    let character = app.store.character(&cid).ok().flatten();
+    let has = character.as_ref().and_then(|c| c.portrait).is_some();
+    let transform = character.as_ref().map(|c| c.image_transform).unwrap_or_default();
+    let uri = if has {
+        crate::image_util::data_uri(&app, ImageOwnerKind::Character, &cid.to_string())
+    } else {
+        None
+    };
+    let mut generating = use_signal(|| false);
+
+    let regen = {
+        let app = app.clone();
+        let cid = cid.clone();
+        use_callback(move |_: ()| {
+            if !app.has_api_key() {
+                ToastService::info("Add your OpenAI key in Settings to generate images.");
+                return;
+            }
+            let app = app.clone();
+            let cid = cid.clone();
+            generating.set(true);
+            spawn(async move {
+                match app.image.generate_character_portrait(&cid).await {
+                    Ok(_) => data::touch(),
+                    Err(e) => ToastService::error(&format!("{e}")),
+                }
+                generating.set(false);
+            });
+        })
+    };
+    let clear = {
+        let app = app.clone();
+        let cid = cid.clone();
+        use_callback(move |_: ()| {
+            let _ = app.image.clear_character_portrait(&cid);
+            data::touch();
+        })
+    };
+    let set_transform = {
+        let app = app.clone();
+        let cid = cid.clone();
+        use_callback(move |t: ImageTransform| {
+            if let Some(mut c) = app.store.character(&cid).ok().flatten() {
+                c.image_transform = t;
+                let _ = app.store.save_character(&c);
+                data::touch();
+            }
+        })
+    };
+
+    rsx! {
+        if let Some(uri) = uri {
+            div { class: "flex flex-col sm:flex-row items-start gap-4",
+                div { class: "w-32 h-32 rounded-full overflow-hidden bg-surface border border-border shrink-0",
+                    img { src: "{uri}", style: crate::image_util::transform_style(transform) }
+                }
+                div { class: "flex-1 w-full",
+                    FramingControls { transform, on_change: move |t| set_transform(t) }
+                    div { class: "flex gap-2 mt-3",
+                        button { class: "px-3 py-1.5 rounded-lg border border-border text-sm text-secondary-text hover-highlight disabled:opacity-40", disabled: generating(), onclick: move |_| regen(()), if generating() { "…" } else { "Regenerate" } }
+                        button { class: "px-3 py-1.5 rounded-lg border border-border text-sm text-secondary-text hover-highlight", onclick: move |_| clear(()), "Remove" }
+                    }
+                }
+            }
+        } else {
+            button {
+                class: "px-4 py-2 rounded-lg border border-border text-primary-text hover-highlight disabled:opacity-40",
+                disabled: generating(),
+                onclick: move |_| regen(()),
+                if generating() { "Generating…" } else { "✨ Generate portrait" }
+            }
+        }
+    }
+}
+
+/// World cover: generate/clear and framing (`IMG`).
+#[component]
+fn CoverSection(blueprint_id: Option<WorldBlueprintId>) -> Element {
+    use soulfire_core::store::ImageOwnerKind;
+    let app = current_app();
+    let Some(bid) = blueprint_id else {
+        return rsx! { p { class: "text-sm text-secondary-text", "Save the world first to add a cover." } };
+    };
+    let bp = app.store.blueprint(&bid).ok().flatten();
+    let has = bp.as_ref().and_then(|b| b.cover).is_some();
+    let transform = bp.as_ref().map(|b| b.image_transform).unwrap_or_default();
+    let uri = if has {
+        crate::image_util::data_uri(&app, ImageOwnerKind::World, &bid.to_string())
+    } else {
+        None
+    };
+    let mut generating = use_signal(|| false);
+    let regen = {
+        let app = app.clone();
+        let bid = bid.clone();
+        use_callback(move |_: ()| {
+            if !app.has_api_key() {
+                ToastService::info("Add your OpenAI key in Settings to generate images.");
+                return;
+            }
+            let app = app.clone();
+            let bid = bid.clone();
+            generating.set(true);
+            spawn(async move {
+                match app.image.generate_world_cover(&bid).await {
+                    Ok(_) => data::touch(),
+                    Err(e) => ToastService::error(&format!("{e}")),
+                }
+                generating.set(false);
+            });
+        })
+    };
+    let clear = {
+        let app = app.clone();
+        let bid = bid.clone();
+        use_callback(move |_: ()| {
+            let _ = app.image.clear_world_cover(&bid);
+            data::touch();
+        })
+    };
+
+    rsx! {
+        if let Some(uri) = uri {
+            div {
+                div { class: "w-full rounded-lg overflow-hidden bg-surface border border-border mb-2", style: "aspect-ratio: 16 / 6;",
+                    img { src: "{uri}", style: crate::image_util::transform_style(transform) }
+                }
+                button { class: "px-3 py-1.5 rounded-lg border border-border text-sm text-secondary-text hover-highlight disabled:opacity-40", disabled: generating(), onclick: move |_| regen(()), if generating() { "…" } else { "Regenerate" } }
+                button { class: "ml-2 px-3 py-1.5 rounded-lg border border-border text-sm text-secondary-text hover-highlight", onclick: move |_| clear(()), "Remove" }
+            }
+        } else {
+            button {
+                class: "px-4 py-2 rounded-lg border border-border text-primary-text hover-highlight disabled:opacity-40",
+                disabled: generating(),
+                onclick: move |_| regen(()),
+                if generating() { "Generating…" } else { "✨ Generate cover" }
+            }
+        }
+    }
+}
+
+/// Pan/zoom/reset sliders for an image transform (`IMG-7`).
+#[component]
+fn FramingControls(transform: ImageTransform, on_change: EventHandler<ImageTransform>) -> Element {
+    rsx! {
+        div { class: "space-y-2",
+            div {
+                label { class: "text-xs text-secondary-text", "Zoom" }
+                input { class: "w-full", r#type: "range", min: "100", max: "240", value: "{transform.zoom_percent}",
+                    oninput: move |e| if let Ok(v) = e.value().parse() { on_change.call(ImageTransform { zoom_percent: v, ..transform }) } }
+            }
+            div {
+                label { class: "text-xs text-secondary-text", "Pan X" }
+                input { class: "w-full", r#type: "range", min: "-100", max: "100", value: "{transform.pan_x_percent}",
+                    oninput: move |e| if let Ok(v) = e.value().parse() { on_change.call(ImageTransform { pan_x_percent: v, ..transform }) } }
+            }
+            div {
+                label { class: "text-xs text-secondary-text", "Pan Y" }
+                input { class: "w-full", r#type: "range", min: "-100", max: "100", value: "{transform.pan_y_percent}",
+                    oninput: move |e| if let Ok(v) = e.value().parse() { on_change.call(ImageTransform { pan_y_percent: v, ..transform }) } }
+            }
+            button { class: "text-xs text-link hover:underline", onclick: move |_| on_change.call(ImageTransform::default()), "Reset framing" }
         }
     }
 }
