@@ -3,6 +3,7 @@
 pub mod chat;
 pub mod editors;
 pub mod play;
+pub mod prompt_viewer;
 pub mod settings;
 pub mod worlds;
 
@@ -22,6 +23,7 @@ pub fn render_active() -> Element {
         Screen::Settings => rsx! { settings::Settings {} },
         Screen::Profile => rsx! { settings::Profile {} },
         Screen::Stats => rsx! { settings::Stats {} },
+        Screen::PromptViewer(id) => rsx! { prompt_viewer::PromptViewer { character_id: id } },
     }
 }
 

@@ -97,6 +97,7 @@ fn Cover(emoji: String, completed: bool) -> Element {
 
 #[component]
 fn AdventureCard(adventure: Adventure) -> Element {
+    let app = current_app();
     let title = adventure
         .world_title
         .as_ref()
@@ -109,15 +110,37 @@ fn AdventureCard(adventure: Adventure) -> Element {
         .map(|d| d.to_string())
         .unwrap_or_default();
     let adv_id = adventure.adventure_id.clone();
+    let del_id = adventure.adventure_id.clone();
+    let mut confirming = use_signal(|| false);
     rsx! {
         div { class: "bg-surface border border-border rounded-xl p-4",
             Cover { emoji, completed: adventure.has_completed }
             h3 { class: "font-semibold text-primary-text mb-1", "{title}" }
             p { class: "text-sm text-secondary-text line-clamp-2 mb-3", "{desc}" }
-            button {
-                class: "crm-primary-button w-full py-2 rounded-lg text-sm",
-                onclick: move |_| navigate(Screen::Play(adv_id.clone())),
-                if adventure.has_completed { "Review Adventure" } else { "Continue Adventure" }
+            div { class: "flex gap-2",
+                button {
+                    class: "crm-primary-button flex-1 py-2 rounded-lg text-sm",
+                    onclick: move |_| navigate(Screen::Play(adv_id.clone())),
+                    if adventure.has_completed { "Review Adventure" } else { "Continue Adventure" }
+                }
+                button {
+                    class: "px-3 py-2 rounded-lg border border-border text-secondary-text hover-highlight text-sm",
+                    onclick: move |_| confirming.set(true),
+                    "Delete"
+                }
+            }
+            crate::components::ConfirmDialog {
+                open: confirming(),
+                title: "Delete adventure?".to_string(),
+                message: "This permanently deletes this playthrough and its turn log.".to_string(),
+                danger: true,
+                confirm_label: "Delete".to_string(),
+                on_confirm: move |_| {
+                    let _ = app.store.delete_adventure(&del_id);
+                    confirming.set(false);
+                    data::touch();
+                },
+                on_cancel: move |_| confirming.set(false),
             }
         }
     }
@@ -127,15 +150,32 @@ fn AdventureCard(adventure: Adventure) -> Element {
 fn WorldCard(blueprint: WorldBlueprint) -> Element {
     let app = current_app();
     let emoji = blueprint.image.map(|i| i.emoji()).unwrap_or("🌍").to_string();
+    let app_del = app.clone();
     let bp = blueprint.clone();
     let bp_edit = blueprint.blueprint_id.clone();
+    let bp_del = blueprint.blueprint_id.clone();
     let mut starting = use_signal(|| false);
+    let mut confirming = use_signal(|| false);
 
     rsx! {
         div { class: "bg-surface border border-border rounded-xl p-4",
             Cover { emoji, completed: false }
             h3 { class: "font-semibold text-primary-text mb-1", "{blueprint.title}" }
             p { class: "text-sm text-secondary-text line-clamp-2 mb-3", "{blueprint.description}" }
+            crate::components::ConfirmDialog {
+                open: confirming(),
+                title: "Delete world?".to_string(),
+                message: "This permanently deletes the world and all of its adventures.".to_string(),
+                danger: true,
+                confirm_label: "Delete".to_string(),
+                confirm_word: Some("delete".to_string()),
+                on_confirm: move |_| {
+                    let _ = app_del.store.delete_blueprint(&bp_del);
+                    confirming.set(false);
+                    data::touch();
+                },
+                on_cancel: move |_| confirming.set(false),
+            }
             div { class: "flex gap-2",
                 button {
                     class: "crm-primary-button flex-1 py-2 rounded-lg text-sm disabled:opacity-50",
@@ -158,6 +198,11 @@ fn WorldCard(blueprint: WorldBlueprint) -> Element {
                     class: "px-3 py-2 rounded-lg border border-border text-secondary-text hover-highlight text-sm",
                     onclick: move |_| navigate(Screen::WorldEditor(Some(bp_edit.clone()))),
                     "Edit"
+                }
+                button {
+                    class: "px-3 py-2 rounded-lg border border-border text-secondary-text hover-highlight text-sm",
+                    onclick: move |_| confirming.set(true),
+                    "🗑"
                 }
             }
         }

@@ -141,9 +141,16 @@ pub fn CharacterEditor(id: Option<CharacterId>) -> Element {
                     }
                 }
             }
-            div { class: "flex gap-2 mt-4",
+            div { class: "flex gap-2 mt-4 items-center",
                 button { class: "crm-primary-button px-6 py-2.5 rounded-lg", onclick: move |_| save(()), "Save" }
                 button { class: "px-6 py-2.5 rounded-lg border border-border text-secondary-text", onclick: move |_| navigate(Screen::Characters), "Cancel" }
+                if let Some(cid) = id.clone() {
+                    button {
+                        class: "ml-auto text-link text-sm hover:underline",
+                        onclick: move |_| navigate(Screen::PromptViewer(cid.clone())),
+                        "View system prompt →"
+                    }
+                }
             }
         }
     }

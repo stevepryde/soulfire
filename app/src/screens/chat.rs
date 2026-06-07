@@ -34,7 +34,7 @@ pub fn Characters() -> Element {
             } else {
                 div { class: "flex flex-col gap-2",
                     for c in characters.clone() {
-                        {character_row(c)}
+                        CharacterRow { character: c }
                     }
                 }
             }
@@ -42,18 +42,22 @@ pub fn Characters() -> Element {
     }
 }
 
-fn character_row(c: lib_soulfire::character::Character) -> Element {
-    let avatar = c.image.and_then(|i| i.emoji()).unwrap_or("🙂").to_string();
-    let cid_open = c.character_id.clone();
-    let cid_edit = c.character_id.clone();
-    let subtitle = c.subtitle.to_string();
+#[component]
+fn CharacterRow(character: lib_soulfire::character::Character) -> Element {
+    let app = current_app();
+    let avatar = character.image.and_then(|i| i.emoji()).unwrap_or("🙂").to_string();
+    let cid_open = character.character_id.clone();
+    let cid_edit = character.character_id.clone();
+    let cid_del = character.character_id.clone();
+    let subtitle = character.subtitle.to_string();
+    let mut confirming = use_signal(|| false);
     rsx! {
         div { class: "flex items-center gap-3 bg-surface border border-border rounded-xl p-3",
             div { class: "w-12 h-12 rounded-full bg-primary-lighter flex items-center justify-center text-2xl shrink-0", "{avatar}" }
             button {
                 class: "flex-1 text-left min-w-0",
                 onclick: move |_| navigate(Screen::Chat(cid_open.clone())),
-                p { class: "font-semibold text-primary-text truncate", "{c.name}" }
+                p { class: "font-semibold text-primary-text truncate", "{character.name}" }
                 if !subtitle.is_empty() {
                     p { class: "text-sm text-secondary-text truncate", "{subtitle}" }
                 }
@@ -62,6 +66,25 @@ fn character_row(c: lib_soulfire::character::Character) -> Element {
                 class: "px-3 py-1.5 rounded-lg border border-border text-secondary-text text-sm hover-highlight",
                 onclick: move |_| navigate(Screen::CharacterEditor(Some(cid_edit.clone()))),
                 "Edit"
+            }
+            button {
+                class: "px-3 py-1.5 rounded-lg border border-border text-secondary-text text-sm hover-highlight",
+                onclick: move |_| confirming.set(true),
+                "🗑"
+            }
+            crate::components::ConfirmDialog {
+                open: confirming(),
+                title: "Delete character?".to_string(),
+                message: "This permanently deletes the character and its chat.".to_string(),
+                danger: true,
+                confirm_label: "Delete".to_string(),
+                confirm_word: Some("delete".to_string()),
+                on_confirm: move |_| {
+                    let _ = app.store.delete_character(&cid_del);
+                    confirming.set(false);
+                    data::touch();
+                },
+                on_cancel: move |_| confirming.set(false),
             }
         }
     }

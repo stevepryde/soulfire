@@ -1,0 +1,18 @@
+[application]
+name = "Soulfire"
+# Desktop (Windows/macOS/Linux) and mobile (Android/iOS) share this crate
+# (PKG-1). `dx serve`/`dx build` pick the platform from the feature.
+default_platform = "desktop"
+
+[web.app]
+title = "Soulfire"
+
+[bundle]
+identifier = "com.soulfire.app"
+publisher = "Steve Pryde"
+
+# Tailwind: regenerate the bundled stylesheet from the source when classes
+# change (see docs/MANUAL_SMOKE.md). The compiled `assets/tailwind.css` is
+# committed so the app builds and styles without a Tailwind step.
+tailwind_input = "assets/input.css"
+tailwind_output = "assets/tailwind.css"

@@ -36,6 +36,8 @@ pub enum Screen {
     Profile,
     /// Token statistics (`STAT`, `UI-20`).
     Stats,
+    /// The prompt viewer/editor for a character (`PROMPT-9`).
+    PromptViewer(CharacterId),
 }
 
 impl Screen {
@@ -43,9 +45,10 @@ impl Screen {
     pub fn destination(&self) -> Destination {
         match self {
             Screen::WorldsHome | Screen::Play(_) | Screen::WorldEditor(_) => Destination::Worlds,
-            Screen::Characters | Screen::Chat(_) | Screen::CharacterEditor(_) => {
-                Destination::Characters
-            }
+            Screen::Characters
+            | Screen::Chat(_)
+            | Screen::CharacterEditor(_)
+            | Screen::PromptViewer(_) => Destination::Characters,
             Screen::Settings | Screen::Profile | Screen::Stats => Destination::Settings,
         }
     }

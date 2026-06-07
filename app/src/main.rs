@@ -6,6 +6,7 @@
 #![allow(non_snake_case)]
 
 mod app;
+mod components;
 mod data;
 mod nav;
 mod screens;
