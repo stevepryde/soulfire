@@ -14,6 +14,11 @@ use crate::state::{AppContext, data_dir, is_initialized};
 use crate::theme::theme_class;
 use crate::{data, screens};
 
+/// App icon shown in the title bar (ported from Soulfire-OG).
+const APP_ICON: Asset = asset!("/assets/images/app-icon.png");
+/// Placeholder avatar used for the profile button.
+const MISSING_PROFILE: Asset = asset!("/assets/images/missingprofile512.png");
+
 /// The root: loads the stylesheet and gates the app behind unlock (`UI-23`).
 #[component]
 pub fn App() -> Element {
@@ -141,8 +146,9 @@ fn LockScreen() -> Element {
     }
 }
 
-/// The unlocked app shell: themed surface, title bar / nav, and the active
-/// screen (`UI-4`, `UI-5`, `UI-6`).
+/// The unlocked app shell: themed surface, title bar, desktop sidebar / mobile
+/// bottom nav, and the active screen — ported from Soulfire-OG's `AppLayout`
+/// (`UI-4`, `UI-5`, `UI-6`).
 #[component]
 fn Shell() -> Element {
     let ctx_sig = use_context::<Signal<Option<AppContext>>>();
@@ -156,106 +162,200 @@ fn Shell() -> Element {
         .app_settings()
         .map(|s| s.color_theme)
         .unwrap_or_default();
+    // Immersive surfaces (play, chat) and the first-run story hide all chrome.
     let immersive = SCREEN.read().is_immersive() || onboarding();
+    let show_chrome = !immersive;
+    let content_class = if show_chrome {
+        "text-primary-text flex-grow w-full min-w-0 scrollbar-premium page-transition pb-16 md:pb-0"
+    } else {
+        "text-primary-text flex-grow w-full min-w-0 scrollbar-premium page-transition"
+    };
 
     rsx! {
-        div { class: "{theme_class(theme)} bg-background text-primary-text min-h-screen",
-            if onboarding() {
-                {screens::onboarding::render_first_run()}
-            } else if immersive {
-                // Immersive surfaces hide all chrome (UI-4).
-                {screens::render_active()}
-            } else {
-                div { class: "flex min-h-screen",
-                    Sidebar {}
-                    div { class: "flex-1 flex flex-col min-w-0",
-                        TitleBar {}
-                        main { class: "flex-1 overflow-y-auto scrollbar-premium", {screens::render_active()} }
+        main {
+            class: "{theme_class(theme)} relative flex flex-col h-screen overflow-hidden bg-premium-pattern text-primary-text",
+            style: "overscroll-behavior-y: contain;",
+
+                if show_chrome {
+                    div { class: "pointer-events-none absolute inset-x-0 top-0 z-0 h-28 bg-gradient-to-b from-primary/24 via-primary/10 to-transparent" }
+                    div { class: "pointer-events-none absolute left-[-5rem] top-[-3rem] z-0 h-36 w-36 rounded-full bg-primary/16 blur-3xl" }
+                    TitleBar {}
+                }
+
+                div { class: "flex flex-grow max-w-screen overflow-hidden border-none",
+                    if show_chrome {
+                        DesktopSidebar {}
+                    }
+                    div { class: "{content_class}",
+                        if onboarding() {
+                            {screens::onboarding::render_first_run()}
+                        } else {
+                            {screens::render_active()}
+                        }
                     }
                 }
-                BottomNav {}
-            }
+
+                if show_chrome {
+                    MobileBottomNav {}
+                }
         }
     }
 }
 
-/// Desktop left sidebar (`UI-6`).
-#[component]
-fn Sidebar() -> Element {
-    let current = SCREEN.read().destination();
-    rsx! {
-        nav { class: "hidden md:flex flex-col w-56 shrink-0 bg-sidebar/0 border-r border-border p-4 gap-1",
-            div { class: "px-2 py-4 text-2xl font-serif text-primary text-glow", "Soulfire" }
-            NavItem { dest: Destination::Worlds, active: current == Destination::Worlds, icon: "🌍", label: "Worlds" }
-            NavItem { dest: Destination::Characters, active: current == Destination::Characters, icon: "💬", label: "Characters" }
-            NavItem { dest: Destination::Settings, active: current == Destination::Settings, icon: "⚙\u{fe0f}", label: "Settings" }
-        }
-    }
-}
-
-/// Mobile bottom navigation (`UI-6`).
-#[component]
-fn BottomNav() -> Element {
-    let current = SCREEN.read().destination();
-    rsx! {
-        nav { class: "md:hidden fixed bottom-0 inset-x-0 z-40 flex bg-surface border-t border-border",
-            style: "padding-bottom: env(safe-area-inset-bottom);",
-            BottomItem { dest: Destination::Worlds, active: current == Destination::Worlds, icon: "🌍", label: "Worlds" }
-            BottomItem { dest: Destination::Characters, active: current == Destination::Characters, icon: "💬", label: "Characters" }
-            BottomItem { dest: Destination::Settings, active: current == Destination::Settings, icon: "⚙\u{fe0f}", label: "Settings" }
-        }
-    }
-}
-
-#[component]
-fn NavItem(dest: Destination, active: bool, icon: String, label: String) -> Element {
-    let cls = if active {
-        "bg-primary-lighter text-primary"
-    } else {
-        "text-secondary-text hover-highlight"
-    };
-    rsx! {
-        button {
-            class: "flex items-center gap-3 px-3 py-2.5 rounded-lg text-left font-medium transition-colors {cls}",
-            onclick: move |_| navigate(dest_to_screen(dest)),
-            span { class: "text-lg", "{icon}" }
-            span { "{label}" }
-        }
-    }
-}
-
-#[component]
-fn BottomItem(dest: Destination, active: bool, icon: String, label: String) -> Element {
-    let cls = if active {
-        "text-primary"
-    } else {
-        "text-secondary-text"
-    };
-    rsx! {
-        button {
-            class: "flex-1 flex flex-col items-center justify-center py-2 gap-0.5 min-h-12 {cls}",
-            onclick: move |_| navigate(dest_to_screen(dest)),
-            span { class: "text-lg", "{icon}" }
-            span { class: "text-xs", "{label}" }
-        }
-    }
-}
-
-/// The standard-page title bar (`UI-5`).
+/// Fixed title bar with the app icon, wordmark, and profile button (ported from
+/// Soulfire-OG `TitleBar`).
 #[component]
 fn TitleBar() -> Element {
     rsx! {
-        header { class: "titlebar-gradient sticky top-0 z-30 flex items-center justify-between px-4 h-14 border-b border-border backdrop-blur",
+        div {
+            class: "titlebar-gradient fixed inset-x-0 top-0 z-30 flex h-16 min-h-16 max-h-16 items-center justify-between px-4 text-primary-text sm:px-6",
+
             button {
-                class: "md:hidden text-xl font-serif text-primary",
+                class: "flex items-center gap-3 p-1 rounded-full cursor-pointer transition-all duration-200 hover:bg-white/10 active:bg-white/5",
                 onclick: move |_| navigate(Screen::WorldsHome),
-                "Soulfire"
+                div {
+                    class: "flex items-center justify-center w-11 h-11 rounded-full border-2 overflow-hidden",
+                    style: "border-color: var(--color-primary-darker); padding: 2px;",
+                    img { src: APP_ICON, class: "w-full h-full object-cover rounded-full", alt: "App Icon" }
+                }
             }
-            div { class: "flex-1" }
+
+            div {
+                class: "flex items-baseline gap-2 sm:gap-3",
+                style: "text-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.2);",
+                h1 { class: "soulfire-wordmark text-3xl leading-none sm:text-4xl", "Soulfire" }
+            }
+
             button {
-                class: "w-9 h-9 rounded-full bg-primary-lighter text-primary flex items-center justify-center",
+                class: "rounded-full w-12 h-12 cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 border-2 overflow-hidden",
+                style: "border-color: var(--color-primary-dark); padding: 2px;",
                 onclick: move |_| navigate(Screen::Profile),
-                "🙂"
+                img { src: MISSING_PROFILE, alt: "Profile", class: "w-full h-full object-cover rounded-full" }
+            }
+        }
+    }
+}
+
+/// Desktop left sidebar (ported from Soulfire-OG `DesktopSidebar`).
+#[component]
+fn DesktopSidebar() -> Element {
+    let current = SCREEN.read().destination();
+    rsx! {
+        aside {
+            class: "relative hidden md:flex w-64 shrink-0 overflow-hidden border-r border-white/10 bg-[linear-gradient(180deg,rgba(8,8,12,0.98)_0%,rgba(14,12,24,0.98)_58%,rgba(10,9,18,0.98)_100%)] shadow-[inset_-1px_0_0_rgba(255,255,255,0.04)] backdrop-blur-xl",
+
+            div { class: "pointer-events-none absolute inset-0",
+                div { class: "absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-primary/20 via-primary/6 to-transparent" }
+                div { class: "absolute left-[-3.5rem] top-16 h-36 w-36 rounded-full bg-primary/14 blur-3xl" }
+                div { class: "absolute right-[-2rem] bottom-10 h-32 w-32 rounded-full bg-primary/8 blur-3xl" }
+                div { class: "absolute inset-y-0 right-0 w-px bg-gradient-to-b from-white/0 via-white/12 to-white/0" }
+            }
+
+            div { class: "relative z-10 flex h-full w-full flex-col px-4 pb-6 pt-22",
+                nav { class: "flex flex-col gap-2",
+                    DesktopSidebarLink {
+                        dest: Destination::Worlds,
+                        label: "Worlds",
+                        description: "Browse worlds and manage adventures",
+                        active: current == Destination::Worlds,
+                        icon: rsx! { lucide_dioxus::Globe { size: 20 } },
+                    }
+                    DesktopSidebarLink {
+                        dest: Destination::Characters,
+                        label: "Characters",
+                        description: "Open character chats and creation",
+                        active: current == Destination::Characters,
+                        icon: rsx! { lucide_dioxus::Drama { size: 20 } },
+                    }
+                    DesktopSidebarLink {
+                        dest: Destination::Settings,
+                        label: "Settings",
+                        description: "Theme, chat defaults, and adventure defaults",
+                        active: current == Destination::Settings,
+                        icon: rsx! { lucide_dioxus::Settings { size: 20 } },
+                    }
+                }
+
+                div { class: "mt-auto rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-lg shadow-black/20 backdrop-blur-md",
+                    p { class: "text-sm font-medium text-primary-text", "Profile" }
+                    p { class: "mt-1 text-sm text-secondary-text",
+                        "Use the avatar in the top bar for your profile and account actions."
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Mobile bottom navigation (ported from Soulfire-OG `MobileBottomNav`).
+#[component]
+fn MobileBottomNav() -> Element {
+    let current = SCREEN.read().destination();
+    rsx! {
+        nav {
+            class: "md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-white/10 bg-background/95 backdrop-blur-xl",
+            div { class: "mx-auto flex h-16 max-w-xl items-center justify-around px-2",
+                BottomNavLink {
+                    dest: Destination::Worlds,
+                    label: "Worlds",
+                    active: current == Destination::Worlds,
+                    icon: rsx! { lucide_dioxus::Globe { size: 22 } },
+                }
+                BottomNavLink {
+                    dest: Destination::Characters,
+                    label: "Characters",
+                    active: current == Destination::Characters,
+                    icon: rsx! { lucide_dioxus::Drama { size: 22 } },
+                }
+                BottomNavLink {
+                    dest: Destination::Settings,
+                    label: "Settings",
+                    active: current == Destination::Settings,
+                    icon: rsx! { lucide_dioxus::Settings { size: 22 } },
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn BottomNavLink(dest: Destination, label: &'static str, active: bool, icon: Element) -> Element {
+    let class = if active {
+        "flex flex-1 flex-col items-center justify-center gap-1 py-2 text-primary-light"
+    } else {
+        "flex flex-1 flex-col items-center justify-center gap-1 py-2 text-secondary-text"
+    };
+    rsx! {
+        button {
+            class: "{class}",
+            onclick: move |_| navigate(dest_to_screen(dest)),
+            div { class: "flex h-6 w-6 items-center justify-center", {icon} }
+            span { class: "text-[11px] font-medium", "{label}" }
+        }
+    }
+}
+
+#[component]
+fn DesktopSidebarLink(
+    dest: Destination,
+    label: &'static str,
+    description: &'static str,
+    active: bool,
+    icon: Element,
+) -> Element {
+    let class = if active {
+        "group flex w-full text-left items-start gap-3 rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-primary-light shadow-sm"
+    } else {
+        "group flex w-full text-left items-start gap-3 rounded-2xl border border-transparent px-4 py-3 text-secondary-text transition-colors hover:border-white/10 hover:bg-white/5 hover:text-primary-text"
+    };
+    rsx! {
+        button {
+            class: "{class}",
+            onclick: move |_| navigate(dest_to_screen(dest)),
+            div { class: "mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/15 text-current", {icon} }
+            div { class: "min-w-0",
+                p { class: "font-medium text-sm", "{label}" }
+                p { class: "mt-1 text-xs leading-5 text-secondary-text group-hover:text-secondary-text", "{description}" }
             }
         }
     }
