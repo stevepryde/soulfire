@@ -1477,6 +1477,15 @@ checksum = "09edd9e8b54e49e587e4f6295a7d29c3ea94d469cb40ab8ca70b288248a81db2"
 [[package]]
 name = "lib-soulfire"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bon",
+ "indexmap 2.14.0",
+ "serde",
+ "serde_json",
+ "sp-core",
+ "strum",
+]
 
 [[package]]
 name = "libc"
@@ -2506,6 +2515,17 @@ name = "soulfire"
 version = "0.1.0"
 dependencies = [
  "lib-soulfire",
+]
+
+[[package]]
+name = "soulfire-core"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "lib-soulfire",
+ "serde",
+ "serde_json",
+ "sp-core",
 ]
 
 [[package]]

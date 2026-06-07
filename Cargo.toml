@@ -2,6 +2,7 @@
 resolver = "3"
 members = [
     "libs/lib-soulfire",
+    "libs/soulfire-core",
     "libs/ai-client",
     "libs/sp-core",
     "libs/sp-markdown",
@@ -25,6 +26,7 @@ ai-client = { path = "libs/ai-client" }
 sp-core = { path = "libs/sp-core" }
 sp-markdown = { path = "libs/sp-markdown" }
 sp-ui = { path = "libs/sp-ui" }
+soulfire-core = { path = "libs/soulfire-core" }
 
 # Third-party dependencies shared across the vendored crates and the app.
 # Versions track Soulfire-OG's workspace; `dioxus` targets the native
@@ -41,6 +43,7 @@ paste = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_with = "3"
+strum = { version = "0.27", features = ["derive"] }
 thiserror = "2"
 tokio = { version = "1", default-features = false }
 tracing = "0.1"

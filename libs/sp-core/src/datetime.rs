@@ -41,7 +41,16 @@ pub struct SpDateTime(Timestamp);
 
 impl SpDateTime {
     pub fn now() -> Self {
-        Self(Timestamp::now())
+        // Truncate to millisecond resolution so the in-memory value matches the
+        // serialized contract form (`…000Z`, millis); otherwise a value from
+        // `now()` would not survive a serialize → parse round-trip. The store is
+        // the single source of truth (`DATA-23`) and persists at millis.
+        Self(Self::truncate_to_millis(Timestamp::now()))
+    }
+
+    fn truncate_to_millis(ts: Timestamp) -> Timestamp {
+        Timestamp::from_millisecond(ts.as_millisecond())
+            .expect("millisecond timestamp is always in range")
     }
 
     /// Convert from UNIX timestamp (seconds since epoch).
@@ -353,6 +362,15 @@ mod tests {
                 .unwrap()
                 .timestamp()
         );
+    }
+
+    #[test]
+    fn now_survives_serialize_parse_round_trip() {
+        // now() is millisecond-resolution so it equals its persisted form.
+        let t = SpDateTime::now();
+        let json = serde_json::to_string(&t).unwrap();
+        let back: SpDateTime = serde_json::from_str(&json).unwrap();
+        assert_eq!(t, back);
     }
 
     #[test]
