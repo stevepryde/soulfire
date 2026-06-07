@@ -31,7 +31,10 @@ sp-ui = { path = "libs/sp-ui" }
 # desktop/mobile renderers (no web), per specs/12-platform-packaging.md.
 anyhow = "1"
 bon = "3"
-chrono = { version = "0.4", features = ["serde"] }
+# jiff over chrono: better IANA tzdb handling across desktop + mobile (notably
+# Android's concatenated tzdata) and an actively-developed Temporal-based API.
+# Lives behind sp-core's SpDateTime wrapper, so the choice stays swappable.
+jiff = "0.2"
 dioxus = { version = "0.7" }
 indexmap = "2"
 paste = "1"

@@ -11,7 +11,7 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 
 # datetime
-chrono = { workspace = true }
+jiff = { workspace = true }
 serde_with = { workspace = true }
 
 # spid

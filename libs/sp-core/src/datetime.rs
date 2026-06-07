@@ -4,12 +4,27 @@ use std::{
     str::FromStr,
 };
 
+use jiff::{SignedDuration, Span, Timestamp, civil, tz::TimeZone};
+
 #[derive(Debug, thiserror::Error)]
 pub enum DateTimeError {
     #[error("parse error: {0}")]
-    ParseError(#[from] chrono::ParseError),
+    ParseError(String),
 }
 
+impl From<jiff::Error> for DateTimeError {
+    fn from(e: jiff::Error) -> Self {
+        DateTimeError::ParseError(e.to_string())
+    }
+}
+
+/// A UTC instant.
+///
+/// Backed by [`jiff::Timestamp`]; the backend type is intentionally **not**
+/// exposed (no `to_chrono`/`to_jiff` escape hatches) so the datetime library
+/// stays swappable. The string form is RFC 3339 with fixed millisecond
+/// precision and a `Z` suffix (e.g. `2026-06-07T12:00:00.000Z`) — a contract
+/// value relied on by the persisted record formats (`specs/01-data-model.md`).
 #[derive(
     Debug,
     Clone,
@@ -22,44 +37,36 @@ pub enum DateTimeError {
     serde_with::SerializeDisplay,
     serde_with::DeserializeFromStr,
 )]
-pub struct SpDateTime(chrono::DateTime<chrono::Utc>);
+pub struct SpDateTime(Timestamp);
 
 impl SpDateTime {
     pub fn now() -> Self {
-        Self(chrono::Utc::now())
-    }
-
-    pub fn to_chrono(&self) -> chrono::DateTime<chrono::Utc> {
-        self.0
-    }
-
-    pub fn from_chrono(dt: chrono::DateTime<chrono::Utc>) -> Self {
-        Self(dt)
+        Self(Timestamp::now())
     }
 
     /// Convert from UNIX timestamp (seconds since epoch).
     pub fn from_timestamp(timestamp: i64) -> Option<Self> {
-        Some(Self(chrono::DateTime::<chrono::Utc>::from_timestamp(
-            timestamp, 0,
-        )?))
+        Timestamp::from_second(timestamp).ok().map(Self)
     }
 
     pub fn timestamp(&self) -> i64 {
-        self.0.timestamp()
+        self.0.as_second()
     }
 
     pub fn format_friendly(&self) -> String {
-        self.format("%Y-%m-%d %H:%M:%S").to_string()
+        self.format("%Y-%m-%d %H:%M:%S")
     }
 
+    /// Format the instant in UTC using `strftime`-style specifiers.
     pub fn format(&self, format: &str) -> String {
-        self.0.format(format).to_string()
+        self.0.strftime(format).to_string()
     }
 
+    /// Format the instant in the system local timezone.
     pub fn format_local(&self, format: &str) -> String {
         self.0
-            .with_timezone(&chrono::Local)
-            .format(format)
+            .to_zoned(TimeZone::system())
+            .strftime(format)
             .to_string()
     }
 
@@ -67,49 +74,31 @@ impl SpDateTime {
         self.format_local("%Y-%m-%d %H:%M:%S")
     }
 
-    pub fn weekday(&self) -> chrono::Weekday {
-        use chrono::Datelike;
-        self.0.weekday()
-    }
-
-    pub fn num_days_from_monday(&self) -> u32 {
-        use chrono::Datelike;
-        self.0.weekday().num_days_from_monday()
-    }
-
     pub fn add_days(&self, days: i64) -> Self {
-        Self(self.0 + chrono::Duration::days(days))
+        // Absolute 24h-per-day arithmetic on the instant (matches the prior
+        // chrono `Duration::days` semantics).
+        Self(self.0 + SignedDuration::from_hours(24 * days))
     }
 
     pub fn sub_days(&self, days: i64) -> Self {
-        Self(self.0 - chrono::Duration::days(days))
+        Self(self.0 - SignedDuration::from_hours(24 * days))
     }
 
-    /// Calculate the number of days elapsed since this datetime until now
-    pub fn elapsed_days(&self) -> i64 {
-        let now = chrono::Utc::now();
-        let duration = now.signed_duration_since(self.0);
-        duration.num_days()
-    }
-
-    /// Format as YYYY-MM-DD for HTML date inputs
+    /// Format as YYYY-MM-DD (UTC) for HTML date inputs.
     pub fn format_date(&self) -> String {
         self.format("%Y-%m-%d")
     }
 
-    /// Parse from YYYY-MM-DD HTML date input format
+    /// Parse from YYYY-MM-DD, interpreted as midnight UTC.
     pub fn parse_date(s: &str) -> Result<Self, DateTimeError> {
-        use chrono::TimeZone;
-        let naive = chrono::NaiveDate::parse_from_str(s, "%Y-%m-%d")?;
-        let datetime = chrono::Utc.from_utc_datetime(&naive.and_hms_opt(0, 0, 0).unwrap());
-        Ok(Self(datetime))
+        let date = civil::Date::strptime("%Y-%m-%d", s)?;
+        let zoned = date.to_zoned(TimeZone::UTC)?;
+        Ok(Self(zoned.timestamp()))
     }
 
-    /// Convert to SpDate (date only, no time)
+    /// Convert to [`SpDate`] (date only, in the system local timezone).
     pub fn to_date(&self) -> SpDate {
-        use chrono::Datelike;
-        let local_date = self.0.with_timezone(&chrono::Local);
-        SpDate::from_ymd(local_date.year(), local_date.month(), local_date.day())
+        SpDate(self.0.to_zoned(TimeZone::system()).date())
     }
 }
 
@@ -121,10 +110,22 @@ impl Default for SpDateTime {
 
 impl Display for SpDateTime {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        // Deterministic RFC 3339 with always-3 fractional digits and `Z`, so the
+        // serialized form is a stable contract value regardless of subsecond
+        // precision in the underlying timestamp.
+        let z = self.0.to_zoned(TimeZone::UTC);
+        let (d, t) = (z.date(), z.time());
+        let millis = t.subsec_nanosecond() / 1_000_000;
         write!(
             f,
-            "{}",
-            self.0.to_rfc3339_opts(chrono::SecondsFormat::Millis, true)
+            "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}Z",
+            d.year(),
+            d.month(),
+            d.day(),
+            t.hour(),
+            t.minute(),
+            t.second(),
+            millis,
         )
     }
 }
@@ -133,42 +134,41 @@ impl FromStr for SpDateTime {
     type Err = DateTimeError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self(
-            chrono::DateTime::parse_from_rfc3339(s)?.with_timezone(&chrono::Utc),
-        ))
+        Ok(Self(s.parse::<Timestamp>()?))
     }
 }
 
-impl Add<chrono::Duration> for SpDateTime {
+impl Add<SignedDuration> for SpDateTime {
     type Output = Self;
 
-    fn add(self, rhs: chrono::Duration) -> Self::Output {
+    fn add(self, rhs: SignedDuration) -> Self::Output {
         Self(self.0 + rhs)
     }
 }
 
-impl AddAssign<chrono::Duration> for SpDateTime {
-    fn add_assign(&mut self, rhs: chrono::Duration) {
+impl AddAssign<SignedDuration> for SpDateTime {
+    fn add_assign(&mut self, rhs: SignedDuration) {
         self.0 = self.0 + rhs;
     }
 }
 
-impl Sub<chrono::Duration> for SpDateTime {
+impl Sub<SignedDuration> for SpDateTime {
     type Output = Self;
 
-    fn sub(self, rhs: chrono::Duration) -> Self::Output {
+    fn sub(self, rhs: SignedDuration) -> Self::Output {
         Self(self.0 - rhs)
     }
 }
 
-impl SubAssign<chrono::Duration> for SpDateTime {
-    fn sub_assign(&mut self, rhs: chrono::Duration) {
+impl SubAssign<SignedDuration> for SpDateTime {
+    fn sub_assign(&mut self, rhs: SignedDuration) {
         self.0 = self.0 - rhs;
     }
 }
 
 // ===== SpDate - Date without time =====
 
+/// A calendar date with no time-of-day, backed by [`jiff::civil::Date`].
 #[derive(
     Debug,
     Clone,
@@ -181,96 +181,74 @@ impl SubAssign<chrono::Duration> for SpDateTime {
     serde_with::SerializeDisplay,
     serde_with::DeserializeFromStr,
 )]
-pub struct SpDate(chrono::NaiveDate);
+pub struct SpDate(civil::Date);
 
 impl SpDate {
-    /// Get today's date in local timezone
+    /// Get today's date in the system local timezone.
     pub fn today() -> Self {
-        use chrono::Datelike;
-        let now = chrono::Local::now();
-        Self(chrono::NaiveDate::from_ymd_opt(now.year(), now.month(), now.day()).unwrap())
+        Self(Timestamp::now().to_zoned(TimeZone::system()).date())
     }
 
-    /// Create from year, month, day
+    /// Create from year, month, day.
     pub fn from_ymd(year: i32, month: u32, day: u32) -> Self {
-        Self(chrono::NaiveDate::from_ymd_opt(year, month, day).unwrap())
+        Self(civil::Date::new(year as i16, month as i8, day as i8).expect("valid calendar date"))
     }
 
-    /// Get the underlying NaiveDate
-    pub fn to_naive_date(&self) -> chrono::NaiveDate {
-        self.0
-    }
-
-    /// Create from NaiveDate
-    pub fn from_naive_date(date: chrono::NaiveDate) -> Self {
-        Self(date)
-    }
-
-    /// Convert to SpDateTime at midnight UTC
+    /// Convert to [`SpDateTime`] at midnight in the system local timezone.
     pub fn to_datetime(&self) -> SpDateTime {
-        use chrono::TimeZone;
-        // Treat SpDate as local time and convert to UTC
-        let datetime = chrono::Utc.from_local_datetime(&self.0.and_hms_opt(0, 0, 0).unwrap());
-        SpDateTime::from_chrono(datetime.earliest().unwrap_or_else(|| {
-            // Fallback: treat as UTC directly
-            chrono::Utc.from_utc_datetime(&self.0.and_hms_opt(0, 0, 0).unwrap())
-        }))
+        match self.0.to_zoned(TimeZone::system()) {
+            Ok(zoned) => SpDateTime(zoned.timestamp()),
+            // Fallback: treat as midnight UTC.
+            Err(_) => SpDateTime(
+                self.0
+                    .to_zoned(TimeZone::UTC)
+                    .expect("midnight UTC is always valid")
+                    .timestamp(),
+            ),
+        }
     }
 
-    /// Format as YYYY-MM-DD
+    /// Format as YYYY-MM-DD.
     pub fn format_date(&self) -> String {
-        self.0.format("%Y-%m-%d").to_string()
+        self.0.strftime("%Y-%m-%d").to_string()
     }
 
-    /// Parse from YYYY-MM-DD format
+    /// Parse from YYYY-MM-DD format.
     pub fn parse(s: &str) -> Result<Self, DateTimeError> {
-        let naive = chrono::NaiveDate::parse_from_str(s, "%Y-%m-%d")?;
-        Ok(Self(naive))
+        Ok(Self(civil::Date::strptime("%Y-%m-%d", s)?))
     }
 
-    /// Add days to the date
+    /// Add days to the date.
     pub fn add_days(&self, days: i64) -> Self {
-        Self(self.0 + chrono::Duration::days(days))
+        Self(self.0 + Span::new().days(days))
     }
 
-    /// Subtract days from the date
+    /// Subtract days from the date.
     pub fn sub_days(&self, days: i64) -> Self {
-        Self(self.0 - chrono::Duration::days(days))
+        Self(self.0 - Span::new().days(days))
     }
 
-    /// Get the weekday
-    pub fn weekday(&self) -> chrono::Weekday {
-        use chrono::Datelike;
-        self.0.weekday()
-    }
-
-    /// Get number of days from Monday (0 = Monday, 6 = Sunday)
-    pub fn num_days_from_monday(&self) -> u32 {
-        use chrono::Datelike;
-        self.0.weekday().num_days_from_monday()
-    }
-
-    /// Calculate days between this date and another
+    /// Calculate days between this date and another.
     pub fn days_until(&self, other: SpDate) -> i64 {
-        (other.0 - self.0).num_days()
+        self.0
+            .until(other.0)
+            .map(|span| span.get_days() as i64)
+            .unwrap_or(0)
     }
 
-    /// Get year
+    /// Get year.
     pub fn year(&self) -> i32 {
-        use chrono::Datelike;
-        self.0.year()
+        self.0.year() as i32
     }
 
-    /// Get month (1-12)
+    /// Get month (1-12).
     pub fn month(&self) -> u32 {
-        use chrono::Datelike;
-        self.0.month()
+        self.0.month() as u32
     }
 
-    /// Get day (1-31)
+    /// Get day (1-31).
     pub fn day(&self) -> u32 {
-        use chrono::Datelike;
-        self.0.day()
+        self.0.day() as u32
     }
 }
 
@@ -282,7 +260,7 @@ impl Default for SpDate {
 
 impl Display for SpDate {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0.format("%Y-%m-%d"))
+        write!(f, "{:04}-{:02}-{:02}", self.year(), self.month(), self.day())
     }
 }
 
@@ -291,34 +269,6 @@ impl FromStr for SpDate {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Self::parse(s)
-    }
-}
-
-impl Add<chrono::Duration> for SpDate {
-    type Output = Self;
-
-    fn add(self, rhs: chrono::Duration) -> Self::Output {
-        Self(self.0 + rhs)
-    }
-}
-
-impl AddAssign<chrono::Duration> for SpDate {
-    fn add_assign(&mut self, rhs: chrono::Duration) {
-        self.0 = self.0 + rhs;
-    }
-}
-
-impl Sub<chrono::Duration> for SpDate {
-    type Output = Self;
-
-    fn sub(self, rhs: chrono::Duration) -> Self::Output {
-        Self(self.0 - rhs)
-    }
-}
-
-impl SubAssign<chrono::Duration> for SpDate {
-    fn sub_assign(&mut self, rhs: chrono::Duration) {
-        self.0 = self.0 - rhs;
     }
 }
 
@@ -352,21 +302,28 @@ mod tests {
     }
 
     #[test]
+    fn test_from_str_without_millis_roundtrips_to_contract_format() {
+        // RFC 3339 input without fractional seconds still serializes back with
+        // the fixed `.000Z` contract form.
+        let datetime = SpDateTime::from_str("2022-01-01T00:00:00Z").unwrap();
+        assert_eq!(datetime.to_string(), "2022-01-01T00:00:00.000Z");
+    }
+
+    #[test]
     fn test_add_duration() {
         let datetime = SpDateTime::from_str("2022-01-01T00:00:00Z").unwrap();
-        let duration = chrono::Duration::days(1);
+        let duration = SignedDuration::from_hours(24);
         let new_datetime = datetime + duration;
         assert_eq!(
             new_datetime.timestamp(),
-            datetime.timestamp() + duration.num_seconds()
+            datetime.timestamp() + duration.as_secs()
         );
     }
 
     #[test]
     fn test_add_assign_duration() {
         let mut datetime = SpDateTime::from_str("2022-01-01T00:00:00Z").unwrap();
-        let duration = chrono::Duration::days(1);
-        datetime += duration;
+        datetime += SignedDuration::from_hours(24);
         assert_eq!(
             datetime.timestamp(),
             SpDateTime::from_str("2022-01-02T00:00:00Z")
@@ -378,25 +335,33 @@ mod tests {
     #[test]
     fn test_sub_duration() {
         let datetime = SpDateTime::from_str("2022-01-02T00:00:00Z").unwrap();
-        let duration = chrono::Duration::days(1);
+        let duration = SignedDuration::from_hours(24);
         let new_datetime = datetime - duration;
         assert_eq!(
             new_datetime.timestamp(),
-            datetime.timestamp() - duration.num_seconds()
+            datetime.timestamp() - duration.as_secs()
         );
     }
 
     #[test]
     fn test_sub_assign_duration() {
         let mut datetime = SpDateTime::from_str("2022-01-02T00:00:00Z").unwrap();
-        let duration = chrono::Duration::days(1);
-        datetime -= duration;
+        datetime -= SignedDuration::from_hours(24);
         assert_eq!(
             datetime.timestamp(),
             SpDateTime::from_str("2022-01-01T00:00:00Z")
                 .unwrap()
                 .timestamp()
         );
+    }
+
+    #[test]
+    fn test_serde_roundtrip_is_contract_format() {
+        let datetime = SpDateTime::from_str("2022-01-01T00:00:00.000Z").unwrap();
+        let json = serde_json::to_string(&datetime).unwrap();
+        assert_eq!(json, "\"2022-01-01T00:00:00.000Z\"");
+        let parsed: SpDateTime = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed, datetime);
     }
 
     // SpDate tests
@@ -431,7 +396,7 @@ mod tests {
     fn test_spdate_to_datetime() {
         let date = SpDate::from_ymd(2022, 1, 15);
         let datetime = date.to_datetime();
-        assert_eq!(datetime.format_date(), "2022-01-15");
+        assert_eq!(datetime.format_local("%Y-%m-%d"), "2022-01-15");
     }
 
     #[test]
