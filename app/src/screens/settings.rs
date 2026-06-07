@@ -71,11 +71,7 @@ pub fn Settings() -> Element {
 
             // Adventure defaults (DATA-17).
             Section { title: "Adventure Defaults".to_string(),
-                p { class: "text-sm text-secondary-text mb-1", "Adventurer name" }
-                p { class: "text-primary-text mb-3",
-                    if player.player_name.as_str().is_empty() { "—" } else { "{player.player_name}" }
-                }
-                p { class: "text-xs text-secondary-text", "Used when starting new adventures." }
+                AdventureDefaults { player }
             }
 
             // Entries to stats and security.
@@ -91,6 +87,39 @@ pub fn Settings() -> Element {
                     "Profile →"
                 }
             }
+        }
+    }
+}
+
+#[component]
+fn AdventureDefaults(player: lib_soulfire::profile::PlayerProfile) -> Element {
+    use lib_soulfire::strings::{PlayerAttributes, PlayerName, PromptExtension};
+    let app = current_app();
+    let mut name = use_signal(|| player.player_name.to_string());
+    let mut attrs = use_signal(|| player.player_attributes.to_string());
+    let mut ext = use_signal(|| player.prompt_extension.as_ref().map(|p| p.to_string()).unwrap_or_default());
+
+    rsx! {
+        p { class: "text-xs text-secondary-text mb-3", "Used when starting new adventures; affects only adventures started afterward." }
+        label { class: "block text-sm text-primary-light mb-1", "Adventurer name" }
+        input { class: "input-premium w-full mb-3", value: "{name}", oninput: move |e| name.set(e.value()) }
+        label { class: "block text-sm text-primary-light mb-1", "Attributes" }
+        textarea { class: "input-premium w-full mb-3", rows: "3", value: "{attrs}", oninput: move |e| attrs.set(e.value()) }
+        label { class: "block text-sm text-primary-light mb-1", "Prompt extension (optional)" }
+        textarea { class: "input-premium w-full mb-3", rows: "2", value: "{ext}", oninput: move |e| ext.set(e.value()) }
+        button {
+            class: "crm-primary-button px-5 py-2 rounded-lg text-sm",
+            onclick: move |_| {
+                let mut p = app.store.player_profile().unwrap_or_default();
+                p.player_name = PlayerName::coerce(name().trim());
+                p.player_attributes = PlayerAttributes::coerce(attrs().trim());
+                let e = ext();
+                p.prompt_extension = if e.trim().is_empty() { None } else { Some(PromptExtension::coerce(e.trim())) };
+                let _ = app.store.save_player_profile(&p);
+                data::touch();
+                sp_ui::toast::ToastService::info("Saved.");
+            },
+            "Save defaults"
         }
     }
 }

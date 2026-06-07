@@ -28,6 +28,38 @@ pub fn Play(adventure_id: AdventureId) -> Element {
     let mut streaming = use_signal(String::new);
     let mut busy = use_signal(|| false);
     let mut status = use_signal(|| "What do you do?".to_string());
+    let mut npc_open = use_signal(|| false);
+    let mut npc_name = use_signal(String::new);
+    let mut extracting = use_signal(|| false);
+
+    // Extraction is offered once the adventure has progressed (CHAR-10, UI-10).
+    let progressed = !messages.is_empty();
+    let extract = {
+        let app = app.clone();
+        let id = id.clone();
+        use_callback(move |_: ()| {
+            let name = npc_name().trim().to_string();
+            if name.is_empty() || extracting() {
+                return;
+            }
+            let app = app.clone();
+            let id = id.clone();
+            extracting.set(true);
+            spawn(async move {
+                match app.character.extract_npc(&id, &name).await {
+                    Ok(c) => {
+                        ToastService::info(&format!("{name} is now a character you can chat with."));
+                        npc_open.set(false);
+                        npc_name.set(String::new());
+                        data::touch();
+                        navigate(Screen::Chat(c.character_id));
+                    }
+                    Err(e) => ToastService::error(&format!("Could not extract {name}: {e}")),
+                }
+                extracting.set(false);
+            });
+        })
+    };
 
     let title = adventure
         .world_title
@@ -80,6 +112,34 @@ pub fn Play(adventure_id: AdventureId) -> Element {
                     "← Back"
                 }
                 div { class: "px-4 py-2 rounded-full bg-surface/70 backdrop-blur border border-border font-serif text-primary-text", "{title}" }
+                if progressed {
+                    button {
+                        class: "ml-auto px-3 py-2 rounded-full bg-surface/70 backdrop-blur border border-border text-primary-text text-sm",
+                        onclick: move |_| npc_open.toggle(),
+                        "✨ NPC"
+                    }
+                }
+            }
+
+            // "Bring a Character to Life" — extract an NPC (CHAR-10).
+            if npc_open() {
+                div { class: "sticky top-16 z-20 px-4",
+                    div { class: "max-w-md mx-auto bg-surface border border-border rounded-xl p-3 flex gap-2 items-center",
+                        input {
+                            class: "input-premium flex-1",
+                            placeholder: "Name an NPC from this story…",
+                            value: "{npc_name}",
+                            oninput: move |e| npc_name.set(e.value()),
+                            onkeydown: move |e| if e.key() == Key::Enter { extract(()); },
+                        }
+                        button {
+                            class: "crm-primary-button px-4 py-2 rounded-lg text-sm disabled:opacity-40",
+                            disabled: extracting() || npc_name().trim().is_empty(),
+                            onclick: move |_| extract(()),
+                            if extracting() { "…" } else { "Bring to life" }
+                        }
+                    }
+                }
             }
 
             // Message panel.
