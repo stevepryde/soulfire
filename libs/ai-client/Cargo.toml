@@ -1,9 +1,31 @@
 [package]
 name = "ai-client"
 version = "0.1.0"
-edition.workspace = true
+# Kept on edition 2021 to match the upstream `ai-client` source verbatim.
+edition = "2021"
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
+description = "Vendored, OpenAI-only slice of the owner's ai-client crate."
+
+[features]
+default = ["rustls-tls", "stream"]
+chat-completions = []
+native-tls = ["reqwest/native-tls"]
+rustls-tls = ["reqwest/rustls-tls"]
+stream = ["dep:reqwest-streams", "dep:futures"]
 
 [dependencies]
+base64 = "0.22"
+bon = "3"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_with = "3"
+strum = { version = "0.27", features = ["derive"] }
+thiserror = "2"
+tracing = "0.1"
+
+# stream feature
+futures = { version = "0.3", optional = true }
+reqwest-streams = { version = "0.10", features = ["json"], optional = true }

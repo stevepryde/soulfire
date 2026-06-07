@@ -7,3 +7,9 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
+anyhow = { workspace = true }
+bon = { workspace = true }
+dioxus = { workspace = true }
+tokio = { workspace = true, features = ["sync", "time"] }
+tracing = { workspace = true }
+uuid = { workspace = true }

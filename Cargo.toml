@@ -25,3 +25,20 @@ ai-client = { path = "libs/ai-client" }
 sp-core = { path = "libs/sp-core" }
 sp-markdown = { path = "libs/sp-markdown" }
 sp-ui = { path = "libs/sp-ui" }
+
+# Third-party dependencies shared across the vendored crates and the app.
+# Versions track Soulfire-OG's workspace; `dioxus` targets the native
+# desktop/mobile renderers (no web), per specs/12-platform-packaging.md.
+anyhow = "1"
+bon = "3"
+chrono = { version = "0.4", features = ["serde"] }
+dioxus = { version = "0.7" }
+indexmap = "2"
+paste = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_with = "3"
+thiserror = "2"
+tokio = { version = "1", default-features = false }
+tracing = "0.1"
+uuid = { version = "1", features = ["v4"] }

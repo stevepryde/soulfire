@@ -7,3 +7,16 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+# datetime
+chrono = { workspace = true }
+serde_with = { workspace = true }
+
+# spid
+uuid = { workspace = true }
+paste = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
