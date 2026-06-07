@@ -7,6 +7,7 @@
 //! `prompts` (verbatim game-master prompt text), and `engine` (the turn engine).
 
 pub mod memory;
+pub mod prompts;
 pub mod state_patch;
 
 pub use memory::{SignificantEvent, SignificantEventUpdates};
