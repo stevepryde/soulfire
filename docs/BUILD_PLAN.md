@@ -62,12 +62,15 @@ Legend: [ ] todo · [~] in progress · [x] done
 - [x] tests: TEST-7 (round-trip, cascades, singletons, draft lifecycle), TEST-8 (ciphertext-on-disk,
   wrong-password lock, rekey, device-remember)
 
-### Layer 3 — AI provider seam (`soulfire-core::ai`, AI)
-- [ ] AiProvider trait (one-shot text, streamed text, structured JSON, image)
-- [ ] OpenAI Responses adapter over ai-client; instructions/cacheable prefix; gen config; reasoning
-- [ ] streaming events + idle timeout; retry/backoff; fence-strip + JSON-rescue
-- [ ] model registry + selection precedence (AI-9); metering → UsageMetric
-- [ ] recording fake provider; tests TEST-9
+### Layer 3 — AI provider seam (`soulfire-core::ai`, AI) — DONE (15 ai tests)
+- [x] AiProvider trait (one-shot text, streamed text, structured JSON, image) + AiService (key
+  guard AI-3, transient retry AI-13) + ApiKeySource seam
+- [x] OpenAI Responses adapter over ai-client; instructions/cacheable prefix; gen config; reasoning;
+  error mapping (build-verified; not network-tested per TEST-4)
+- [x] streaming events + idle timeout (collect_streamed); retry/backoff; fence-strip + JSON-rescue
+- [x] model registry + selection precedence (AI-9); token estimate (AI-16)
+- [x] recording fake provider (scripted text/stream/error/image/stall, records requests)
+- Metering (UsageMetric write) is done by the calling engine (has entity context + store), per AI-15.
 
 ### Layer 4 — prompt assembly (`soulfire-core::prompt`, PROMPT)
 - [ ] sectioned builder w/ {name, locked, body, source}; character + adventure prompts (verbatim OG)

@@ -8,12 +8,14 @@
 
 pub mod fake;
 pub mod fence;
+pub mod openai;
 pub mod provider;
 pub mod registry;
 pub mod service;
 pub mod types;
 
 pub use fence::{parse_lenient, rescue_json_block, strip_json_fence};
+pub use openai::OpenAiProvider;
 pub use provider::{AiProvider, ApiKeySource, EventStream, collect_streamed};
 pub use registry::{estimate_tokens, resolve_model};
 pub use service::AiService;
