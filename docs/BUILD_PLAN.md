@@ -103,9 +103,16 @@ Legend: [ ] todo · [~] in progress · [x] done
   warnings, /gm stage/accept/reject) + ~24 unit tests
 - Fixed message ordering to use SQLite rowid (insertion order) so same-timestamp messages stay
   chronological — also fixes chat.
-### Layer 7 — character builder + extraction (`soulfire-core::character`, CHAR) — tests TEST-12
+### Layer 7 — character builder + extraction (`soulfire-core::character`, CHAR) — DONE (TEST-12)
+- [x] verbatim builder + extraction prompts (PROD-7); BuilderResult structured parse
+- [x] CharacterEngine: builder_send (full-replacement apply + clamp, snapshot-before-apply CHAR-8),
+  builder_undo (restore snapshot, disabled when none); extract_npc (persona + initial-state, origin
+  fields, create+open chat with title; failure leaves nothing partial CHAR-12)
+- [x] 4 integration tests
+
 ### Layer 8 — images (`soulfire-core::image`, IMG) — tests TEST-14
-### Layer 9 — stats aggregation (`soulfire-core::stats`, STAT) — tests TEST-15
+### Layer 9 — stats aggregation (`soulfire-core::stats`, STAT) — DONE (2 tests)
+- [x] totals/by-model/by-label/by-day(+month) + StatsReport; cached subset of input (STAT-3); no cost
 ### Layer 10 — starter worlds seed (`soulfire-core::seed`, ONB) — tests TEST-16
 
 ### Layer 11 — Dioxus UI (`app`, UI + ONB surfaces)

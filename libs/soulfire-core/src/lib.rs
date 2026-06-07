@@ -10,6 +10,7 @@
 
 pub mod ai;
 pub mod chat;
+pub mod character;
 pub mod clock;
 pub mod error;
 pub mod keychain;
