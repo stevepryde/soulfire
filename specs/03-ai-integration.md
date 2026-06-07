@@ -105,6 +105,9 @@ by `DATA`/`STAT`.
   JSON-rescue helpers) into the local app. The Gemini adapter and the global/per-user rate limiters
   and live A/B "eval" harness from Soulfire-OG are out of scope for launch (the eval harness is admin
   tooling; rate limiters are server multi-tenant concerns — `PROD-13`).
+- The OpenAI adapter is a **vendored, trimmed copy** of the user's `ai-client` crate (OpenAI path
+  only; the unmaintained Gemini code is dropped), wired behind the provider seam (`AI-1`). See the
+  vendoring decision in [`12-platform-packaging.md`](12-platform-packaging.md) Design notes.
 - Curated registry seed (validate exact ids against the OpenAI API at implementation time): a current
   flagship chat model as the chat/narrative default and a current small/cheap model as the
   state/utility default, plus a couple of mid-tier options. Because the list is curated-only, adding

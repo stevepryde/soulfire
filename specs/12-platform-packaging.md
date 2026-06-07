@@ -46,6 +46,23 @@ mechanics are owned by `SEC`; licensing posture by `PROD`.
   Android/iOS. A small workspace with a shared core crate (models, store, AI, prompt/turn engines)
   and a thin per-platform UI shell keeps PKG-2 cheap. `rusqlite` with bundled SQLCipher links the
   encrypted store on every target (`SEC`).
+- **Dependency decision — vendor, no private/SSH deps.** This repo must build from a plain `git
+  clone` with no private access (it is public, `PROD-16`). Soulfire-OG's own crates — `ai-client`,
+  `sp-ui`, `sp-markdown`, `sp-std`, `stripe-client` (all consumed there as SSH git deps) — are **not**
+  used as git or crates.io dependencies. Instead the **needed parts are vendored** into this workspace
+  as path crates under `libs/`, licensed `MIT OR Apache-2.0` to match the app, copying only what is
+  used and trimming the rest:
+  - `sp-ui` → vendored and **adapted from web to native** (strip `wasm-bindgen`/`web-sys`/`gloo`/
+    `js-sys` paths; keep the component contracts the UI relies on — toasts, context menu, dropdown,
+    text input, query client, debounce, color-theme selector).
+  - `sp-markdown` → vendored (chat-bubble markdown rendering).
+  - `sp-std` → vendor only the helpers actually referenced (not the `full` surface).
+  - `ai-client` → vendored and **trimmed to OpenAI only**; the unmaintained/untested Gemini path is
+    dropped (consistent with `PROD-15`/`AI-2`; additional providers are added later behind the
+    provider seam, `AI-1`).
+  - `stripe-client` → not vendored (billing is out of scope, `PROD-11`).
+  Promoting any vendored lib (e.g. `ai-client`) to crates.io later remains possible but is not a
+  launch dependency.
 - Recommended data locations: per-OS app-data/config dirs (e.g. a platform dirs crate). On mobile the
   app sandbox is the natural location; on desktop a clearly named app folder under the user profile.
 - CI should build all five targets; signing/notarization are environment-specific and configured per
