@@ -2,7 +2,10 @@
 //! lifecycle, and at-rest encryption. Validates DATA-1..26 store behaviors
 //! (TEST-7) and SEC-1/SEC-9 at-rest protection (TEST-8).
 
+use std::collections::HashSet;
 use std::str::FromStr;
+
+use sp_core::datetime::SpDateTime;
 
 use lib_soulfire::ai_model::AiVendor;
 use lib_soulfire::character::{Character, InitialMessage};
@@ -260,4 +263,144 @@ fn store_reopens_preserving_data_and_schema_version() {
 
 fn contains(haystack: &[u8], needle: &[u8]) -> bool {
     haystack.windows(needle.len()).any(|w| w == needle)
+}
+
+#[test]
+fn keyset_paging_characters_matches_full_order_no_dupes_or_gaps() {
+    // UI-22: paging the characters list with the cursor must visit every row
+    // exactly once, in the same order as a single unpaged fetch — including the
+    // null-`last_chatted_at` group boundary and ties on both sort keys, which the
+    // keyset predicate has to handle precisely.
+    let (_dir, store) = temp_store();
+    let base = SpDateTime::from_timestamp(1_700_000_000).unwrap();
+    for i in 0..25i64 {
+        let mut c = sample_character(&format!("C{i:02}"));
+        c.created_at = base.add_seconds(i);
+        // Even -> chatted (with deliberate ties every 4); odd -> never chatted.
+        c.last_chatted_at = if i % 2 == 0 {
+            Some(base.add_seconds(1000 + (i / 4)))
+        } else {
+            None
+        };
+        store.save_character(&c).unwrap();
+    }
+
+    // Reference order: one large fetch.
+    let reference: Vec<CharacterId> = store
+        .list_characters(None, None, 1000)
+        .unwrap()
+        .into_iter()
+        .map(|c| c.character_id)
+        .collect();
+    assert_eq!(reference.len(), 25);
+
+    // Page through with a small page via the cursor and concatenate.
+    let mut paged: Vec<CharacterId> = Vec::new();
+    let mut cursor: Option<Character> = None;
+    loop {
+        let page = store.list_characters(None, cursor.as_ref(), 7).unwrap();
+        if page.is_empty() {
+            break;
+        }
+        cursor = page.last().cloned();
+        paged.extend(page.into_iter().map(|c| c.character_id));
+    }
+    assert_eq!(
+        paged, reference,
+        "keyset paging must match the full ordering"
+    );
+    assert_eq!(
+        paged.iter().collect::<HashSet<_>>().len(),
+        25,
+        "no duplicates across pages"
+    );
+
+    // Search + paging stays consistent and bounded to matches.
+    let searched: Vec<CharacterId> = store
+        .list_characters(Some("c0"), None, 1000)
+        .unwrap()
+        .into_iter()
+        .map(|c| c.character_id)
+        .collect();
+    let mut searched_paged: Vec<CharacterId> = Vec::new();
+    let mut cursor: Option<Character> = None;
+    loop {
+        let page = store
+            .list_characters(Some("c0"), cursor.as_ref(), 3)
+            .unwrap();
+        if page.is_empty() {
+            break;
+        }
+        cursor = page.last().cloned();
+        searched_paged.extend(page.into_iter().map(|c| c.character_id));
+    }
+    assert_eq!(searched_paged, searched);
+}
+
+#[test]
+fn keyset_paging_worlds_and_adventures_match_full_order() {
+    // UI-22: blueprints and adventures page by (updated_at, id) with the id as a
+    // unique tiebreaker; small-page traversal must equal the unpaged order, with
+    // deliberate updated_at ties exercising the tiebreaker.
+    let (_dir, store) = temp_store();
+    let base = SpDateTime::from_timestamp(1_700_000_000).unwrap();
+
+    let mut bp_ids = Vec::new();
+    for i in 0..15i64 {
+        let mut bp = WorldBlueprint::builder()
+            .title(WorldTitle::from_str(&format!("W{i:02}")).unwrap())
+            .world_prompt(WorldPrompt::from_str("p").unwrap())
+            .build();
+        bp.updated_at = base.add_seconds(i / 3); // ties every 3
+        store.save_blueprint(&bp).unwrap();
+        bp_ids.push(bp.blueprint_id.clone());
+
+        let mut adv = Adventure::builder()
+            .blueprint_id(bp.blueprint_id.clone())
+            .world_prompt(bp.world_prompt.clone())
+            .build();
+        adv.updated_at = base.add_seconds(i / 4); // ties every 4
+        store.save_adventure(&adv).unwrap();
+    }
+
+    // Blueprints.
+    let bp_ref: Vec<_> = store
+        .list_blueprints(None, None, 1000)
+        .unwrap()
+        .into_iter()
+        .map(|b| b.blueprint_id)
+        .collect();
+    let mut bp_paged: Vec<_> = Vec::new();
+    let mut cursor: Option<WorldBlueprint> = None;
+    loop {
+        let page = store.list_blueprints(None, cursor.as_ref(), 4).unwrap();
+        if page.is_empty() {
+            break;
+        }
+        cursor = page.last().cloned();
+        bp_paged.extend(page.into_iter().map(|b| b.blueprint_id));
+    }
+    assert_eq!(bp_paged, bp_ref);
+    assert_eq!(bp_paged.iter().collect::<HashSet<_>>().len(), 15);
+
+    // Adventures.
+    let adv_ref: Vec<_> = store
+        .list_adventures(None, 1000)
+        .unwrap()
+        .into_iter()
+        .map(|a| a.adventure_id)
+        .collect();
+    assert_eq!(adv_ref.len(), 15);
+    let mut adv_paged: Vec<_> = Vec::new();
+    let mut cursor: Option<Adventure> = None;
+    loop {
+        let page = store.list_adventures(cursor.as_ref(), 4).unwrap();
+        if page.is_empty() {
+            break;
+        }
+        cursor = page.last().cloned();
+        adv_paged.extend(page.into_iter().map(|a| a.adventure_id));
+    }
+    assert_eq!(adv_paged, adv_ref);
+    assert_eq!(adv_paged.iter().collect::<HashSet<_>>().len(), 15);
 }

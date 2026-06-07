@@ -11,11 +11,12 @@ use rusqlite::Connection;
 use crate::error::CoreResult;
 
 /// The current schema version. Bumped when a migration is added (`PKG-4`).
-pub const SCHEMA_VERSION: u32 = 1;
+pub const SCHEMA_VERSION: u32 = 2;
 
 /// Apply schema migrations up to [`SCHEMA_VERSION`], idempotently. Uses
 /// SQLite's `user_version` pragma to track the applied version so a newer app
-/// migrates an older store forward transparently (`PKG-4`).
+/// migrates an older store forward transparently (`PKG-4`). Each step is
+/// gated by the stored version and only runs when the store predates it.
 pub fn migrate(conn: &Connection) -> CoreResult<()> {
     conn.execute_batch("PRAGMA foreign_keys = ON;")?;
     let current: u32 =
@@ -23,6 +24,9 @@ pub fn migrate(conn: &Connection) -> CoreResult<()> {
 
     if current < 1 {
         conn.execute_batch(SCHEMA_V1)?;
+    }
+    if current < 2 {
+        conn.execute_batch(SCHEMA_V2)?;
     }
 
     if current != SCHEMA_VERSION {
@@ -166,6 +170,17 @@ CREATE TABLE images (
 );
 "#;
 
+/// Schema version 2: composite `(updated_at, id)` indexes backing keyset
+/// (cursor) pagination of the worlds and adventures lists, so each "load more"
+/// seeks the next page via an index range scan instead of re-scanning the whole
+/// prefix (`UI-22`). `IF NOT EXISTS` keeps the step idempotent.
+const SCHEMA_V2: &str = r#"
+CREATE INDEX IF NOT EXISTS idx_world_blueprints_updated
+    ON world_blueprints(updated_at DESC, blueprint_id DESC);
+CREATE INDEX IF NOT EXISTS idx_adventures_updated_id
+    ON adventures(updated_at DESC, adventure_id DESC);
+"#;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -194,5 +209,35 @@ mod tests {
         let conn = Connection::open_in_memory().unwrap();
         migrate(&conn).unwrap();
         migrate(&conn).unwrap(); // second run must not error or duplicate
+    }
+
+    #[test]
+    fn migrate_upgrades_a_v1_store_forward_to_current() {
+        // PKG-4: a store left at an older version is migrated forward on open.
+        // Build the v1 base, stamp it as version 1 (no v2 indexes), then migrate
+        // and confirm the version advances and the v2 indexes now exist.
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch(SCHEMA_V1).unwrap();
+        conn.pragma_update(None, "user_version", 1).unwrap();
+        assert!(!has_index(&conn, "idx_adventures_updated_id"));
+
+        migrate(&conn).unwrap();
+
+        let v: u32 = conn
+            .pragma_query_value(None, "user_version", |r| r.get::<_, i64>(0))
+            .unwrap() as u32;
+        assert_eq!(v, SCHEMA_VERSION);
+        assert!(has_index(&conn, "idx_adventures_updated_id"));
+        assert!(has_index(&conn, "idx_world_blueprints_updated"));
+    }
+
+    fn has_index(conn: &Connection, name: &str) -> bool {
+        conn.query_row(
+            "SELECT count(*) FROM sqlite_master WHERE type='index' AND name=?1",
+            [name],
+            |r| r.get::<_, i64>(0),
+        )
+        .unwrap()
+            > 0
     }
 }

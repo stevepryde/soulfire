@@ -47,21 +47,38 @@ impl Store {
         })
     }
 
+    /// List world blueprints, most-recently-updated first, with optional
+    /// case-insensitive title search. Keyset paging: pass the last blueprint of
+    /// the previous page as `after` to seek the next page via the
+    /// `(updated_at, blueprint_id)` index, ordered by `updated_at` then the
+    /// unique `blueprint_id` tiebreaker (`UI-22`).
     pub fn list_blueprints(
         &self,
         search: Option<&str>,
+        after: Option<&WorldBlueprint>,
         limit: u32,
-        offset: u32,
     ) -> CoreResult<Vec<WorldBlueprint>> {
         self.with_conn(|conn| {
             let like = search.map(|s| format!("%{}%", s.to_lowercase()));
+            let (cup, cid): (Option<String>, Option<String>) = match after {
+                Some(b) => (
+                    Some(b.updated_at.to_string()),
+                    Some(b.blueprint_id.to_string()),
+                ),
+                None => (None, None),
+            };
             select_many(
                 conn,
                 "SELECT data FROM world_blueprints
                  WHERE (?1 IS NULL OR lower(title) LIKE ?1)
-                 ORDER BY updated_at DESC, created_at DESC
-                 LIMIT ?2 OFFSET ?3",
-                params![like, limit, offset],
+                   AND (
+                     ?3 IS NULL
+                     OR updated_at < ?2
+                     OR (updated_at = ?2 AND blueprint_id < ?3)
+                   )
+                 ORDER BY updated_at DESC, blueprint_id DESC
+                 LIMIT ?4",
+                params![like, cup, cid, limit],
             )
         })
     }
@@ -152,12 +169,33 @@ impl Store {
     }
 
     /// Adventures most-recently-updated first (the Adventures tab, `UI-8`).
-    pub fn list_adventures(&self, limit: u32, offset: u32) -> CoreResult<Vec<Adventure>> {
+    /// Keyset paging: pass the last adventure of the previous page as `after` to
+    /// seek the next page via the `(updated_at, adventure_id)` index, ordered by
+    /// `updated_at` then the unique `adventure_id` tiebreaker (`UI-22`).
+    pub fn list_adventures(
+        &self,
+        after: Option<&Adventure>,
+        limit: u32,
+    ) -> CoreResult<Vec<Adventure>> {
         self.with_conn(|conn| {
+            let (cup, cid): (Option<String>, Option<String>) = match after {
+                Some(a) => (
+                    Some(a.updated_at.to_string()),
+                    Some(a.adventure_id.to_string()),
+                ),
+                None => (None, None),
+            };
             select_many(
                 conn,
-                "SELECT data FROM adventures ORDER BY updated_at DESC LIMIT ?1 OFFSET ?2",
-                params![limit, offset],
+                "SELECT data FROM adventures
+                 WHERE (
+                   ?2 IS NULL
+                   OR updated_at < ?1
+                   OR (updated_at = ?1 AND adventure_id < ?2)
+                 )
+                 ORDER BY updated_at DESC, adventure_id DESC
+                 LIMIT ?3",
+                params![cup, cid, limit],
             )
         })
     }

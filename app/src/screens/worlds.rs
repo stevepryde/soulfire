@@ -21,31 +21,84 @@ enum Tab {
     Worlds,
 }
 
+/// Worlds/adventures page size (keyset paging, `UI-22`).
+const PAGE: u32 = 20;
+
 #[component]
 pub fn WorldsHome() -> Element {
-    data::subscribe();
     let app = current_app();
     let mut tab = use_signal(|| Tab::Adventures);
-
     let mut search = use_signal(String::new);
-    let mut adv_limit = use_signal(|| 20u32);
-    let mut world_limit = use_signal(|| 20u32);
-    let q = search();
-    let query = if q.trim().is_empty() {
-        None
-    } else {
-        Some(q.trim())
+
+    // Accumulated keyset pages; each "Load more" appends the next page only.
+    let mut adventures = use_signal(Vec::<Adventure>::new);
+    let mut adv_more = use_signal(|| false);
+    let mut worlds = use_signal(Vec::<WorldBlueprint>::new);
+    let mut world_more = use_signal(|| false);
+
+    // Adventures (unfiltered): reload page 1 on any store mutation.
+    {
+        let app = app.clone();
+        use_effect(move || {
+            data::subscribe();
+            let page = app.store.list_adventures(None, PAGE).unwrap_or_default();
+            adv_more.set(page.len() as u32 == PAGE);
+            adventures.set(page);
+        });
+    }
+    let load_more_adv = {
+        let app = app.clone();
+        use_callback(move |_: ()| {
+            let cursor = adventures.read().last().cloned();
+            let page = app
+                .store
+                .list_adventures(cursor.as_ref(), PAGE)
+                .unwrap_or_default();
+            adv_more.set(page.len() as u32 == PAGE);
+            adventures.write().extend(page);
+        })
     };
-    let adventures = app
-        .store
-        .list_adventures(adv_limit(), 0)
-        .unwrap_or_default();
-    let worlds = app
-        .store
-        .list_blueprints(query, world_limit(), 0)
-        .unwrap_or_default();
-    let adv_more = adventures.len() as u32 == adv_limit();
-    let world_more = worlds.len() as u32 == world_limit();
+
+    // Worlds: reload page 1 on search text or store changes.
+    {
+        let app = app.clone();
+        use_effect(move || {
+            data::subscribe();
+            let q = search();
+            let query = if q.trim().is_empty() {
+                None
+            } else {
+                Some(q.trim())
+            };
+            let page = app
+                .store
+                .list_blueprints(query, None, PAGE)
+                .unwrap_or_default();
+            world_more.set(page.len() as u32 == PAGE);
+            worlds.set(page);
+        });
+    }
+    let load_more_world = {
+        let app = app.clone();
+        use_callback(move |_: ()| {
+            let q = search();
+            let query = if q.trim().is_empty() {
+                None
+            } else {
+                Some(q.trim())
+            };
+            let cursor = worlds.read().last().cloned();
+            let page = app
+                .store
+                .list_blueprints(query, cursor.as_ref(), PAGE)
+                .unwrap_or_default();
+            world_more.set(page.len() as u32 == PAGE);
+            worlds.write().extend(page);
+        })
+    };
+
+    let adventures = adventures();
+    let worlds = worlds();
 
     rsx! {
         Page { title: "Worlds".to_string(),
@@ -62,10 +115,10 @@ pub fn WorldsHome() -> Element {
                         div { class: "grid gap-4 sm:grid-cols-2",
                             for adv in adventures.clone() { AdventureCard { adventure: adv } }
                         }
-                        if adv_more {
+                        if adv_more() {
                             button {
                                 class: "mt-3 w-full py-2 rounded-lg border border-border text-secondary-text hover-highlight text-sm",
-                                onclick: move |_| adv_limit.set(adv_limit() + 20),
+                                onclick: move |_| load_more_adv(()),
                                 "Load more"
                             }
                         }
@@ -105,10 +158,10 @@ pub fn WorldsHome() -> Element {
                         div { class: "grid gap-4 sm:grid-cols-2",
                             for bp in worlds.clone() { WorldCard { blueprint: bp } }
                         }
-                        if world_more {
+                        if world_more() {
                             button {
                                 class: "mt-3 w-full py-2 rounded-lg border border-border text-secondary-text hover-highlight text-sm",
-                                onclick: move |_| world_limit.set(world_limit() + 20),
+                                onclick: move |_| load_more_world(()),
                                 "Load more"
                             }
                         }

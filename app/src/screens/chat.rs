@@ -13,25 +13,60 @@ use crate::nav::{Screen, navigate};
 
 use super::{EmptyState, Page};
 
+/// How many list rows to fetch per page (keyset paging, `UI-22`).
+const PAGE: u32 = 30;
+
 /// The characters & chats list (`UI-17`).
 #[component]
 pub fn Characters() -> Element {
-    data::subscribe();
+    use lib_soulfire::character::Character;
     let app = current_app();
     let mut search = use_signal(String::new);
-    let mut limit = use_signal(|| 30u32);
-    let q = search();
-    let query = if q.trim().is_empty() {
-        None
-    } else {
-        Some(q.trim())
-    };
-    let characters = app
-        .store
-        .list_characters(query, limit(), 0)
-        .unwrap_or_default();
-    let more = characters.len() as u32 == limit();
+    // Accumulated, already-loaded rows. Each "Load more" appends one keyset page
+    // rather than re-fetching the whole prefix.
+    let mut items = use_signal(Vec::<Character>::new);
+    let mut more = use_signal(|| false);
 
+    // (Re)load the first page whenever the search text or store data changes.
+    {
+        let app = app.clone();
+        use_effect(move || {
+            data::subscribe(); // re-run on any store mutation (create/delete)
+            let q = search();
+            let query = if q.trim().is_empty() {
+                None
+            } else {
+                Some(q.trim())
+            };
+            let page = app
+                .store
+                .list_characters(query, None, PAGE)
+                .unwrap_or_default();
+            more.set(page.len() as u32 == PAGE);
+            items.set(page);
+        });
+    }
+
+    let load_more = {
+        let app = app.clone();
+        use_callback(move |_: ()| {
+            let q = search();
+            let query = if q.trim().is_empty() {
+                None
+            } else {
+                Some(q.trim())
+            };
+            let cursor = items.read().last().cloned();
+            let page = app
+                .store
+                .list_characters(query, cursor.as_ref(), PAGE)
+                .unwrap_or_default();
+            more.set(page.len() as u32 == PAGE);
+            items.write().extend(page);
+        })
+    };
+
+    let list = items();
     rsx! {
         Page { title: "Characters".to_string(),
             div { class: "flex justify-end gap-2 mb-3",
@@ -62,18 +97,18 @@ pub fn Characters() -> Element {
                 value: "{search}",
                 oninput: move |e| search.set(e.value()),
             }
-            if characters.is_empty() {
+            if list.is_empty() {
                 EmptyState { message: "No characters yet. Create one to start chatting.".to_string() }
             } else {
                 div { class: "flex flex-col gap-2",
-                    for c in characters.clone() {
+                    for c in list.clone() {
                         CharacterRow { character: c }
                     }
                 }
-                if more {
+                if more() {
                     button {
                         class: "mt-3 w-full py-2 rounded-lg border border-border text-secondary-text hover-highlight text-sm",
-                        onclick: move |_| limit.set(limit() + 30),
+                        onclick: move |_| load_more(()),
                         "Load more"
                     }
                 }

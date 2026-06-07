@@ -49,21 +49,57 @@ impl Store {
     }
 
     /// List characters most-recently-chatted first, then newest, with optional
-    /// case-insensitive name search and incremental paging (`CHAR-13`).
+    /// case-insensitive name search (`CHAR-13`).
+    ///
+    /// Keyset (cursor) paging: pass the last character of the previous page as
+    /// `after` to fetch the next page; the query seeks past that row rather than
+    /// re-scanning the prefix, so each page costs `O(limit)` (`UI-22`). The order
+    /// is a stable total order — `last_chatted_at` (non-null first, descending),
+    /// then `created_at` descending, then `character_id` as the unique tiebreaker
+    /// — which the cursor predicate mirrors exactly.
     pub fn list_characters(
         &self,
         search: Option<&str>,
+        after: Option<&Character>,
         limit: u32,
-        offset: u32,
     ) -> CoreResult<Vec<Character>> {
         self.with_conn(|conn| {
             let like = search.map(|s| format!("%{}%", s.to_lowercase()));
-            // last_chatted_at NULLs sort last; fall back to created_at order.
+            // Cursor anchor columns (NULL-typed bindings when no cursor yet). The
+            // `cg` group flag matches `last_chatted_at IS NULL` (0 = chatted).
+            let (cg, clca, ccrt, cid): (
+                Option<i64>,
+                Option<String>,
+                Option<String>,
+                Option<String>,
+            ) = match after {
+                Some(c) => (
+                    Some(c.last_chatted_at.is_none() as i64),
+                    c.last_chatted_at.map(|t| t.to_string()),
+                    Some(c.created_at.to_string()),
+                    Some(c.character_id.to_string()),
+                ),
+                None => (None, None, None, None),
+            };
+            // `?5 IS NULL` (cid) means "no cursor" -> first page, no keyset filter.
+            // Otherwise admit only rows strictly after the cursor in the order
+            // above. `IS` compares NULLs as equal so the null-chatted group is
+            // handled without special-casing.
             let sql = "SELECT data FROM characters
                        WHERE (?1 IS NULL OR lower(name) LIKE ?1)
-                       ORDER BY last_chatted_at IS NULL, last_chatted_at DESC, created_at DESC
-                       LIMIT ?2 OFFSET ?3";
-            select_many(conn, sql, params![like, limit, offset])
+                         AND (
+                           ?5 IS NULL
+                           OR (last_chatted_at IS NULL) > ?2
+                           OR ((last_chatted_at IS NULL) = ?2 AND (
+                                 last_chatted_at < ?3
+                              OR (last_chatted_at IS ?3 AND created_at < ?4)
+                              OR (last_chatted_at IS ?3 AND created_at = ?4 AND character_id < ?5)
+                           ))
+                         )
+                       ORDER BY last_chatted_at IS NULL, last_chatted_at DESC,
+                                created_at DESC, character_id DESC
+                       LIMIT ?6";
+            select_many(conn, sql, params![like, cg, clca, ccrt, cid, limit])
         })
     }
 
