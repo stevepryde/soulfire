@@ -68,8 +68,12 @@ pub fn Characters() -> Element {
 
 #[component]
 fn CharacterRow(character: lib_soulfire::character::Character) -> Element {
+    use soulfire_core::store::ImageOwnerKind;
     let app = current_app();
     let avatar = character.image.and_then(|i| i.emoji()).unwrap_or("🙂").to_string();
+    let portrait = character
+        .portrait
+        .and_then(|_| crate::image_util::data_uri(&app, ImageOwnerKind::Character, &character.character_id.to_string()));
     let cid_open = character.character_id.clone();
     let cid_edit = character.character_id.clone();
     let cid_del = character.character_id.clone();
@@ -77,7 +81,11 @@ fn CharacterRow(character: lib_soulfire::character::Character) -> Element {
     let mut confirming = use_signal(|| false);
     rsx! {
         div { class: "flex items-center gap-3 bg-surface border border-border rounded-xl p-3",
-            div { class: "w-12 h-12 rounded-full bg-primary-lighter flex items-center justify-center text-2xl shrink-0", "{avatar}" }
+            if let Some(uri) = portrait {
+                img { class: "w-12 h-12 rounded-full object-cover shrink-0", src: "{uri}" }
+            } else {
+                div { class: "w-12 h-12 rounded-full bg-primary-lighter flex items-center justify-center text-2xl shrink-0", "{avatar}" }
+            }
             button {
                 class: "flex-1 text-left min-w-0",
                 onclick: move |_| navigate(Screen::Chat(cid_open.clone())),
@@ -135,6 +143,9 @@ pub fn Chat(character_id: CharacterId) -> Element {
     };
     let name = character.name.to_string();
     let avatar = character.image.and_then(|i| i.emoji()).unwrap_or("🙂").to_string();
+    let portrait = character.portrait.and_then(|_| {
+        crate::image_util::data_uri(&app, soulfire_core::store::ImageOwnerKind::Character, &character_id.to_string())
+    });
 
     let chat_id = opened.read().clone().flatten();
 
@@ -149,7 +160,11 @@ pub fn Chat(character_id: CharacterId) -> Element {
                     "← Back"
                 }
                 div { class: "flex items-center gap-2 px-4 py-2 rounded-full bg-surface/70 backdrop-blur border border-border",
-                    span { class: "text-xl", "{avatar}" }
+                    if let Some(uri) = portrait {
+                        img { class: "w-6 h-6 rounded-full object-cover", src: "{uri}" }
+                    } else {
+                        span { class: "text-xl", "{avatar}" }
+                    }
                     span { class: "font-serif text-primary-text", "{name}" }
                 }
             }

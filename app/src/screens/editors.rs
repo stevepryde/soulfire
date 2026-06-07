@@ -293,15 +293,10 @@ fn PortraitSection(character_id: Option<CharacterId>) -> Element {
     rsx! {
         if let Some(uri) = uri {
             div { class: "flex flex-col sm:flex-row items-start gap-4",
-                div { class: "w-32 h-32 rounded-full overflow-hidden bg-surface border border-border shrink-0",
-                    img { src: "{uri}", style: crate::image_util::transform_style(transform) }
-                }
-                div { class: "flex-1 w-full",
-                    FramingControls { transform, on_change: move |t| set_transform(t) }
-                    div { class: "flex gap-2 mt-3",
-                        button { class: "px-3 py-1.5 rounded-lg border border-border text-sm text-secondary-text hover-highlight disabled:opacity-40", disabled: generating(), onclick: move |_| regen(()), if generating() { "…" } else { "Regenerate" } }
-                        button { class: "px-3 py-1.5 rounded-lg border border-border text-sm text-secondary-text hover-highlight", onclick: move |_| clear(()), "Remove" }
-                    }
+                FrameEditor { uri, transform, round: true, max_zoom: 240, on_change: move |t| set_transform(t) }
+                div { class: "flex gap-2",
+                    button { class: "px-3 py-1.5 rounded-lg border border-border text-sm text-secondary-text hover-highlight disabled:opacity-40", disabled: generating(), onclick: move |_| regen(()), if generating() { "…" } else { "Regenerate" } }
+                    button { class: "px-3 py-1.5 rounded-lg border border-border text-sm text-secondary-text hover-highlight", onclick: move |_| clear(()), "Remove" }
                 }
             }
         } else {
@@ -361,14 +356,25 @@ fn CoverSection(blueprint_id: Option<WorldBlueprintId>) -> Element {
         })
     };
 
+    let set_transform = {
+        let app = app.clone();
+        let bid = bid.clone();
+        use_callback(move |t: ImageTransform| {
+            if let Some(mut b) = app.store.blueprint(&bid).ok().flatten() {
+                b.image_transform = t;
+                let _ = app.store.save_blueprint(&b);
+                data::touch();
+            }
+        })
+    };
     rsx! {
         if let Some(uri) = uri {
             div {
-                div { class: "w-full rounded-lg overflow-hidden bg-surface border border-border mb-2", style: "aspect-ratio: 16 / 6;",
-                    img { src: "{uri}", style: crate::image_util::transform_style(transform) }
+                FrameEditor { uri, transform, round: false, max_zoom: 220, on_change: move |t| set_transform(t) }
+                div { class: "flex gap-2 mt-2",
+                    button { class: "px-3 py-1.5 rounded-lg border border-border text-sm text-secondary-text hover-highlight disabled:opacity-40", disabled: generating(), onclick: move |_| regen(()), if generating() { "…" } else { "Regenerate" } }
+                    button { class: "px-3 py-1.5 rounded-lg border border-border text-sm text-secondary-text hover-highlight", onclick: move |_| clear(()), "Remove" }
                 }
-                button { class: "px-3 py-1.5 rounded-lg border border-border text-sm text-secondary-text hover-highlight disabled:opacity-40", disabled: generating(), onclick: move |_| regen(()), if generating() { "…" } else { "Regenerate" } }
-                button { class: "ml-2 px-3 py-1.5 rounded-lg border border-border text-sm text-secondary-text hover-highlight", onclick: move |_| clear(()), "Remove" }
             }
         } else {
             button {
@@ -381,27 +387,74 @@ fn CoverSection(blueprint_id: Option<WorldBlueprintId>) -> Element {
     }
 }
 
-/// Pan/zoom/reset sliders for an image transform (`IMG-7`).
+/// A framing editor: drag-to-pan over the image, a zoom slider, and reset, on
+/// pointer/touch input (`IMG-7`). Pan updates a local working transform during a
+/// drag and persists it on release (one store write per gesture).
 #[component]
-fn FramingControls(transform: ImageTransform, on_change: EventHandler<ImageTransform>) -> Element {
+fn FrameEditor(
+    uri: String,
+    transform: ImageTransform,
+    #[props(default)] round: bool,
+    max_zoom: u16,
+    on_change: EventHandler<ImageTransform>,
+) -> Element {
+    let mut working = use_signal(|| transform);
+    let mut drag = use_signal(|| None::<(f64, f64)>);
+    // Keep the working copy in sync with the persisted value when not dragging.
+    use_effect(move || {
+        if drag().is_none() {
+            working.set(transform);
+        }
+    });
+
+    let frame_cls = if round {
+        "w-40 h-40 rounded-full"
+    } else {
+        "w-full rounded-lg"
+    };
+    let frame_style = if round { "" } else { "aspect-ratio: 16 / 6;" };
+
     rsx! {
-        div { class: "space-y-2",
+        div { class: "w-full",
             div {
+                class: "overflow-hidden bg-surface border border-border cursor-move select-none touch-none {frame_cls}",
+                style: "{frame_style}",
+                onpointerdown: move |e| {
+                    let p = e.client_coordinates();
+                    drag.set(Some((p.x, p.y)));
+                },
+                onpointermove: move |e| {
+                    if let Some((lx, ly)) = drag() {
+                        let p = e.client_coordinates();
+                        let cur = working();
+                        working.set(ImageTransform {
+                            pan_x_percent: (cur.pan_x_percent as f64 + (p.x - lx) * 0.3).clamp(-100.0, 100.0) as i16,
+                            pan_y_percent: (cur.pan_y_percent as f64 + (p.y - ly) * 0.3).clamp(-100.0, 100.0) as i16,
+                            ..cur
+                        });
+                        drag.set(Some((p.x, p.y)));
+                    }
+                },
+                onpointerup: move |_| if drag().take().is_some() { drag.set(None); on_change.call(working()); },
+                onpointerleave: move |_| if drag().is_some() { drag.set(None); on_change.call(working()); },
+                img { class: "pointer-events-none", src: "{uri}", style: crate::image_util::transform_style(working()) }
+            }
+            div { class: "mt-2",
                 label { class: "text-xs text-secondary-text", "Zoom" }
-                input { class: "w-full", r#type: "range", min: "100", max: "240", value: "{transform.zoom_percent}",
-                    oninput: move |e| if let Ok(v) = e.value().parse() { on_change.call(ImageTransform { zoom_percent: v, ..transform }) } }
+                input {
+                    class: "w-full", r#type: "range", min: "100", max: "{max_zoom}", value: "{working().zoom_percent}",
+                    oninput: move |e| if let Ok(v) = e.value().parse::<u16>() {
+                        let t = ImageTransform { zoom_percent: v, ..working() };
+                        working.set(t);
+                        on_change.call(t);
+                    },
+                }
+                button {
+                    class: "text-xs text-link hover:underline",
+                    onclick: move |_| { working.set(ImageTransform::default()); on_change.call(ImageTransform::default()); },
+                    "Reset framing"
+                }
             }
-            div {
-                label { class: "text-xs text-secondary-text", "Pan X" }
-                input { class: "w-full", r#type: "range", min: "-100", max: "100", value: "{transform.pan_x_percent}",
-                    oninput: move |e| if let Ok(v) = e.value().parse() { on_change.call(ImageTransform { pan_x_percent: v, ..transform }) } }
-            }
-            div {
-                label { class: "text-xs text-secondary-text", "Pan Y" }
-                input { class: "w-full", r#type: "range", min: "-100", max: "100", value: "{transform.pan_y_percent}",
-                    oninput: move |e| if let Ok(v) = e.value().parse() { on_change.call(ImageTransform { pan_y_percent: v, ..transform }) } }
-            }
-            button { class: "text-xs text-link hover:underline", onclick: move |_| on_change.call(ImageTransform::default()), "Reset framing" }
         }
     }
 }

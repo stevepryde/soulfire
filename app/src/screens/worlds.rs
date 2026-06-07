@@ -6,8 +6,11 @@ use sp_ui::toast::ToastService;
 
 use lib_soulfire::world::{Adventure, WorldBlueprint};
 
+use soulfire_core::store::ImageOwnerKind;
+
 use crate::app::current_app;
 use crate::data;
+use crate::image_util::data_uri;
 use crate::nav::{Screen, navigate};
 
 use super::{EmptyState, Page};
@@ -104,13 +107,18 @@ fn TabButton(active: bool, label: String, onclick: EventHandler<MouseEvent>) -> 
     }
 }
 
-/// 16:6 cover with emoji + accent gradient (`UI-9`).
+/// 16:6 cover: a stored image when present, else an emoji over an accent gradient
+/// (`UI-9`, `IMG-8`).
 #[component]
-fn Cover(emoji: String, completed: bool) -> Element {
+fn Cover(emoji: String, completed: bool, #[props(default)] uri: Option<String>) -> Element {
     rsx! {
         div { class: "relative w-full rounded-lg overflow-hidden mb-3",
             style: "aspect-ratio: 16 / 6; background: linear-gradient(135deg, var(--color-primary-darker), var(--color-primary-darkest));",
-            div { class: "absolute inset-0 flex items-center justify-center text-5xl opacity-90", "{emoji}" }
+            if let Some(uri) = uri {
+                img { class: "absolute inset-0 w-full h-full object-cover", src: "{uri}" }
+            } else {
+                div { class: "absolute inset-0 flex items-center justify-center text-5xl opacity-90", "{emoji}" }
+            }
             if completed {
                 span { class: "absolute top-2 right-2 text-xs bg-black/40 text-white px-2 py-0.5 rounded", "Completed" }
             }
@@ -134,10 +142,13 @@ fn AdventureCard(adventure: Adventure) -> Element {
         .unwrap_or_default();
     let adv_id = adventure.adventure_id.clone();
     let del_id = adventure.adventure_id.clone();
+    let uri = adventure
+        .world_cover
+        .and_then(|_| data_uri(&app, ImageOwnerKind::World, &adventure.blueprint_id.to_string()));
     let mut confirming = use_signal(|| false);
     rsx! {
         div { class: "bg-surface border border-border rounded-xl p-4",
-            Cover { emoji, completed: adventure.has_completed }
+            Cover { emoji, completed: adventure.has_completed, uri }
             h3 { class: "font-semibold text-primary-text mb-1", "{title}" }
             p { class: "text-sm text-secondary-text line-clamp-2 mb-3", "{desc}" }
             div { class: "flex gap-2",
@@ -173,6 +184,9 @@ fn AdventureCard(adventure: Adventure) -> Element {
 fn WorldCard(blueprint: WorldBlueprint) -> Element {
     let app = current_app();
     let emoji = blueprint.image.map(|i| i.emoji()).unwrap_or("🌍").to_string();
+    let uri = blueprint
+        .cover
+        .and_then(|_| data_uri(&app, ImageOwnerKind::World, &blueprint.blueprint_id.to_string()));
     let app_del = app.clone();
     let bp = blueprint.clone();
     let bp_edit = blueprint.blueprint_id.clone();
@@ -182,7 +196,7 @@ fn WorldCard(blueprint: WorldBlueprint) -> Element {
 
     rsx! {
         div { class: "bg-surface border border-border rounded-xl p-4",
-            Cover { emoji, completed: false }
+            Cover { emoji, completed: false, uri }
             h3 { class: "font-semibold text-primary-text mb-1", "{blueprint.title}" }
             p { class: "text-sm text-secondary-text line-clamp-2 mb-3", "{blueprint.description}" }
             crate::components::ConfirmDialog {
