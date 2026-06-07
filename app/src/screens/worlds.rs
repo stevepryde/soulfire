@@ -1,5 +1,6 @@
 //! Worlds home: Adventures (continue) and Worlds (start/create) tabs (`UI-8`,
-//! `UI-9`, `ONB-6`).
+//! `UI-9`, `ONB-6`). Card/tab/cover markup ported from Soulfire-OG's
+//! `pages/worlds/home.rs` + `components/world.rs`.
 
 use dioxus::prelude::*;
 use sp_ui::toast::ToastService;
@@ -103,7 +104,8 @@ pub fn WorldsHome() -> Element {
 
     rsx! {
         Page { title: "Worlds".to_string(),
-            div { class: "flex gap-2 mb-5 border-b border-border",
+            // Tab bar (OG `WorldsNavButton`).
+            div { class: "flex flex-wrap items-center gap-2 mb-5",
                 TabButton { active: tab() == Tab::Adventures, label: "Adventures".to_string(), onclick: move |_| tab.set(Tab::Adventures) }
                 TabButton { active: tab() == Tab::Worlds, label: "Worlds".to_string(), onclick: move |_| tab.set(Tab::Worlds) }
             }
@@ -113,7 +115,7 @@ pub fn WorldsHome() -> Element {
                     if adv_list.is_empty() {
                         EmptyState { message: "No adventures yet. Open a world to begin.".to_string() }
                     } else {
-                        div { class: "grid gap-4 sm:grid-cols-2",
+                        div { class: "grid grid-cols-1 gap-4 lg:grid-cols-2",
                             for adv in adv_list.clone() {
                                 AdventureCard {
                                     adventure: adv,
@@ -124,18 +126,20 @@ pub fn WorldsHome() -> Element {
                             }
                         }
                         if adv_more() {
-                            button {
-                                class: "mt-3 w-full py-2 rounded-lg border border-border text-secondary-text hover-highlight text-sm",
-                                onclick: move |_| load_more_adv(()),
-                                "Load more"
+                            div { class: "flex justify-center pt-4",
+                                button {
+                                    class: "rounded-full border border-white/8 bg-white/[0.04] px-4 py-2 text-sm font-medium text-white/68 transition-colors hover:bg-white/[0.08] hover:text-white cursor-pointer",
+                                    onclick: move |_| load_more_adv(()),
+                                    "Load more"
+                                }
                             }
                         }
                     }
                 },
                 Tab::Worlds => rsx! {
-                    div { class: "flex justify-end gap-2 mb-3",
+                    div { class: "flex flex-wrap items-center gap-2 mb-4",
                         button {
-                            class: "px-4 py-2 rounded-lg text-sm border border-border text-primary-text hover-highlight",
+                            class: "inline-flex cursor-pointer items-center justify-center gap-2 rounded-[12px] border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-white/78 transition-colors hover:bg-white/[0.09] hover:text-white",
                             onclick: move |_| {
                                 use lib_soulfire::strings::{WorldPrompt, WorldTitle};
                                 let b = WorldBlueprint::builder()
@@ -146,24 +150,40 @@ pub fn WorldsHome() -> Element {
                                 data::touch();
                                 navigate(Screen::WorldBuilder(b.blueprint_id));
                             },
-                            "✨ World Builder"
+                            lucide_dioxus::Sparkles { size: 16 }
+                            "World Builder"
                         }
                         button {
-                            class: "crm-primary-button px-4 py-2 rounded-lg text-sm",
+                            class: "inline-flex cursor-pointer items-center justify-center gap-2 rounded-[12px] bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-dark active:bg-primary-darker",
                             onclick: move |_| navigate(Screen::WorldEditor(None)),
-                            "+ New World"
+                            lucide_dioxus::Plus { size: 16 }
+                            "New World"
                         }
                     }
-                    input {
-                        class: "input-premium w-full mb-3",
-                        placeholder: "Search worlds…",
-                        value: "{search}",
-                        oninput: move |e| search.set(e.value()),
+                    // Search (OG search field).
+                    div { class: "relative overflow-hidden rounded-[14px] border border-white/8 bg-[#1a1a1d] mb-4",
+                        div { class: "pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/35",
+                            lucide_dioxus::Search { size: 18 }
+                        }
+                        input {
+                            r#type: "text",
+                            class: "w-full bg-transparent py-3.5 pl-12 pr-11 text-[15px] text-white placeholder:text-white/35 focus:outline-none",
+                            placeholder: "Search worlds…",
+                            value: "{search}",
+                            oninput: move |e| search.set(e.value()),
+                        }
+                        if !search().is_empty() {
+                            button {
+                                class: "absolute right-2.5 top-1/2 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-white/40 transition-colors hover:bg-white/10 hover:text-white/80",
+                                onclick: move |_| search.set(String::new()),
+                                lucide_dioxus::X { size: 16 }
+                            }
+                        }
                     }
                     if world_list.is_empty() {
                         EmptyState { message: "No worlds yet. Create one to start an adventure.".to_string() }
                     } else {
-                        div { class: "grid gap-4 sm:grid-cols-2",
+                        div { class: "grid grid-cols-1 gap-5 lg:grid-cols-2 2xl:grid-cols-3",
                             for bp in world_list.clone() {
                                 WorldCard {
                                     blueprint: bp,
@@ -177,10 +197,12 @@ pub fn WorldsHome() -> Element {
                             }
                         }
                         if world_more() {
-                            button {
-                                class: "mt-3 w-full py-2 rounded-lg border border-border text-secondary-text hover-highlight text-sm",
-                                onclick: move |_| load_more_world(()),
-                                "Load more"
+                            div { class: "flex justify-center pt-4",
+                                button {
+                                    class: "rounded-full border border-white/8 bg-white/[0.04] px-4 py-2 text-sm font-medium text-white/68 transition-colors hover:bg-white/[0.08] hover:text-white cursor-pointer",
+                                    onclick: move |_| load_more_world(()),
+                                    "Load more"
+                                }
                             }
                         }
                     }
@@ -190,36 +212,90 @@ pub fn WorldsHome() -> Element {
     }
 }
 
+/// A worlds-home tab pill (OG `WorldsNavButton`).
 #[component]
 fn TabButton(active: bool, label: String, onclick: EventHandler<MouseEvent>) -> Element {
     let cls = if active {
-        "border-primary text-primary"
+        "border-white/12 bg-white/[0.08] text-white"
     } else {
-        "border-transparent text-secondary-text"
+        "border-white/8 bg-[#161618] text-white/65 hover:bg-white/[0.05] hover:text-white"
     };
     rsx! {
         button {
-            class: "px-4 py-2 -mb-px border-b-2 font-medium {cls}",
+            class: "inline-flex cursor-pointer items-center justify-center rounded-[12px] border px-4 py-2.5 text-sm font-medium transition-colors {cls}",
             onclick: move |e| onclick.call(e),
             "{label}"
         }
     }
 }
 
-/// 16:6 cover: a stored image when present, else an emoji over an accent gradient
-/// (`UI-9`, `IMG-8`).
+/// 16:6 cover art: a stored image (background-cover) or an emoji fallback
+/// (OG `WorldCoverMedia`).
 #[component]
-fn Cover(emoji: String, completed: bool, #[props(default)] uri: Option<String>) -> Element {
+fn CoverArt(emoji: String, #[props(default)] uri: Option<String>) -> Element {
     rsx! {
-        div { class: "relative w-full rounded-lg overflow-hidden mb-3",
-            style: "aspect-ratio: 16 / 6; background: linear-gradient(135deg, var(--color-primary-darker), var(--color-primary-darkest));",
+        div { class: "relative isolate overflow-hidden rounded-[18px] border border-white/8 bg-[#101013] aspect-[16/6] w-full",
             if let Some(uri) = uri {
-                img { class: "absolute inset-0 w-full h-full object-cover", src: "{uri}" }
+                div {
+                    class: "pointer-events-none absolute inset-0 select-none",
+                    style: "background-image: url('{uri}'); background-position: center; background-repeat: no-repeat; background-size: cover;",
+                    role: "img",
+                }
             } else {
-                div { class: "absolute inset-0 flex items-center justify-center text-5xl opacity-90", "{emoji}" }
+                div { class: "absolute inset-0 flex items-center justify-center",
+                    span { class: "select-none text-[4.3rem] drop-shadow-[0_12px_22px_rgba(0,0,0,0.34)] sm:text-[4.8rem]", "{emoji}" }
+                }
             }
-            if completed {
-                span { class: "absolute top-2 right-2 text-xs bg-black/40 text-white px-2 py-0.5 rounded", "Completed" }
+        }
+    }
+}
+
+/// A story card: cover, title, description, metadata, and a primary action
+/// (OG `SharedStoryCard`).
+#[component]
+fn StoryCard(
+    emoji: String,
+    #[props(default)] uri: Option<String>,
+    title: String,
+    description: String,
+    action: Element,
+    #[props(default)] top_right: Option<Element>,
+    #[props(default)] metadata: Option<Element>,
+) -> Element {
+    let has_description = !description.trim().is_empty();
+    rsx! {
+        div { class: "relative isolate z-0 overflow-visible rounded-[24px] border border-white/8 bg-[#1b1b1e] p-3 shadow-[0_16px_36px_rgba(0,0,0,0.24)] sm:p-4 flex h-full flex-col",
+            CoverArt { emoji, uri }
+            div { class: "mt-4 flex flex-1 flex-col",
+                div { class: "flex items-start justify-between gap-3",
+                    div { class: "min-w-0",
+                        h3 { class: "truncate text-[1.7rem] font-semibold tracking-tight text-white", "{title}" }
+                    }
+                    if let Some(top_right) = top_right {
+                        {top_right}
+                    }
+                }
+                if has_description {
+                    p { class: "mt-2 line-clamp-3 text-sm leading-6 text-white/62", "{description}" }
+                }
+                if let Some(metadata) = metadata {
+                    div { class: "mt-3", {metadata} }
+                }
+                div { class: "mt-auto pt-4", {action} }
+            }
+        }
+    }
+}
+
+/// The "Completed" status pill (OG `CompletedAdventurePill`).
+#[component]
+fn CompletedPill() -> Element {
+    rsx! {
+        div { class: "flex flex-wrap items-center gap-2",
+            span {
+                class: "inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/12 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-100",
+                lucide_dioxus::CircleCheck { size: 13 }
+                "Completed"
             }
         }
     }
@@ -243,6 +319,7 @@ fn AdventureCard(adventure: Adventure, on_delete: EventHandler<AdventureId>) -> 
         .as_ref()
         .map(|d| d.to_string())
         .unwrap_or_default();
+    let completed = adventure.has_completed;
     let adv_id = adventure.adventure_id.clone();
     let del_id = adventure.adventure_id.clone();
     let uri = adventure.world_cover.and_then(|_| {
@@ -253,37 +330,39 @@ fn AdventureCard(adventure: Adventure, on_delete: EventHandler<AdventureId>) -> 
         )
     });
     let mut confirming = use_signal(|| false);
+
+    let action = rsx! {
+        button {
+            class: "inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-[12px] bg-primary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-dark active:bg-primary-darker",
+            onclick: move |_| navigate(Screen::Play(adv_id.clone())),
+            lucide_dioxus::Play { size: 16 }
+            if completed { "Review Adventure" } else { "Continue Adventure" }
+        }
+    };
+    let top_right = rsx! {
+        button {
+            class: "cursor-pointer rounded-full p-2 text-white/38 transition-colors hover:bg-white/8 hover:text-white/80",
+            onclick: move |_| confirming.set(true),
+            lucide_dioxus::Trash2 { size: 18 }
+        }
+    };
+    let metadata = completed.then(|| rsx! { CompletedPill {} });
+
     rsx! {
-        div { class: "bg-surface border border-border rounded-xl p-4",
-            Cover { emoji, completed: adventure.has_completed, uri }
-            h3 { class: "font-semibold text-primary-text mb-1", "{title}" }
-            p { class: "text-sm text-secondary-text line-clamp-2 mb-3", "{desc}" }
-            div { class: "flex gap-2",
-                button {
-                    class: "crm-primary-button flex-1 py-2 rounded-lg text-sm",
-                    onclick: move |_| navigate(Screen::Play(adv_id.clone())),
-                    if adventure.has_completed { "Review Adventure" } else { "Continue Adventure" }
+        StoryCard { emoji, uri, title, description: desc, action, top_right: Some(top_right), metadata }
+        crate::components::ConfirmDialog {
+            open: confirming(),
+            title: "Delete adventure?".to_string(),
+            message: "This permanently deletes this playthrough and its turn log.".to_string(),
+            danger: true,
+            confirm_label: "Delete".to_string(),
+            on_confirm: move |_| {
+                if app.store.delete_adventure(&del_id).is_ok() {
+                    on_delete.call(del_id.clone());
                 }
-                button {
-                    class: "px-3 py-2 rounded-lg border border-border text-secondary-text hover-highlight text-sm",
-                    onclick: move |_| confirming.set(true),
-                    "Delete"
-                }
-            }
-            crate::components::ConfirmDialog {
-                open: confirming(),
-                title: "Delete adventure?".to_string(),
-                message: "This permanently deletes this playthrough and its turn log.".to_string(),
-                danger: true,
-                confirm_label: "Delete".to_string(),
-                on_confirm: move |_| {
-                    if app.store.delete_adventure(&del_id).is_ok() {
-                        on_delete.call(del_id.clone());
-                    }
-                    confirming.set(false);
-                },
-                on_cancel: move |_| confirming.set(false),
-            }
+                confirming.set(false);
+            },
+            on_cancel: move |_| confirming.set(false),
         }
     }
 }
@@ -296,6 +375,8 @@ fn WorldCard(blueprint: WorldBlueprint, on_delete: EventHandler<WorldBlueprintId
         .map(|i| i.emoji())
         .unwrap_or("🌍")
         .to_string();
+    let title = blueprint.title.to_string();
+    let desc = blueprint.description.to_string();
     let uri = blueprint.cover.and_then(|_| {
         data_uri(
             &app,
@@ -306,59 +387,74 @@ fn WorldCard(blueprint: WorldBlueprint, on_delete: EventHandler<WorldBlueprintId
     let app_del = app.clone();
     let bp = blueprint.clone();
     let bp_edit = blueprint.blueprint_id.clone();
+    let bp_build = blueprint.blueprint_id.clone();
     let bp_del = blueprint.blueprint_id.clone();
     let mut starting = use_signal(|| false);
     let mut confirming = use_signal(|| false);
 
-    rsx! {
-        div { class: "bg-surface border border-border rounded-xl p-4",
-            Cover { emoji, completed: false, uri }
-            h3 { class: "font-semibold text-primary-text mb-1", "{blueprint.title}" }
-            p { class: "text-sm text-secondary-text line-clamp-2 mb-3", "{blueprint.description}" }
-            crate::components::ConfirmDialog {
-                open: confirming(),
-                title: "Delete world?".to_string(),
-                message: "This permanently deletes the world and all of its adventures.".to_string(),
-                danger: true,
-                confirm_label: "Delete".to_string(),
-                confirm_word: Some("delete".to_string()),
-                on_confirm: move |_| {
-                    if app_del.store.delete_blueprint(&bp_del).is_ok() {
-                        on_delete.call(bp_del.clone());
-                    }
-                    confirming.set(false);
+    let action = rsx! {
+        div { class: "flex flex-col gap-2",
+            button {
+                class: "inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-[12px] bg-primary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary-dark active:bg-primary-darker disabled:opacity-50",
+                disabled: starting(),
+                onclick: move |_| {
+                    let app = app.clone();
+                    let bp = bp.clone();
+                    starting.set(true);
+                    spawn(async move {
+                        match app.world.start_adventure(&bp, |_| {}).await {
+                            Ok(adv) => {
+                                data::touch();
+                                navigate(Screen::Play(adv.adventure_id));
+                            }
+                            Err(e) => ToastService::error(&format!("Could not start: {e}")),
+                        }
+                        starting.set(false);
+                    });
                 },
-                on_cancel: move |_| confirming.set(false),
+                lucide_dioxus::DoorOpen { size: 16 }
+                if starting() { "Starting…" } else { "Enter World" }
             }
             div { class: "flex gap-2",
                 button {
-                    class: "crm-primary-button flex-1 py-2 rounded-lg text-sm disabled:opacity-50",
-                    disabled: starting(),
-                    onclick: move |_| {
-                        let app = app.clone();
-                        let bp = bp.clone();
-                        starting.set(true);
-                        spawn(async move {
-                            match app.world.start_adventure(&bp, |_| {}).await {
-                                Ok(adv) => { data::touch(); navigate(Screen::Play(adv.adventure_id)); }
-                                Err(e) => ToastService::error(&format!("Could not start: {e}")),
-                            }
-                            starting.set(false);
-                        });
-                    },
-                    if starting() { "Starting…" } else { "Enter World" }
+                    class: "inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-[12px] border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-white/78 transition-colors hover:bg-white/[0.09] hover:text-white",
+                    onclick: move |_| navigate(Screen::WorldBuilder(bp_build.clone())),
+                    lucide_dioxus::Sparkles { size: 16 }
+                    "Build"
                 }
                 button {
-                    class: "px-3 py-2 rounded-lg border border-border text-secondary-text hover-highlight text-sm",
+                    class: "inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-[12px] border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-white/78 transition-colors hover:bg-white/[0.09] hover:text-white",
                     onclick: move |_| navigate(Screen::WorldEditor(Some(bp_edit.clone()))),
+                    lucide_dioxus::Pencil { size: 16 }
                     "Edit"
                 }
-                button {
-                    class: "px-3 py-2 rounded-lg border border-border text-secondary-text hover-highlight text-sm",
-                    onclick: move |_| confirming.set(true),
-                    "🗑"
-                }
             }
+        }
+    };
+    let top_right = rsx! {
+        button {
+            class: "cursor-pointer rounded-full p-2 text-white/38 transition-colors hover:bg-white/8 hover:text-white/80",
+            onclick: move |_| confirming.set(true),
+            lucide_dioxus::Trash2 { size: 18 }
+        }
+    };
+
+    rsx! {
+        StoryCard { emoji, uri, title, description: desc, action, top_right: Some(top_right) }
+        crate::components::ConfirmDialog {
+            open: confirming(),
+            title: "Delete world?".to_string(),
+            message: "This permanently deletes the world and all of its adventures.".to_string(),
+            danger: true,
+            confirm_label: "Delete".to_string(),
+            confirm_word: Some("delete".to_string()),
+            on_confirm: move |_| {
+                if app_del.store.delete_blueprint(&bp_del).is_ok() {
+                    on_delete.call(bp_del.clone());
+                }
+                confirming.set(false);
+            },
+            on_cancel: move |_| confirming.set(false),
         }
     }
 }
