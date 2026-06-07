@@ -255,6 +255,26 @@ fn TitleBar() -> Element {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Smoke test (TEST-6 supplement): the app mounts and renders its launch/lock
+    /// screen without panicking, with the brand and an unlock affordance present.
+    #[test]
+    fn app_renders_lock_screen() {
+        let mut dom = VirtualDom::new(App);
+        dom.rebuild_in_place();
+        let html = dioxus_ssr::render(&dom);
+        assert!(html.contains("Soulfire"), "brand wordmark present");
+        let lower = html.to_lowercase();
+        assert!(
+            lower.contains("master password") || lower.contains("unlock"),
+            "an unlock/setup affordance is present"
+        );
+    }
+}
+
 fn dest_to_screen(dest: Destination) -> Screen {
     match dest {
         Destination::Worlds => Screen::WorldsHome,

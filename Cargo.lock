@@ -4780,6 +4780,7 @@ dependencies = [
  "anyhow",
  "base64",
  "dioxus",
+ "dioxus-ssr",
  "directories",
  "lib-soulfire",
  "soulfire-core",

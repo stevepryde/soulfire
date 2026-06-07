@@ -24,8 +24,11 @@ pub fn WorldsHome() -> Element {
     let app = current_app();
     let mut tab = use_signal(|| Tab::Adventures);
 
+    let mut search = use_signal(String::new);
+    let q = search();
+    let query = if q.trim().is_empty() { None } else { Some(q.trim()) };
     let adventures = app.store.list_adventures(50, 0).unwrap_or_default();
-    let worlds = app.store.list_blueprints(None, 100, 0).unwrap_or_default();
+    let worlds = app.store.list_blueprints(query, 100, 0).unwrap_or_default();
 
     rsx! {
         Page { title: "Worlds".to_string(),
@@ -65,6 +68,12 @@ pub fn WorldsHome() -> Element {
                             onclick: move |_| navigate(Screen::WorldEditor(None)),
                             "+ New World"
                         }
+                    }
+                    input {
+                        class: "input-premium w-full mb-3",
+                        placeholder: "Search worlds…",
+                        value: "{search}",
+                        oninput: move |e| search.set(e.value()),
                     }
                     if worlds.is_empty() {
                         EmptyState { message: "No worlds yet. Create one to start an adventure.".to_string() }

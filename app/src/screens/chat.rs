@@ -18,7 +18,10 @@ use super::{EmptyState, Page};
 pub fn Characters() -> Element {
     data::subscribe();
     let app = current_app();
-    let characters = app.store.list_characters(None, 100, 0).unwrap_or_default();
+    let mut search = use_signal(String::new);
+    let q = search();
+    let query = if q.trim().is_empty() { None } else { Some(q.trim()) };
+    let characters = app.store.list_characters(query, 100, 0).unwrap_or_default();
 
     rsx! {
         Page { title: "Characters".to_string(),
@@ -43,6 +46,12 @@ pub fn Characters() -> Element {
                     onclick: move |_| navigate(Screen::CharacterEditor(None)),
                     "+ New Character"
                 }
+            }
+            input {
+                class: "input-premium w-full mb-3",
+                placeholder: "Search characters…",
+                value: "{search}",
+                oninput: move |e| search.set(e.value()),
             }
             if characters.is_empty() {
                 EmptyState { message: "No characters yet. Create one to start chatting.".to_string() }

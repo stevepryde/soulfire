@@ -17,3 +17,6 @@ anyhow = { workspace = true }
 directories = "6"
 tracing = { workspace = true }
 base64 = "0.22"
+
+[dev-dependencies]
+dioxus-ssr = "0.7"
