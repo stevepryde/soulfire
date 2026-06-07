@@ -19,9 +19,11 @@ pub fn Characters() -> Element {
     data::subscribe();
     let app = current_app();
     let mut search = use_signal(String::new);
+    let mut limit = use_signal(|| 30u32);
     let q = search();
     let query = if q.trim().is_empty() { None } else { Some(q.trim()) };
-    let characters = app.store.list_characters(query, 100, 0).unwrap_or_default();
+    let characters = app.store.list_characters(query, limit(), 0).unwrap_or_default();
+    let more = characters.len() as u32 == limit();
 
     rsx! {
         Page { title: "Characters".to_string(),
@@ -59,6 +61,13 @@ pub fn Characters() -> Element {
                 div { class: "flex flex-col gap-2",
                     for c in characters.clone() {
                         CharacterRow { character: c }
+                    }
+                }
+                if more {
+                    button {
+                        class: "mt-3 w-full py-2 rounded-lg border border-border text-secondary-text hover-highlight text-sm",
+                        onclick: move |_| limit.set(limit() + 30),
+                        "Load more"
                     }
                 }
             }

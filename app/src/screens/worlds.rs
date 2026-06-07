@@ -28,10 +28,14 @@ pub fn WorldsHome() -> Element {
     let mut tab = use_signal(|| Tab::Adventures);
 
     let mut search = use_signal(String::new);
+    let mut adv_limit = use_signal(|| 20u32);
+    let mut world_limit = use_signal(|| 20u32);
     let q = search();
     let query = if q.trim().is_empty() { None } else { Some(q.trim()) };
-    let adventures = app.store.list_adventures(50, 0).unwrap_or_default();
-    let worlds = app.store.list_blueprints(query, 100, 0).unwrap_or_default();
+    let adventures = app.store.list_adventures(adv_limit(), 0).unwrap_or_default();
+    let worlds = app.store.list_blueprints(query, world_limit(), 0).unwrap_or_default();
+    let adv_more = adventures.len() as u32 == adv_limit();
+    let world_more = worlds.len() as u32 == world_limit();
 
     rsx! {
         Page { title: "Worlds".to_string(),
@@ -47,6 +51,13 @@ pub fn WorldsHome() -> Element {
                     } else {
                         div { class: "grid gap-4 sm:grid-cols-2",
                             for adv in adventures.clone() { AdventureCard { adventure: adv } }
+                        }
+                        if adv_more {
+                            button {
+                                class: "mt-3 w-full py-2 rounded-lg border border-border text-secondary-text hover-highlight text-sm",
+                                onclick: move |_| adv_limit.set(adv_limit() + 20),
+                                "Load more"
+                            }
                         }
                     }
                 },
@@ -83,6 +94,13 @@ pub fn WorldsHome() -> Element {
                     } else {
                         div { class: "grid gap-4 sm:grid-cols-2",
                             for bp in worlds.clone() { WorldCard { blueprint: bp } }
+                        }
+                        if world_more {
+                            button {
+                                class: "mt-3 w-full py-2 rounded-lg border border-border text-secondary-text hover-highlight text-sm",
+                                onclick: move |_| world_limit.set(world_limit() + 20),
+                                "Load more"
+                            }
                         }
                     }
                 },
