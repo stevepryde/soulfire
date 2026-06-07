@@ -6,12 +6,13 @@ use dioxus::prelude::*;
 use lib_soulfire::ai_model::AiVendor;
 use lib_soulfire::credentials::ProviderCredential;
 
+use soulfire_core::CoreResult;
 use soulfire_core::seed::seed_starter_worlds;
 use soulfire_core::store::Store;
 
 use crate::nav::{Destination, SCREEN, Screen, navigate};
 use crate::state::{AppContext, data_dir, is_initialized};
-use crate::theme::theme_class;
+use crate::theme::{current_theme, set_theme, theme_class};
 use crate::{data, screens};
 
 /// App icon shown in the title bar (ported from Soulfire-OG).
@@ -65,29 +66,9 @@ fn LockScreen() -> Element {
                 error.set(Some("Passwords do not match.".into()));
                 return;
             }
-            match Store::initialize(data_dir(), &pw) {
-                Ok(store) => {
-                    // Save the OpenAI key if provided (ONB-1, AI-3).
-                    let key = api_key();
-                    if !key.trim().is_empty() {
-                        let _ = store.save_credential(&ProviderCredential::new(
-                            AiVendor::OpenAI,
-                            key.trim().to_string(),
-                        ));
-                    }
-                    // Seed starter worlds on first launch (ONB-5). `first_run_completed`
-                    // is set when the onboarding story finishes (ONB-2/4), not here.
-                    let _ = seed_starter_worlds(&store, &soulfire_core::clock::SystemClock);
-                    onboarding.set(true);
-                    ctx.set(Some(AppContext::new(store)));
-                }
-                Err(e) => error.set(Some(format!("Could not create store: {e}"))),
-            }
+            begin_store_open(true, pw, api_key(), ctx, onboarding, error);
         } else {
-            match Store::unlock(data_dir(), &pw) {
-                Ok(store) => ctx.set(Some(AppContext::new(store))),
-                Err(_) => error.set(Some("Incorrect master password.".into())),
-            }
+            begin_store_open(false, pw, String::new(), ctx, onboarding, error);
         }
     });
 
@@ -111,7 +92,6 @@ fn LockScreen() -> Element {
                         r#type: "password",
                         value: "{password}",
                         oninput: move |e| password.set(e.value()),
-                        onkeydown: move |e| if e.key() == Key::Enter { submit(()); },
                     }
 
                     if first_run {
@@ -146,6 +126,48 @@ fn LockScreen() -> Element {
     }
 }
 
+fn begin_store_open(
+    first_run: bool,
+    password: String,
+    api_key: String,
+    mut ctx: Signal<Option<AppContext>>,
+    mut onboarding: Signal<bool>,
+    mut error: Signal<Option<String>>,
+) {
+    spawn(async move {
+        let result = data::blocking(move || -> CoreResult<_> {
+            let store = if first_run {
+                let store = Store::initialize(data_dir(), &password)?;
+                if !api_key.trim().is_empty() {
+                    store.save_credential(&ProviderCredential::new(
+                        AiVendor::OpenAI,
+                        api_key.trim().to_string(),
+                    ))?;
+                }
+                seed_starter_worlds(&store, &soulfire_core::clock::SystemClock)?;
+                store
+            } else {
+                Store::unlock(data_dir(), &password)?
+            };
+            let theme = store.app_settings()?.color_theme;
+            Ok((store, theme))
+        })
+        .await;
+
+        match result {
+            Ok((store, theme)) => {
+                set_theme(theme);
+                if first_run {
+                    onboarding.set(true);
+                }
+                ctx.set(Some(AppContext::new(store)));
+            }
+            Err(e) if first_run => error.set(Some(format!("Could not create store: {e}"))),
+            Err(_) => error.set(Some("Incorrect master password.".into())),
+        }
+    });
+}
+
 /// The unlocked app shell: themed surface, title bar, desktop sidebar / mobile
 /// bottom nav, and the active screen — ported from Soulfire-OG's `AppLayout`
 /// (`UI-4`, `UI-5`, `UI-6`).
@@ -156,12 +178,7 @@ fn Shell() -> Element {
     use_context_provider(|| app.clone());
     let onboarding = use_context::<Signal<bool>>();
 
-    data::subscribe();
-    let theme = app
-        .store
-        .app_settings()
-        .map(|s| s.color_theme)
-        .unwrap_or_default();
+    let theme = current_theme();
     // Immersive surfaces (play, chat) and the first-run story hide all chrome.
     let immersive = SCREEN.read().is_immersive() || onboarding();
     let show_chrome = !immersive;

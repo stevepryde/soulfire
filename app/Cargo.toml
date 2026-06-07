@@ -18,6 +18,7 @@ directories = "6"
 tracing = { workspace = true }
 base64 = "0.22"
 lucide-dioxus = { version = "3.11.0", features = ["all-icons"] }
+tokio = { workspace = true, features = ["rt"] }
 
 [dev-dependencies]
 dioxus-ssr = "0.7"

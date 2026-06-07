@@ -9,12 +9,20 @@ use soulfire_core::store::ImageOwnerKind;
 
 use crate::state::AppContext;
 
+pub fn data_uri_from_store(
+    store: &soulfire_core::store::Store,
+    kind: ImageOwnerKind,
+    owner_id: &str,
+) -> Option<String> {
+    let img = store.image(kind, owner_id).ok().flatten()?;
+    let b64 = base64::engine::general_purpose::STANDARD.encode(&img.bytes);
+    Some(format!("data:{};base64,{}", img.mime, b64))
+}
+
 /// A `data:` URI for an entity's stored image, decoded from the encrypted store
 /// in memory only (`IMG-4`/`SEC-3`). `None` when no image is stored.
 pub fn data_uri(app: &AppContext, kind: ImageOwnerKind, owner_id: &str) -> Option<String> {
-    let img = app.store.image(kind, owner_id).ok().flatten()?;
-    let b64 = base64::engine::general_purpose::STANDARD.encode(&img.bytes);
-    Some(format!("data:{};base64,{}", img.mime, b64))
+    data_uri_from_store(&app.store, kind, owner_id)
 }
 
 /// CSS for applying a stored pan/zoom transform to an `<img>` filling a framed

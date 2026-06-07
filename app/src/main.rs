@@ -4,6 +4,7 @@
 //! lives in `soulfire-core`; this crate renders it and drives user interaction.
 
 #![allow(non_snake_case)]
+#![recursion_limit = "512"]
 
 mod app;
 mod components;
