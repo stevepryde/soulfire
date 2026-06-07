@@ -38,16 +38,24 @@ pub enum Screen {
     Stats,
     /// The prompt viewer/editor for a character (`PROMPT-9`).
     PromptViewer(CharacterId),
+    /// The conversational character builder (`CHAR-6`).
+    CharacterBuilder(CharacterId),
+    /// The conversational world builder (`WORLD-20`).
+    WorldBuilder(WorldBlueprintId),
 }
 
 impl Screen {
     /// The primary nav destination this screen belongs under (for active state).
     pub fn destination(&self) -> Destination {
         match self {
-            Screen::WorldsHome | Screen::Play(_) | Screen::WorldEditor(_) => Destination::Worlds,
+            Screen::WorldsHome
+            | Screen::Play(_)
+            | Screen::WorldEditor(_)
+            | Screen::WorldBuilder(_) => Destination::Worlds,
             Screen::Characters
             | Screen::Chat(_)
             | Screen::CharacterEditor(_)
+            | Screen::CharacterBuilder(_)
             | Screen::PromptViewer(_) => Destination::Characters,
             Screen::Settings | Screen::Profile | Screen::Stats => Destination::Settings,
         }

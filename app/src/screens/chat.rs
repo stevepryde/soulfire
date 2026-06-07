@@ -22,7 +22,22 @@ pub fn Characters() -> Element {
 
     rsx! {
         Page { title: "Characters".to_string(),
-            div { class: "flex justify-end mb-3",
+            div { class: "flex justify-end gap-2 mb-3",
+                button {
+                    class: "px-4 py-2 rounded-lg text-sm border border-border text-primary-text hover-highlight",
+                    onclick: move |_| {
+                        use lib_soulfire::character::{Character, InitialMessage};
+                        use lib_soulfire::strings::CharacterName;
+                        let c = Character::builder()
+                            .name(CharacterName::coerce("New Character"))
+                            .initial_message(InitialMessage::default())
+                            .build();
+                        let _ = app.store.save_character(&c);
+                        data::touch();
+                        navigate(Screen::CharacterBuilder(c.character_id));
+                    },
+                    "✨ Character Builder"
+                }
                 button {
                     class: "crm-primary-button px-4 py-2 rounded-lg text-sm",
                     onclick: move |_| navigate(Screen::CharacterEditor(None)),

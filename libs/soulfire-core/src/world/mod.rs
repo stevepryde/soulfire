@@ -6,6 +6,7 @@
 //! `memory` (the three-store ladder), `response` (tolerant update parsing),
 //! `prompts` (verbatim game-master prompt text), and `engine` (the turn engine).
 
+pub mod builder;
 pub mod engine;
 pub mod input;
 pub mod memory;
@@ -13,6 +14,7 @@ pub mod prompts;
 pub mod response;
 pub mod state_patch;
 
+pub use builder::{WorldBuilderEngine, WorldBuilderResult};
 pub use engine::{TurnOutcome, WorldEngine};
 pub use input::{TurnInput, parse_turn_input};
 pub use memory::{SignificantEvent, SignificantEventUpdates};

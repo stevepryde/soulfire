@@ -45,7 +45,21 @@ pub fn WorldsHome() -> Element {
                     }
                 },
                 Tab::Worlds => rsx! {
-                    div { class: "flex justify-end mb-3",
+                    div { class: "flex justify-end gap-2 mb-3",
+                        button {
+                            class: "px-4 py-2 rounded-lg text-sm border border-border text-primary-text hover-highlight",
+                            onclick: move |_| {
+                                use lib_soulfire::strings::{WorldPrompt, WorldTitle};
+                                let b = WorldBlueprint::builder()
+                                    .title(WorldTitle::coerce("New World"))
+                                    .world_prompt(WorldPrompt::coerce("A new world to shape."))
+                                    .build();
+                                let _ = app.store.save_blueprint(&b);
+                                data::touch();
+                                navigate(Screen::WorldBuilder(b.blueprint_id));
+                            },
+                            "✨ World Builder"
+                        }
                         button {
                             class: "crm-primary-button px-4 py-2 rounded-lg text-sm",
                             onclick: move |_| navigate(Screen::WorldEditor(None)),

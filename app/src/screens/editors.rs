@@ -145,10 +145,20 @@ pub fn CharacterEditor(id: Option<CharacterId>) -> Element {
                 button { class: "crm-primary-button px-6 py-2.5 rounded-lg", onclick: move |_| save(()), "Save" }
                 button { class: "px-6 py-2.5 rounded-lg border border-border text-secondary-text", onclick: move |_| navigate(Screen::Characters), "Cancel" }
                 if let Some(cid) = id.clone() {
-                    button {
-                        class: "ml-auto text-link text-sm hover:underline",
-                        onclick: move |_| navigate(Screen::PromptViewer(cid.clone())),
-                        "View system prompt →"
+                    {
+                        let cid_b = cid.clone();
+                        rsx! {
+                            button {
+                                class: "ml-auto text-link text-sm hover:underline",
+                                onclick: move |_| navigate(Screen::CharacterBuilder(cid_b.clone())),
+                                "Builder →"
+                            }
+                            button {
+                                class: "text-link text-sm hover:underline",
+                                onclick: move |_| navigate(Screen::PromptViewer(cid.clone())),
+                                "System prompt →"
+                            }
+                        }
                     }
                 }
             }
@@ -203,9 +213,16 @@ pub fn WorldEditor(id: Option<WorldBlueprintId>) -> Element {
             Field { label: "World prompt — premise, lore, NPCs, rules, acts".to_string(),
                 textarea { class: "input-premium w-full font-mono text-sm", rows: "16", value: "{world_prompt}", oninput: move |e| world_prompt.set(e.value()) }
             }
-            div { class: "flex gap-2 mt-4",
+            div { class: "flex gap-2 mt-4 items-center",
                 button { class: "crm-primary-button px-6 py-2.5 rounded-lg", onclick: move |_| save(()), "Save" }
                 button { class: "px-6 py-2.5 rounded-lg border border-border text-secondary-text", onclick: move |_| navigate(Screen::WorldsHome), "Cancel" }
+                if let Some(bid) = id.clone() {
+                    button {
+                        class: "ml-auto text-link text-sm hover:underline",
+                        onclick: move |_| navigate(Screen::WorldBuilder(bid.clone())),
+                        "Builder →"
+                    }
+                }
             }
         }
     }

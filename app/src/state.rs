@@ -14,7 +14,7 @@ use soulfire_core::chat::ChatEngine;
 use soulfire_core::clock::{Clock, SystemClock};
 use soulfire_core::image::ImageEngine;
 use soulfire_core::store::Store;
-use soulfire_core::world::WorldEngine;
+use soulfire_core::world::{WorldBuilderEngine, WorldEngine};
 
 /// An [`ApiKeySource`] that reads provider keys from the encrypted store on
 /// demand (`SEC-9`). Keys are never held beyond a request.
@@ -35,6 +35,7 @@ pub struct AppContext {
     pub clock: Arc<dyn Clock>,
     pub chat: ChatEngine,
     pub world: WorldEngine,
+    pub world_builder: WorldBuilderEngine,
     pub character: CharacterEngine,
     pub image: ImageEngine,
 }
@@ -50,6 +51,7 @@ impl AppContext {
         AppContext {
             chat: ChatEngine::new(store.clone(), ai.clone(), clock.clone()),
             world: WorldEngine::new(store.clone(), ai.clone(), clock.clone()),
+            world_builder: WorldBuilderEngine::new(store.clone(), ai.clone(), clock.clone()),
             character: CharacterEngine::new(store.clone(), ai.clone(), clock.clone()),
             image: ImageEngine::new(store.clone(), ai.clone(), clock.clone()),
             store,

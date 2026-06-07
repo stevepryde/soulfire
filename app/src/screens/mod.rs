@@ -1,5 +1,6 @@
 //! Screen components and the active-screen dispatcher.
 
+pub mod builders;
 pub mod chat;
 pub mod editors;
 pub mod onboarding;
@@ -25,6 +26,8 @@ pub fn render_active() -> Element {
         Screen::Profile => rsx! { settings::Profile {} },
         Screen::Stats => rsx! { settings::Stats {} },
         Screen::PromptViewer(id) => rsx! { prompt_viewer::PromptViewer { character_id: id } },
+        Screen::CharacterBuilder(id) => rsx! { builders::CharacterBuilder { character_id: id } },
+        Screen::WorldBuilder(id) => rsx! { builders::WorldBuilder { blueprint_id: id } },
     }
 }
 
