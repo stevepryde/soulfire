@@ -1,9 +1,17 @@
 //! Soulfire — single-user, local, BYOK interactive-fiction & AI-chat app.
 //!
-//! See `specs/` for the design (source of truth) and `AGENTS.md` for the
-//! spec → code → tests contract. This is the scaffold entry point; the Dioxus
-//! desktop/mobile UI and core wiring are built as deliberate slices.
+//! The Dioxus desktop/mobile UI shell (`specs/09-ui.md`). The pure-Rust engine
+//! lives in `soulfire-core`; this crate renders it and drives user interaction.
+
+#![allow(non_snake_case)]
+
+mod app;
+mod data;
+mod nav;
+mod screens;
+mod state;
+mod theme;
 
 fn main() {
-    println!("Soulfire scaffold — see specs/ for the design.");
+    dioxus::launch(app::App);
 }

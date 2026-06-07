@@ -8,9 +8,11 @@ repository.workspace = true
 
 [dependencies]
 lib-soulfire = { workspace = true }
-# Wired up as crates are vendored:
-# ai-client = { workspace = true }
-# sp-core = { workspace = true }
-# sp-markdown = { workspace = true }
-# sp-ui = { workspace = true }
-# dioxus = { version = "0.7", features = ["desktop"] }  # native UI layer
+soulfire-core = { workspace = true }
+sp-core = { workspace = true }
+sp-markdown = { workspace = true }
+sp-ui = { workspace = true }
+dioxus = { workspace = true, features = ["desktop"] }
+anyhow = { workspace = true }
+directories = "6"
+tracing = { workspace = true }
