@@ -128,11 +128,23 @@ pub fn Play(adventure_id: AdventureId) -> Element {
                     "← Back"
                 }
                 div { class: "px-4 py-2 rounded-full bg-surface/70 backdrop-blur border border-border font-serif text-primary-text", "{title}" }
-                if progressed {
-                    button {
-                        class: "ml-auto px-3 py-2 rounded-full bg-surface/70 backdrop-blur border border-border text-primary-text text-sm",
-                        onclick: move |_| npc_open.toggle(),
-                        "✨ NPC"
+                div { class: "ml-auto flex gap-2",
+                    {
+                        let pid = adventure_id.clone();
+                        rsx! {
+                            button {
+                                class: "px-3 py-2 rounded-full bg-surface/70 backdrop-blur border border-border text-primary-text text-sm",
+                                onclick: move |_| navigate(Screen::AdventurePrompt(pid.clone())),
+                                "📜 Prompt"
+                            }
+                        }
+                    }
+                    if progressed {
+                        button {
+                            class: "px-3 py-2 rounded-full bg-surface/70 backdrop-blur border border-border text-primary-text text-sm",
+                            onclick: move |_| npc_open.toggle(),
+                            "✨ NPC"
+                        }
                     }
                 }
             }

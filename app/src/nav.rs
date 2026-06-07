@@ -38,6 +38,8 @@ pub enum Screen {
     Stats,
     /// The prompt viewer/editor for a character (`PROMPT-9`).
     PromptViewer(CharacterId),
+    /// The prompt viewer for an adventure (`PROMPT-9`).
+    AdventurePrompt(AdventureId),
     /// The conversational character builder (`CHAR-6`).
     CharacterBuilder(CharacterId),
     /// The conversational world builder (`WORLD-20`).
@@ -51,7 +53,8 @@ impl Screen {
             Screen::WorldsHome
             | Screen::Play(_)
             | Screen::WorldEditor(_)
-            | Screen::WorldBuilder(_) => Destination::Worlds,
+            | Screen::WorldBuilder(_)
+            | Screen::AdventurePrompt(_) => Destination::Worlds,
             Screen::Characters
             | Screen::Chat(_)
             | Screen::CharacterEditor(_)
