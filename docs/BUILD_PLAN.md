@@ -72,10 +72,14 @@ Legend: [ ] todo · [~] in progress · [x] done
 - [x] recording fake provider (scripted text/stream/error/image/stall, records requests)
 - Metering (UsageMetric write) is done by the calling engine (has entity context + store), per AI-15.
 
-### Layer 4 — prompt assembly (`soulfire-core::prompt`, PROMPT)
-- [ ] sectioned builder w/ {name, locked, body, source}; character + adventure prompts (verbatim OG)
-- [ ] three stance blocks; content toggles (adult default off); token estimation
-- [ ] golden snapshot tests; tests TEST-10
+### Layer 4 — prompt assembly (`soulfire-core::prompt`, PROMPT) — character done (6 tests)
+- [x] sectioned builder w/ {header, locked, body, source} + AssembledPrompt.instructions()/outline()
+- [x] character-chat prompt in PROMPT-3 order; verbatim OG behavior/reactions/wrapper text (PROD-7)
+- [x] adult-content toggle gates the mature stance by construction (PROMPT-6/7); structural sections
+  always present; only Character Prompt editable
+- [x] token estimation lives in ai::registry (AI-16); golden structural tests (TEST-10 character part)
+- [ ] adventure (game-master) prompts + 3 stance blocks + JSON contracts — built WITH Layer 6 (WORLD)
+  since they are coupled to the turn engine's diff/full/GM JSON contracts
 
 ### Layer 5 — chat engine (`soulfire-core::chat`, CHAT) — tests TEST-11
 ### Layer 6 — world turn engine (`soulfire-core::world`, WORLD) — tests TEST-13

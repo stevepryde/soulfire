@@ -12,6 +12,7 @@ pub mod ai;
 pub mod clock;
 pub mod error;
 pub mod keychain;
+pub mod prompt;
 pub mod store;
 
 pub use clock::{Clock, MockClock, SystemClock};
