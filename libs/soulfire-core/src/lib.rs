@@ -15,6 +15,7 @@ pub mod error;
 pub mod keychain;
 pub mod prompt;
 pub mod store;
+pub mod world;
 
 pub use clock::{Clock, MockClock, SystemClock};
 pub use error::{CoreError, CoreResult};
