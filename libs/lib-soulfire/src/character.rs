@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 
 use sp_core::datetime::SpDateTime;
 
-use crate::ai_model::AiModel;
 use crate::ids::{
     AdventureId, CharacterBuilderMessageId, CharacterBuilderSnapshotId, CharacterId,
     WorldBlueprintId,
@@ -160,9 +159,6 @@ pub struct Character {
     #[builder(default)]
     #[serde(default)]
     pub creativity: CreativityControls,
-    /// The model chosen for this character's chat, if any (`AI-9`).
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub ai_model: Option<AiModel>,
 
     // AI-internal private fields (DATA-3); never shown in the standard editor.
     #[serde(default, skip_serializing_if = "Option::is_none")]

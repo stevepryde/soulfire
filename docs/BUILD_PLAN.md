@@ -81,7 +81,16 @@ Legend: [ ] todo · [~] in progress · [x] done
 - [ ] adventure (game-master) prompts + 3 stance blocks + JSON contracts — built WITH Layer 6 (WORLD)
   since they are coupled to the turn engine's diff/full/GM JSON contracts
 
-### Layer 5 — chat engine (`soulfire-core::chat`, CHAT) — tests TEST-11
+### Layer 5 — chat engine (`soulfire-core::chat`, CHAT) — DONE (tests TEST-11)
+- [x] pure helpers: sanitise_reply (trailing-emoji + list normalization, CHAT-8), history builder
+  with reactions (CHAT-5/9), per-character Coalescer state machine (CHAT-13)
+- [x] verbatim OG summary + character-state-update prompts (PROD-7)
+- [x] ChatEngine: open_chat (verbatim vs generated opening, CHAT-1/2), send_message (persist→stream→
+  finalize, reaction extraction, metering, last_chatted/updated, auto-title CHAT-3, idle timeout
+  CHAT-6, output floor 2000 CHAT-7), rolling summary (CHAT-10/11), character-state updater
+  (CHAT-12) with coalesced queue (CHAT-13)
+- [x] 6 integration tests (opening, stream+finalize+meter, reaction→AI reaction, summary regen +
+  failure-preserves, state update + failure-preserves) + unit tests
 ### Layer 6 — world turn engine (`soulfire-core::world`, WORLD) — tests TEST-13
 ### Layer 7 — character builder + extraction (`soulfire-core::character`, CHAR) — tests TEST-12
 ### Layer 8 — images (`soulfire-core::image`, IMG) — tests TEST-14

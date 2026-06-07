@@ -9,6 +9,7 @@
 //! Modules are filled in layer by layer per `docs/BUILD_PLAN.md`.
 
 pub mod ai;
+pub mod chat;
 pub mod clock;
 pub mod error;
 pub mod keychain;

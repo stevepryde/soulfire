@@ -46,6 +46,10 @@ pub enum CoreError {
     #[error("keychain error: {0}")]
     Keychain(String),
 
+    /// An AI provider error surfaced to the user (`AI-12`).
+    #[error(transparent)]
+    Provider(#[from] crate::ai::types::ProviderError),
+
     /// Any other error.
     #[error(transparent)]
     Other(#[from] anyhow::Error),
