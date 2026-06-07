@@ -16,6 +16,7 @@ pub mod error;
 pub mod image;
 pub mod keychain;
 pub mod prompt;
+pub mod seed;
 pub mod stats;
 pub mod store;
 pub mod world;

@@ -116,7 +116,9 @@ Legend: [ ] todo · [~] in progress · [x] done
   at rest (proven on disk). 4 tests.
 ### Layer 9 — stats aggregation (`soulfire-core::stats`, STAT) — DONE (2 tests)
 - [x] totals/by-model/by-label/by-day(+month) + StatsReport; cached subset of input (STAT-3); no cost
-### Layer 10 — starter worlds seed (`soulfire-core::seed`, ONB) — tests TEST-16
+### Layer 10 — starter worlds seed (`soulfire-core::seed`, ONB) — DONE (3 tests)
+- [x] Beneath Verath lead starter (authored, OG act format); seed_starter_worlds idempotent, ledger-
+  tracked, no-duplicate, no-resurrect-deleted (ONB-5/DATA-21). CORE COMPLETE: 172 tests.
 
 ### Layer 11 — Dioxus UI (`app`, UI + ONB surfaces)
 - [ ] theme tokens + accent system (port OG input.css); app shell; nav (sidebar/bottom)
