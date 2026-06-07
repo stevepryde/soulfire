@@ -125,9 +125,9 @@ impl AiProvider for RecordingProvider {
                 usage,
             }),
             Scripted::Error(e) => Err(e),
-            Scripted::Image { .. } => {
-                Err(ProviderError::Other("scripted image for a text call".into()))
-            }
+            Scripted::Image { .. } => Err(ProviderError::Other(
+                "scripted image for a text call".into(),
+            )),
         }
     }
 
@@ -165,16 +165,13 @@ impl AiProvider for RecordingProvider {
                 Ok(stream::iter(events).boxed())
             }
             Scripted::Error(e) => Err(e),
-            Scripted::Image { .. } => {
-                Err(ProviderError::Other("scripted image for a stream call".into()))
-            }
+            Scripted::Image { .. } => Err(ProviderError::Other(
+                "scripted image for a stream call".into(),
+            )),
         }
     }
 
-    async fn generate_image(
-        &self,
-        request: ImageRequest,
-    ) -> Result<ImageResponse, ProviderError> {
+    async fn generate_image(&self, request: ImageRequest) -> Result<ImageResponse, ProviderError> {
         self.image_requests.lock().unwrap().push(request);
         match self.next()? {
             Scripted::Image { bytes, mime, usage } => Ok(ImageResponse { bytes, mime, usage }),

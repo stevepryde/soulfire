@@ -10,7 +10,16 @@ use crate::ids::{AdventureId, CharacterId, ChatId, MetricId, WorldBlueprintId};
 /// What a metered AI request was for (`DATA-20a`). The operation kind a usage
 /// entry is grouped by in the by-operation breakdown (`STAT-4`).
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, strum::Display, strum::EnumString,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    strum::Display,
+    strum::EnumString,
 )]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]

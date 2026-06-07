@@ -52,7 +52,16 @@ impl StoryStatus {
 
 /// The kind of an adventure turn-log entry (`DATA-12`).
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, strum::Display, strum::EnumString,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    strum::Display,
+    strum::EnumString,
 )]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -229,7 +238,9 @@ pub struct AdventureMessage {
 // ===== GM proposal (DATA-13) =====
 
 /// Which side of a `/gm` change a proposal targets (`DATA-13`, `WORLD-16`).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, strum::Display, strum::EnumString)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, strum::Display, strum::EnumString,
+)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum GmChangeTarget {
@@ -358,7 +369,10 @@ pub struct WorldBuilderSession {
 impl WorldBuilderSession {
     pub fn push_message(&mut self, message: WorldBuilderMessage) {
         self.messages.push(message);
-        let overflow = self.messages.len().saturating_sub(WORLD_BUILDER_MESSAGE_CAP);
+        let overflow = self
+            .messages
+            .len()
+            .saturating_sub(WORLD_BUILDER_MESSAGE_CAP);
         if overflow > 0 {
             self.messages.drain(0..overflow);
         }

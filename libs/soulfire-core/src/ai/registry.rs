@@ -37,17 +37,18 @@ mod tests {
     fn precedence_prefers_entity_then_profile_then_default() {
         // AI-9 order.
         assert_eq!(
-            resolve_model(Some(AiModel::Gpt5_4), Some(AiModel::Gpt5_4Mini), AiModel::Gpt5_1),
+            resolve_model(
+                Some(AiModel::Gpt5_4),
+                Some(AiModel::Gpt5_4Mini),
+                AiModel::Gpt5_1
+            ),
             AiModel::Gpt5_4
         );
         assert_eq!(
             resolve_model(None, Some(AiModel::Gpt5_4Mini), AiModel::Gpt5_1),
             AiModel::Gpt5_4Mini
         );
-        assert_eq!(
-            resolve_model(None, None, AiModel::Gpt5_1),
-            AiModel::Gpt5_1
-        );
+        assert_eq!(resolve_model(None, None, AiModel::Gpt5_1), AiModel::Gpt5_1);
     }
 
     #[test]

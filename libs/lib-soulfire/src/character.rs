@@ -104,8 +104,12 @@ impl CreativityControls {
     /// Clamp every control into its valid range (`DATA-1`, applied on save).
     pub fn clamped(self) -> Self {
         CreativityControls {
-            max_tokens: self.max_tokens.clamp(MAX_TOKENS_RANGE.0, MAX_TOKENS_RANGE.1),
-            temperature: self.temperature.clamp(TEMPERATURE_RANGE.0, TEMPERATURE_RANGE.1),
+            max_tokens: self
+                .max_tokens
+                .clamp(MAX_TOKENS_RANGE.0, MAX_TOKENS_RANGE.1),
+            temperature: self
+                .temperature
+                .clamp(TEMPERATURE_RANGE.0, TEMPERATURE_RANGE.1),
             top_p: self.top_p.clamp(TOP_P_RANGE.0, TOP_P_RANGE.1),
             top_k: self.top_k.clamp(TOP_K_RANGE.0, TOP_K_RANGE.1),
         }

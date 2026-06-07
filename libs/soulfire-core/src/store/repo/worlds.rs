@@ -91,7 +91,10 @@ impl Store {
                    (SELECT 'adventure:' || adventure_id FROM adventures WHERE blueprint_id = ?1)",
                 params![id_s],
             )?;
-            tx.execute("DELETE FROM adventures WHERE blueprint_id = ?1", params![id_s])?;
+            tx.execute(
+                "DELETE FROM adventures WHERE blueprint_id = ?1",
+                params![id_s],
+            )?;
             tx.execute(
                 "DELETE FROM world_builder_sessions WHERE blueprint_id = ?1",
                 params![id_s],
@@ -203,7 +206,10 @@ impl Store {
                 "DELETE FROM drafts WHERE scope_key = ?1",
                 params![format!("adventure:{id_s}")],
             )?;
-            tx.execute("DELETE FROM adventures WHERE adventure_id = ?1", params![id_s])?;
+            tx.execute(
+                "DELETE FROM adventures WHERE adventure_id = ?1",
+                params![id_s],
+            )?;
             tx.commit()?;
             Ok(())
         })
@@ -231,7 +237,10 @@ impl Store {
         })
     }
 
-    pub fn adventure_messages(&self, adventure_id: &AdventureId) -> CoreResult<Vec<AdventureMessage>> {
+    pub fn adventure_messages(
+        &self,
+        adventure_id: &AdventureId,
+    ) -> CoreResult<Vec<AdventureMessage>> {
         self.with_conn(|conn| {
             select_many(
                 conn,

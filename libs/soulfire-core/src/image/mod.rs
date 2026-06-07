@@ -56,8 +56,13 @@ impl ImageEngine {
             Some(prev) => prev.bumped(),
             None => StoredImageRef::new(),
         };
-        self.store
-            .put_image(ImageOwnerKind::Character, &owner, &image.mime, next.version, &image.bytes)?;
+        self.store.put_image(
+            ImageOwnerKind::Character,
+            &owner,
+            &image.mime,
+            next.version,
+            &image.bytes,
+        )?;
         character.portrait = Some(next);
         character.updated_at = self.clock.now();
         self.store.save_character(&character)?;
@@ -85,8 +90,13 @@ impl ImageEngine {
             Some(prev) => prev.bumped(),
             None => StoredImageRef::new(),
         };
-        self.store
-            .put_image(ImageOwnerKind::World, &owner, &image.mime, next.version, &image.bytes)?;
+        self.store.put_image(
+            ImageOwnerKind::World,
+            &owner,
+            &image.mime,
+            next.version,
+            &image.bytes,
+        )?;
         blueprint.cover = Some(next);
         blueprint.updated_at = self.clock.now();
         self.store.save_blueprint(&blueprint)?;
@@ -110,8 +120,13 @@ impl ImageEngine {
             Some(prev) => prev.bumped(),
             None => StoredImageRef::new(),
         };
-        self.store
-            .put_image(ImageOwnerKind::Character, &character_id.to_string(), mime, next.version, bytes)?;
+        self.store.put_image(
+            ImageOwnerKind::Character,
+            &character_id.to_string(),
+            mime,
+            next.version,
+            bytes,
+        )?;
         character.portrait = Some(next);
         character.updated_at = self.clock.now();
         self.store.save_character(&character)?;
@@ -147,8 +162,15 @@ impl ImageEngine {
     }
 
     async fn generate(&self, prompt: String) -> CoreResult<crate::ai::types::ImageResponse> {
-        let model = resolve_model(None, self.store.app_profile()?.default_ai_model, AiModel::default_chat_narrative());
-        Ok(self.ai.generate_image(ImageRequest { model, prompt }).await?)
+        let model = resolve_model(
+            None,
+            self.store.app_profile()?.default_ai_model,
+            AiModel::default_chat_narrative(),
+        );
+        Ok(self
+            .ai
+            .generate_image(ImageRequest { model, prompt })
+            .await?)
     }
 
     fn meter(

@@ -7,14 +7,14 @@ use std::time::Duration;
 use lib_soulfire::ai_model::AiModel;
 use lib_soulfire::character::{Character, InitialMessage};
 use lib_soulfire::chat::{AI_REACTOR, Chat, ChatMessage, Sender};
-use lib_soulfire::ids::{ChatId, CharacterId};
+use lib_soulfire::ids::{CharacterId, ChatId};
 use lib_soulfire::metric::{MetricLabel, UsageMetric};
 use lib_soulfire::strings::{CharacterContext, ChatTitle, MessageString, StorySummary};
 
+use crate::ai::collect_streamed;
 use crate::ai::registry::resolve_model;
 use crate::ai::service::AiService;
 use crate::ai::types::{GenerationConfig, GenerationRequest, PromptMessage, Usage};
-use crate::ai::collect_streamed;
 use crate::clock::Clock;
 use crate::error::{CoreError, CoreResult};
 use crate::prompt::{CharacterPromptInput, build_character_prompt};
@@ -105,7 +105,10 @@ impl ChatEngine {
         // Deliver the opening message (CHAT-2).
         let opening_text = match &character.initial_message {
             InitialMessage::Message(text) => text.to_string(),
-            InitialMessage::Prompt(seed) => self.generate_opening(&chat, &character, seed.as_str()).await?,
+            InitialMessage::Prompt(seed) => {
+                self.generate_opening(&chat, &character, seed.as_str())
+                    .await?
+            }
         };
         let opening = self.new_character_message(&chat, &character, &opening_text, 0);
         self.store.save_chat_message(&opening)?;
@@ -156,7 +159,9 @@ impl ChatEngine {
         // Build the prompt: persona instructions + bounded history (CHAT-5).
         let input = self.character_prompt_input(&character)?;
         let assembled = build_character_prompt(&input.as_ref());
-        let history = self.store.recent_chat_messages(chat_id, MAX_HISTORY_MESSAGES)?;
+        let history = self
+            .store
+            .recent_chat_messages(chat_id, MAX_HISTORY_MESSAGES)?;
         let messages = to_history_messages(&history);
 
         let request = GenerationRequest {
@@ -198,7 +203,13 @@ impl ChatEngine {
         }
 
         // Metering (AI-15).
-        self.meter(MetricLabel::ChatMessage, model, response.usage, Some(chat_id), Some(&character_id))?;
+        self.meter(
+            MetricLabel::ChatMessage,
+            model,
+            response.usage,
+            Some(chat_id),
+            Some(&character_id),
+        )?;
 
         // Advance timestamps (CHAT-4).
         character.last_chatted_at = Some(reply_time);
@@ -241,9 +252,7 @@ impl ChatEngine {
             &conversation,
         );
 
-        let model = chat
-            .ai_model
-            .unwrap_or_else(AiModel::default_state_utility);
+        let model = chat.ai_model.unwrap_or_else(AiModel::default_state_utility);
         let request = GenerationRequest {
             model,
             instructions: None,
@@ -251,7 +260,13 @@ impl ChatEngine {
             config: GenerationConfig::default(),
         };
         let response = self.ai.generate(request).await?; // Err leaves summary intact
-        self.meter(MetricLabel::ChatSummary, model, response.usage, Some(chat_id), None)?;
+        self.meter(
+            MetricLabel::ChatSummary,
+            model,
+            response.usage,
+            Some(chat_id),
+            None,
+        )?;
 
         chat.chat_summary = Some(StorySummary::coerce(&response.text));
         chat.messages_since_summary = 0;
@@ -294,7 +309,9 @@ impl ChatEngine {
         let Some(chat_id) = self.store.chat_id_for_character(character_id)? else {
             return Ok(());
         };
-        let messages = self.store.recent_chat_messages(&chat_id, STATE_UPDATE_WINDOW)?;
+        let messages = self
+            .store
+            .recent_chat_messages(&chat_id, STATE_UPDATE_WINDOW)?;
         let chat = self.store.chat(&chat_id)?;
         let (player_name, character_name) = match &chat {
             Some(c) => self.participant_names(c)?,
@@ -376,24 +393,36 @@ impl ChatEngine {
         };
         let response = self.ai.generate(request).await?;
         if let Some(cid) = chat.character_id.as_ref() {
-            self.meter(MetricLabel::ChatMessage, model, response.usage, Some(&chat.chat_id), Some(cid))?;
+            self.meter(
+                MetricLabel::ChatMessage,
+                model,
+                response.usage,
+                Some(&chat.chat_id),
+                Some(cid),
+            )?;
         }
         let (clean, _) = sanitise_reply(&response.text);
         Ok(clean)
     }
 
     async fn generate_title(&self, chat: &Chat, first_message: &str) -> CoreResult<ChatTitle> {
-        let model = chat
-            .ai_model
-            .unwrap_or_else(AiModel::default_state_utility);
+        let model = chat.ai_model.unwrap_or_else(AiModel::default_state_utility);
         let request = GenerationRequest {
             model,
             instructions: None,
-            messages: vec![PromptMessage::developer(prompts::title_prompt(first_message))],
+            messages: vec![PromptMessage::developer(prompts::title_prompt(
+                first_message,
+            ))],
             config: GenerationConfig::default(),
         };
         let response = self.ai.generate(request).await?;
-        self.meter(MetricLabel::ChatSummary, model, response.usage, Some(&chat.chat_id), None)?;
+        self.meter(
+            MetricLabel::ChatSummary,
+            model,
+            response.usage,
+            Some(&chat.chat_id),
+            None,
+        )?;
         Ok(ChatTitle::coerce(response.text.trim()))
     }
 
@@ -432,11 +461,7 @@ impl ChatEngine {
     }
 
     fn participant_names(&self, chat: &Chat) -> CoreResult<(String, String)> {
-        let player = self
-            .store
-            .player_profile()?
-            .player_name
-            .to_string();
+        let player = self.store.player_profile()?.player_name.to_string();
         let player = if player.is_empty() {
             "Player".to_string()
         } else {

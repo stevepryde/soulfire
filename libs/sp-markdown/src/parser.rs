@@ -143,7 +143,10 @@ fn fence_info(s: &str) -> Option<Fence<'_>> {
     }
     let info = s[n..].trim();
     let lang = if info.is_empty() { None } else { Some(info) };
-    Some(Fence { marker_len: n, lang })
+    Some(Fence {
+        marker_len: n,
+        lang,
+    })
 }
 
 fn is_closing_fence(s: &str, marker_len: usize) -> bool {

@@ -11,8 +11,8 @@ use lib_soulfire::credentials::ProviderCredential;
 use lib_soulfire::draft::{Draft, DraftScope};
 use lib_soulfire::ids::CharacterId;
 use lib_soulfire::strings::{CharacterName, DraftContent, InitialMessageText, MessageString};
-use lib_soulfire::world::{Adventure, AdventureMessage, AdventureMessageType, WorldBlueprint};
 use lib_soulfire::strings::{MessageContent, WorldPrompt, WorldTitle};
+use lib_soulfire::world::{Adventure, AdventureMessage, AdventureMessageType, WorldBlueprint};
 
 use soulfire_core::store::Store;
 
@@ -25,9 +25,9 @@ fn temp_store() -> (tempfile::TempDir, Store) {
 fn sample_character(name: &str) -> Character {
     Character::builder()
         .name(CharacterName::from_str(name).unwrap())
-        .initial_message(InitialMessage::Message(
-            InitialMessageText::coerce("Hello there."),
-        ))
+        .initial_message(InitialMessage::Message(InitialMessageText::coerce(
+            "Hello there.",
+        )))
         .build()
 }
 
@@ -64,15 +64,14 @@ fn at_most_one_chat_per_character() {
     let (_dir, store) = temp_store();
     let c = sample_character("Nova");
     store.save_character(&c).unwrap();
-    let chat1 = Chat::builder()
-        .character_id(c.character_id.clone())
-        .build();
+    let chat1 = Chat::builder().character_id(c.character_id.clone()).build();
     store.save_chat(&chat1).unwrap();
-    let chat2 = Chat::builder()
-        .character_id(c.character_id.clone())
-        .build();
+    let chat2 = Chat::builder().character_id(c.character_id.clone()).build();
     let err = store.save_chat(&chat2);
-    assert!(err.is_err(), "a second chat for the same character must fail");
+    assert!(
+        err.is_err(),
+        "a second chat for the same character must fail"
+    );
 }
 
 #[test]
@@ -81,9 +80,7 @@ fn deleting_character_cascades_to_chat_messages_and_draft() {
     let (_dir, store) = temp_store();
     let c = sample_character("Solas");
     store.save_character(&c).unwrap();
-    let chat = Chat::builder()
-        .character_id(c.character_id.clone())
-        .build();
+    let chat = Chat::builder().character_id(c.character_id.clone()).build();
     store.save_chat(&chat).unwrap();
     let msg = ChatMessage::builder()
         .chat_id(chat.chat_id.clone())
@@ -139,7 +136,12 @@ fn deleting_blueprint_cascades_to_adventures_messages_and_proposals() {
 
     assert!(store.blueprint(&bp.blueprint_id).unwrap().is_none());
     assert!(store.adventure(&adv.adventure_id).unwrap().is_none());
-    assert!(store.adventure_messages(&adv.adventure_id).unwrap().is_empty());
+    assert!(
+        store
+            .adventure_messages(&adv.adventure_id)
+            .unwrap()
+            .is_empty()
+    );
 }
 
 #[test]
@@ -188,7 +190,9 @@ fn credentials_and_content_are_unreadable_on_disk_without_key() {
     const SECRET_KEY: &str = "sk-PLAINTEXT-SECRET-KEY-1234567890";
     let db_path = {
         let store = Store::initialize(dir.path(), "pw").unwrap();
-        store.save_character(&sample_character(SECRET_NAME)).unwrap();
+        store
+            .save_character(&sample_character(SECRET_NAME))
+            .unwrap();
         store
             .save_credential(&ProviderCredential::new(AiVendor::OpenAI, SECRET_KEY))
             .unwrap();

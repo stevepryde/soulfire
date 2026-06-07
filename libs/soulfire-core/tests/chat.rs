@@ -8,9 +8,7 @@ use std::sync::Arc;
 use lib_soulfire::ai_model::AiVendor;
 use lib_soulfire::character::{Character, InitialMessage};
 use lib_soulfire::chat::AI_REACTOR;
-use lib_soulfire::strings::{
-    CharacterContext, CharacterName, CharacterPrompt, InitialMessageText,
-};
+use lib_soulfire::strings::{CharacterContext, CharacterName, CharacterPrompt, InitialMessageText};
 use sp_core::secret::Secret;
 
 use soulfire_core::ai::fake::{RecordingProvider, Scripted};
@@ -88,7 +86,8 @@ async fn prompt_initial_generates_opening() {
         "Greet the player warmly.",
     )));
     h.store.save_character(&c).unwrap();
-    h.provider.push(Scripted::text("Well met, traveler. I am Lyra.", 50, 8));
+    h.provider
+        .push(Scripted::text("Well met, traveler. I am Lyra.", 50, 8));
 
     let chat = h.engine.open_chat(&c.character_id).await.unwrap();
     let msgs = h.store.chat_messages(&chat.chat_id).unwrap();
@@ -108,8 +107,11 @@ async fn send_streams_reply_finalizes_and_meters() {
     h.store.save_character(&c).unwrap();
     let chat = h.engine.open_chat(&c.character_id).await.unwrap();
     // reply stream, then a title generation call (first exchange, CHAT-3).
-    h.provider
-        .push(Scripted::stream(vec!["Hello ", "there, ", "friend."], 120, 6));
+    h.provider.push(Scripted::stream(
+        vec!["Hello ", "there, ", "friend."],
+        120,
+        6,
+    ));
     h.provider.push(Scripted::text("A Warm Greeting", 20, 3));
 
     let mut streamed = String::new();
@@ -148,7 +150,8 @@ async fn trailing_emoji_becomes_ai_reaction_on_player_message() {
     let c = character(InitialMessage::Message(InitialMessageText::coerce("Hi.")));
     h.store.save_character(&c).unwrap();
     let chat = h.engine.open_chat(&c.character_id).await.unwrap();
-    h.provider.push(Scripted::text("I'm so happy to see you ❤️", 100, 7));
+    h.provider
+        .push(Scripted::text("I'm so happy to see you ❤️", 100, 7));
     h.provider.push(Scripted::text("Joyful Reunion", 10, 2)); // title
 
     let outcome = h
@@ -158,7 +161,11 @@ async fn trailing_emoji_becomes_ai_reaction_on_player_message() {
         .unwrap();
 
     assert_eq!(outcome.reply.message.as_str(), "I'm so happy to see you");
-    let player = h.store.chat_message(&outcome.player_message.message_id).unwrap().unwrap();
+    let player = h
+        .store
+        .chat_message(&outcome.player_message.message_id)
+        .unwrap()
+        .unwrap();
     assert_eq!(player.emoji_reactions.get(AI_REACTOR), Some("❤️"));
 }
 
@@ -175,10 +182,14 @@ async fn summary_regenerates_and_failure_preserves_prior() {
     h.store.save_chat(&chat).unwrap();
 
     // Successful summary regen.
-    h.provider.push(Scripted::text("They greeted each other warmly.", 200, 12));
+    h.provider
+        .push(Scripted::text("They greeted each other warmly.", 200, 12));
     h.engine.generate_summary(&chat.chat_id).await.unwrap();
     let after = h.store.chat(&chat.chat_id).unwrap().unwrap();
-    assert_eq!(after.chat_summary.unwrap().as_str(), "They greeted each other warmly.");
+    assert_eq!(
+        after.chat_summary.unwrap().as_str(),
+        "They greeted each other warmly."
+    );
     assert_eq!(after.messages_since_summary, 0);
 
     // A failed summary pass preserves the prior summary.
@@ -205,9 +216,15 @@ async fn character_state_update_evolves_state_and_failure_preserves() {
     let chat = h.engine.open_chat(&c.character_id).await.unwrap();
     let _ = chat;
 
-    h.provider
-        .push(Scripted::text("You feel a growing warmth toward the player.", 150, 40));
-    h.engine.run_character_state_update(&c.character_id).await.unwrap();
+    h.provider.push(Scripted::text(
+        "You feel a growing warmth toward the player.",
+        150,
+        40,
+    ));
+    h.engine
+        .run_character_state_update(&c.character_id)
+        .await
+        .unwrap();
     let updated = h.store.character(&c.character_id).unwrap().unwrap();
     assert_eq!(
         updated.character_state.unwrap().as_str(),
@@ -218,7 +235,12 @@ async fn character_state_update_evolves_state_and_failure_preserves() {
     // non-transient error so it fails fast without retry/backoff.
     h.provider
         .push(Scripted::Error(ProviderError::RateLimited("429".into())));
-    assert!(h.engine.run_character_state_update(&c.character_id).await.is_err());
+    assert!(
+        h.engine
+            .run_character_state_update(&c.character_id)
+            .await
+            .is_err()
+    );
     let preserved = h.store.character(&c.character_id).unwrap().unwrap();
     assert_eq!(
         preserved.character_state.unwrap().as_str(),

@@ -64,7 +64,10 @@ impl Store {
         })
     }
 
-    pub fn metrics_for_adventure(&self, adventure_id: &AdventureId) -> CoreResult<Vec<UsageMetric>> {
+    pub fn metrics_for_adventure(
+        &self,
+        adventure_id: &AdventureId,
+    ) -> CoreResult<Vec<UsageMetric>> {
         self.with_conn(|conn| {
             select_many(
                 conn,

@@ -10,9 +10,7 @@ use lib_soulfire::world::StoryStatus;
 
 use crate::ai::fence::rescue_json_block;
 
-use super::memory::{
-    SignificantEvent, SignificantEventUpdates, coerce_significant_event_array,
-};
+use super::memory::{SignificantEvent, SignificantEventUpdates, coerce_significant_event_array};
 use super::state_patch::{StatePatch, parse_patches_from_value};
 
 /// Top-level memory fields that the model sometimes mis-routes into a patch
@@ -299,7 +297,10 @@ mod tests {
         let diff = parse_diff_update(text).unwrap();
         assert_eq!(diff.patches.len(), 1); // story_summary patch removed
         assert_eq!(diff.patches[0].path, "player.hp");
-        assert_eq!(diff.story_summary.as_deref(), Some("## Rolling Story\nrescued"));
+        assert_eq!(
+            diff.story_summary.as_deref(),
+            Some("## Rolling Story\nrescued")
+        );
     }
 
     #[test]

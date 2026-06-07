@@ -44,7 +44,11 @@ pub struct PromptSection {
 }
 
 impl PromptSection {
-    pub fn locked(header: impl Into<String>, body: impl Into<String>, source: SectionSource) -> Self {
+    pub fn locked(
+        header: impl Into<String>,
+        body: impl Into<String>,
+        source: SectionSource,
+    ) -> Self {
         PromptSection {
             header: header.into(),
             body: body.into(),

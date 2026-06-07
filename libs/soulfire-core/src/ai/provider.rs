@@ -36,10 +36,7 @@ pub trait AiProvider: Send + Sync {
     ) -> Result<EventStream, ProviderError>;
 
     /// Image generation (`IMG-1`).
-    async fn generate_image(
-        &self,
-        request: ImageRequest,
-    ) -> Result<ImageResponse, ProviderError>;
+    async fn generate_image(&self, request: ImageRequest) -> Result<ImageResponse, ProviderError>;
 }
 
 /// A source of provider API keys, decrypted from the store on demand (`SEC-9`).

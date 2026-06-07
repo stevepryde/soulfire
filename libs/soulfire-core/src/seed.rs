@@ -145,7 +145,10 @@ mod tests {
         assert!(rec.was_seeded());
         assert!(rec.blueprint_id.is_some());
         // The lead starter is present and editable like any blueprint.
-        let bp = store.blueprint(rec.blueprint_id.as_ref().unwrap()).unwrap().unwrap();
+        let bp = store
+            .blueprint(rec.blueprint_id.as_ref().unwrap())
+            .unwrap()
+            .unwrap();
         assert_eq!(bp.title.as_str(), "Beneath Verath");
     }
 

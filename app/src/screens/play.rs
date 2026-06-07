@@ -20,7 +20,9 @@ pub fn Play(adventure_id: AdventureId) -> Element {
     data::subscribe();
     let app = current_app();
     let id = adventure_id.clone();
-    let scope = DraftScope::Adventure { adventure_id: adventure_id.clone() };
+    let scope = DraftScope::Adventure {
+        adventure_id: adventure_id.clone(),
+    };
 
     let Some(adventure) = app.store.adventure(&id).ok().flatten() else {
         return rsx! { div { class: "p-8 text-center text-secondary-text", "Adventure not found." } };
@@ -63,7 +65,9 @@ pub fn Play(adventure_id: AdventureId) -> Element {
             spawn(async move {
                 match app.character.extract_npc(&id, &name).await {
                     Ok(c) => {
-                        ToastService::info(&format!("{name} is now a character you can chat with."));
+                        ToastService::info(&format!(
+                            "{name} is now a character you can chat with."
+                        ));
                         npc_open.set(false);
                         npc_name.set(String::new());
                         data::touch();
@@ -81,7 +85,11 @@ pub fn Play(adventure_id: AdventureId) -> Element {
         .as_ref()
         .map(|t| t.to_string())
         .unwrap_or_else(|| "Adventure".to_string());
-    let watermark = adventure.world_image.map(|i| i.emoji()).unwrap_or("🌊").to_string();
+    let watermark = adventure
+        .world_image
+        .map(|i| i.emoji())
+        .unwrap_or("🌊")
+        .to_string();
 
     let send = use_callback(move |_: ()| {
         let action = input().trim().to_string();
@@ -89,7 +97,9 @@ pub fn Play(adventure_id: AdventureId) -> Element {
             return;
         }
         input.set(String::new());
-        let _ = app.store.delete_draft_for_scope(&DraftScope::Adventure { adventure_id: id.clone() });
+        let _ = app.store.delete_draft_for_scope(&DraftScope::Adventure {
+            adventure_id: id.clone(),
+        });
         let app = app.clone();
         let id = id.clone();
         busy.set(true);
@@ -98,9 +108,14 @@ pub fn Play(adventure_id: AdventureId) -> Element {
         spawn(async move {
             let on_delta = move |d: &str| streaming.with_mut(|s| s.push_str(d));
             match app.world.take_turn(&id, &action, on_delta).await {
-                Ok(TurnOutcome::Narration { state_update_failed, .. }) => {
+                Ok(TurnOutcome::Narration {
+                    state_update_failed,
+                    ..
+                }) => {
                     if state_update_failed {
-                        ToastService::warn("The world's memory didn't fully update; it will self-correct.");
+                        ToastService::warn(
+                            "The world's memory didn't fully update; it will self-correct.",
+                        );
                     }
                 }
                 Ok(TurnOutcome::Warning(w)) => ToastService::warn(&w),

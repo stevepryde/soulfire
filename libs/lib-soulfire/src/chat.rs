@@ -207,6 +207,10 @@ mod tests {
             character_id: CharacterId::new(),
             image: None,
         };
-        assert!(serde_json::to_string(&s).unwrap().contains("\"kind\":\"character\""));
+        assert!(
+            serde_json::to_string(&s)
+                .unwrap()
+                .contains("\"kind\":\"character\"")
+        );
     }
 }

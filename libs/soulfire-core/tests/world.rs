@@ -41,7 +41,13 @@ fn harness() -> H {
     let ai = AiService::new(provider.clone(), Arc::new(Keys));
     let clock = Arc::new(MockClock::at_epoch());
     let engine = WorldEngine::new(store.clone(), ai, clock.clone() as Arc<dyn Clock>);
-    H { _dir: dir, store, provider, clock, engine }
+    H {
+        _dir: dir,
+        store,
+        provider,
+        clock,
+        engine,
+    }
 }
 
 fn blueprint() -> WorldBlueprint {
@@ -52,7 +58,11 @@ fn blueprint() -> WorldBlueprint {
 }
 
 async fn start(h: &H) -> lib_soulfire::world::Adventure {
-    h.provider.push(Scripted::text("You awaken in the dark depths of Verath.", 80, 20));
+    h.provider.push(Scripted::text(
+        "You awaken in the dark depths of Verath.",
+        80,
+        20,
+    ));
     h.provider.push(Scripted::text(
         r#"{"player":{"name":"Diver"},"current_situation":{"location":"flooded hall","time":"night","day":1}}"#,
         60,
@@ -82,7 +92,8 @@ async fn turn_echoes_action_streams_narration_and_applies_diff() {
     let h = harness();
     let adv = start(&h).await;
     // narration stream, then a diff state-update response.
-    h.provider.push(Scripted::stream(vec!["You ", "wade ", "forward."], 100, 10));
+    h.provider
+        .push(Scripted::stream(vec!["You ", "wade ", "forward."], 100, 10));
     h.provider.push(Scripted::text(
         r#"{"patches":[{"path":"current_situation.time","value":"dawn"}],"new_recent_events":["Waded into the hall at dawn"],"story_status":"ongoing"}"#,
         50,
@@ -98,7 +109,10 @@ async fn turn_echoes_action_streams_narration_and_applies_diff() {
 
     assert_eq!(streamed, "You wade forward.");
     match outcome {
-        TurnOutcome::Narration { state_update_failed, .. } => assert!(!state_update_failed),
+        TurnOutcome::Narration {
+            state_update_failed,
+            ..
+        } => assert!(!state_update_failed),
         other => panic!("expected narration, got {other:?}"),
     }
     // One user_action + one narration appended (plus the intro).
@@ -115,8 +129,16 @@ async fn turn_echoes_action_streams_narration_and_applies_diff() {
     // The diff applied: time advanced to dawn; lock released.
     let reloaded = h.store.adventure(&adv.adventure_id).unwrap().unwrap();
     assert!(reloaded.adventure_state.as_str().contains("dawn"));
-    assert!(reloaded.recent_summary.as_str().contains("Waded into the hall"));
-    assert_eq!(reloaded.ready_status, lib_soulfire::world::AdventureReadyStatus::Ready);
+    assert!(
+        reloaded
+            .recent_summary
+            .as_str()
+            .contains("Waded into the hall")
+    );
+    assert_eq!(
+        reloaded.ready_status,
+        lib_soulfire::world::AdventureReadyStatus::Ready
+    );
     assert_eq!(reloaded.diff_action_count, 1);
 }
 
@@ -126,21 +148,39 @@ async fn state_update_failure_keeps_narration_and_state_unchanged() {
     // leaves state unchanged.
     let h = harness();
     let adv = start(&h).await;
-    let state_before = h.store.adventure(&adv.adventure_id).unwrap().unwrap().adventure_state.to_string();
+    let state_before = h
+        .store
+        .adventure(&adv.adventure_id)
+        .unwrap()
+        .unwrap()
+        .adventure_state
+        .to_string();
 
-    h.provider.push(Scripted::stream(vec!["Something happens."], 30, 5));
+    h.provider
+        .push(Scripted::stream(vec!["Something happens."], 30, 5));
     // Non-transient error on the state-update call -> fails fast, non-fatal.
-    h.provider.push(Scripted::Error(ProviderError::RateLimited("429".into())));
+    h.provider
+        .push(Scripted::Error(ProviderError::RateLimited("429".into())));
 
-    let outcome = h.engine.take_turn(&adv.adventure_id, "look", |_| {}).await.unwrap();
+    let outcome = h
+        .engine
+        .take_turn(&adv.adventure_id, "look", |_| {})
+        .await
+        .unwrap();
     match outcome {
-        TurnOutcome::Narration { state_update_failed, .. } => assert!(state_update_failed),
+        TurnOutcome::Narration {
+            state_update_failed,
+            ..
+        } => assert!(state_update_failed),
         other => panic!("expected narration, got {other:?}"),
     }
     let reloaded = h.store.adventure(&adv.adventure_id).unwrap().unwrap();
     // Narration kept; state unchanged; lock released.
     assert_eq!(reloaded.adventure_state.to_string(), state_before);
-    assert_eq!(reloaded.ready_status, lib_soulfire::world::AdventureReadyStatus::Ready);
+    assert_eq!(
+        reloaded.ready_status,
+        lib_soulfire::world::AdventureReadyStatus::Ready
+    );
     let msgs = h.store.adventure_messages(&adv.adventure_id).unwrap();
     assert_eq!(msgs.last().unwrap().content.as_str(), "Something happens.");
 }
@@ -155,14 +195,22 @@ async fn lock_refuses_concurrent_turn_then_self_heals() {
     adv.ready_status_updated_at = Some(h.clock.now());
     h.store.save_adventure(&adv).unwrap();
 
-    let err = h.engine.take_turn(&adv.adventure_id, "act", |_| {}).await.unwrap_err();
+    let err = h
+        .engine
+        .take_turn(&adv.adventure_id, "act", |_| {})
+        .await
+        .unwrap_err();
     assert!(matches!(err, CoreError::TurnInProgress));
 
     // After the stale-lock expiry, the turn proceeds (self-heal).
     h.clock.advance_secs(91);
     h.provider.push(Scripted::stream(vec!["Healed."], 10, 2));
     h.provider.push(Scripted::text(r#"{"patches":[]}"#, 5, 2));
-    let outcome = h.engine.take_turn(&adv.adventure_id, "act", |_| {}).await.unwrap();
+    let outcome = h
+        .engine
+        .take_turn(&adv.adventure_id, "act", |_| {})
+        .await
+        .unwrap();
     assert!(matches!(outcome, TurnOutcome::Narration { .. }));
 }
 
@@ -172,11 +220,17 @@ async fn unknown_and_empty_commands_warn() {
     let h = harness();
     let adv = start(&h).await;
     assert!(matches!(
-        h.engine.take_turn(&adv.adventure_id, "/gm", |_| {}).await.unwrap(),
+        h.engine
+            .take_turn(&adv.adventure_id, "/gm", |_| {})
+            .await
+            .unwrap(),
         TurnOutcome::Warning(_)
     ));
     assert!(matches!(
-        h.engine.take_turn(&adv.adventure_id, "/fly", |_| {}).await.unwrap(),
+        h.engine
+            .take_turn(&adv.adventure_id, "/fly", |_| {})
+            .await
+            .unwrap(),
         TurnOutcome::Warning(_)
     ));
 }
@@ -187,7 +241,8 @@ async fn gm_change_is_staged_and_accept_applies_reject_does_not() {
     let h = harness();
     let adv = start(&h).await;
     // classify -> adventure_state; proposal with a new state.
-    h.provider.push(Scripted::text(r#"{"intent":"adventure_state"}"#, 10, 2));
+    h.provider
+        .push(Scripted::text(r#"{"intent":"adventure_state"}"#, 10, 2));
     h.provider.push(Scripted::text(
         r#"{"response":"Skipped to morning.","updated_adventure_state":{"current_situation":{"time":"morning","day":2}}}"#,
         40,
@@ -207,18 +262,40 @@ async fn gm_change_is_staged_and_accept_applies_reject_does_not() {
     assert!(!proposal.changes.is_empty()); // a readable diff was computed
 
     // Reject changes nothing.
-    let before = h.store.adventure(&adv.adventure_id).unwrap().unwrap().adventure_state.to_string();
+    let before = h
+        .store
+        .adventure(&adv.adventure_id)
+        .unwrap()
+        .unwrap()
+        .adventure_state
+        .to_string();
     // (use a clone of the proposal id for a separate reject scenario)
-    h.engine.reject_proposal(&proposal.proposal_id).await.unwrap();
-    let after_reject = h.store.adventure(&adv.adventure_id).unwrap().unwrap().adventure_state.to_string();
+    h.engine
+        .reject_proposal(&proposal.proposal_id)
+        .await
+        .unwrap();
+    let after_reject = h
+        .store
+        .adventure(&adv.adventure_id)
+        .unwrap()
+        .unwrap()
+        .adventure_state
+        .to_string();
     assert_eq!(before, after_reject);
     assert_eq!(
-        h.store.gm_proposal(&proposal.proposal_id).unwrap().unwrap().status,
+        h.store
+            .gm_proposal(&proposal.proposal_id)
+            .unwrap()
+            .unwrap()
+            .status,
         GmProposalStatus::Rejected
     );
 
     // Accept applies the proposed state.
-    h.engine.accept_proposal(&proposal.proposal_id).await.unwrap();
+    h.engine
+        .accept_proposal(&proposal.proposal_id)
+        .await
+        .unwrap();
     let accepted = h.store.adventure(&adv.adventure_id).unwrap().unwrap();
     assert!(accepted.adventure_state.as_str().contains("morning"));
 }

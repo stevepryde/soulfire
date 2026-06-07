@@ -90,7 +90,9 @@ impl AiProvider for OpenAiProvider {
                     None => vec![],
                 },
                 Ok(OpenAIResponsesStreamEvent::Error(e)) => {
-                    vec![StreamEvent::Error(ProviderError::Other(e.error.to_string()))]
+                    vec![StreamEvent::Error(ProviderError::Other(
+                        e.error.to_string(),
+                    ))]
                 }
                 Err(e) => vec![StreamEvent::Error(ProviderError::Transient(e.to_string()))],
                 _ => vec![], // lifecycle / image / unknown events are not surfaced
@@ -100,10 +102,7 @@ impl AiProvider for OpenAiProvider {
         Ok(mapped.boxed())
     }
 
-    async fn generate_image(
-        &self,
-        request: ImageRequest,
-    ) -> Result<ImageResponse, ProviderError> {
+    async fn generate_image(&self, request: ImageRequest) -> Result<ImageResponse, ProviderError> {
         let client = self.client()?;
         let model = map_model(request.model)?;
         let req = OpenAIResponsesCreateRequest::builder()
@@ -185,11 +184,9 @@ fn build_request(
             })),
         },
     });
-    let reasoning = cfg
-        .reasoning_effort
-        .map(|e| OpenAIResponsesReasoning {
-            effort: Some(map_effort(e)),
-        });
+    let reasoning = cfg.reasoning_effort.map(|e| OpenAIResponsesReasoning {
+        effort: Some(map_effort(e)),
+    });
 
     Ok(OpenAIResponsesCreateRequest::builder()
         .model(model)

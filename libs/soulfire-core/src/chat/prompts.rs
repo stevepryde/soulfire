@@ -4,7 +4,11 @@
 use lib_soulfire::chat::{ChatMessage, Sender};
 
 /// Render messages as `"Name: text"` lines for summary/state prompts.
-pub fn conversation_text(messages: &[ChatMessage], player_name: &str, character_name: &str) -> String {
+pub fn conversation_text(
+    messages: &[ChatMessage],
+    player_name: &str,
+    character_name: &str,
+) -> String {
     messages
         .iter()
         .map(|m| {

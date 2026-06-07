@@ -523,6 +523,9 @@ mod tests {
     #[test]
     fn image_transform_default_is_centered_100() {
         let t = ImageTransform::default();
-        assert_eq!((t.pan_x_percent, t.pan_y_percent, t.zoom_percent), (0, 0, 100));
+        assert_eq!(
+            (t.pan_x_percent, t.pan_y_percent, t.zoom_percent),
+            (0, 0, 100)
+        );
     }
 }

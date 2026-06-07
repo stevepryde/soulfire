@@ -304,7 +304,11 @@ mod tests {
         assert!(unlocked.is_some());
         // Disabling removes the secret; next attempt falls back (None).
         Store::forget_device(&kc).unwrap();
-        assert!(Store::unlock_from_keychain(dir.path(), &kc).unwrap().is_none());
+        assert!(
+            Store::unlock_from_keychain(dir.path(), &kc)
+                .unwrap()
+                .is_none()
+        );
     }
 
     #[test]
@@ -317,6 +321,10 @@ mod tests {
             store.change_master_password("new", Some(&kc)).unwrap();
         }
         // The remembered unlock still opens the re-keyed store (SEC-8).
-        assert!(Store::unlock_from_keychain(dir.path(), &kc).unwrap().is_some());
+        assert!(
+            Store::unlock_from_keychain(dir.path(), &kc)
+                .unwrap()
+                .is_some()
+        );
     }
 }

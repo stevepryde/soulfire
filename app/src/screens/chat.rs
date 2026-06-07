@@ -4,7 +4,7 @@
 use dioxus::prelude::*;
 use sp_ui::toast::ToastService;
 
-use lib_soulfire::chat::{ALLOWED_EMOJIS, AI_REACTOR, ChatMessage, PLAYER_REACTOR};
+use lib_soulfire::chat::{AI_REACTOR, ALLOWED_EMOJIS, ChatMessage, PLAYER_REACTOR};
 use lib_soulfire::ids::{CharacterId, ChatId};
 
 use crate::app::current_app;
@@ -21,8 +21,15 @@ pub fn Characters() -> Element {
     let mut search = use_signal(String::new);
     let mut limit = use_signal(|| 30u32);
     let q = search();
-    let query = if q.trim().is_empty() { None } else { Some(q.trim()) };
-    let characters = app.store.list_characters(query, limit(), 0).unwrap_or_default();
+    let query = if q.trim().is_empty() {
+        None
+    } else {
+        Some(q.trim())
+    };
+    let characters = app
+        .store
+        .list_characters(query, limit(), 0)
+        .unwrap_or_default();
     let more = characters.len() as u32 == limit();
 
     rsx! {
@@ -79,10 +86,18 @@ pub fn Characters() -> Element {
 fn CharacterRow(character: lib_soulfire::character::Character) -> Element {
     use soulfire_core::store::ImageOwnerKind;
     let app = current_app();
-    let avatar = character.image.and_then(|i| i.emoji()).unwrap_or("🙂").to_string();
-    let portrait = character
-        .portrait
-        .and_then(|_| crate::image_util::data_uri(&app, ImageOwnerKind::Character, &character.character_id.to_string()));
+    let avatar = character
+        .image
+        .and_then(|i| i.emoji())
+        .unwrap_or("🙂")
+        .to_string();
+    let portrait = character.portrait.and_then(|_| {
+        crate::image_util::data_uri(
+            &app,
+            ImageOwnerKind::Character,
+            &character.character_id.to_string(),
+        )
+    });
     let cid_open = character.character_id.clone();
     let cid_edit = character.character_id.clone();
     let cid_del = character.character_id.clone();
@@ -151,9 +166,17 @@ pub fn Chat(character_id: CharacterId) -> Element {
         return rsx! { div { class: "p-8 text-center text-secondary-text", "Character not found." } };
     };
     let name = character.name.to_string();
-    let avatar = character.image.and_then(|i| i.emoji()).unwrap_or("🙂").to_string();
+    let avatar = character
+        .image
+        .and_then(|i| i.emoji())
+        .unwrap_or("🙂")
+        .to_string();
     let portrait = character.portrait.and_then(|_| {
-        crate::image_util::data_uri(&app, soulfire_core::store::ImageOwnerKind::Character, &character_id.to_string())
+        crate::image_util::data_uri(
+            &app,
+            soulfire_core::store::ImageOwnerKind::Character,
+            &character_id.to_string(),
+        )
     });
 
     let chat_id = opened.read().clone().flatten();
@@ -195,10 +218,18 @@ fn ChatBody(chat_id: ChatId) -> Element {
     data::subscribe();
     let app = current_app();
     let messages = app.store.chat_messages(&chat_id).unwrap_or_default();
-    let scope = DraftScope::Chat { chat_id: chat_id.clone() };
+    let scope = DraftScope::Chat {
+        chat_id: chat_id.clone(),
+    };
 
     // Restore any in-progress message draft (DATA-26, UI-14).
-    let restored = app.store.draft_for_scope(&scope).ok().flatten().map(|d| d.content.to_string()).unwrap_or_default();
+    let restored = app
+        .store
+        .draft_for_scope(&scope)
+        .ok()
+        .flatten()
+        .map(|d| d.content.to_string())
+        .unwrap_or_default();
     let mut input = use_signal(|| restored);
     let mut streaming = use_signal(String::new);
     let mut busy = use_signal(|| false);
@@ -211,7 +242,9 @@ fn ChatBody(chat_id: ChatId) -> Element {
             return;
         }
         input.set(String::new());
-        let _ = app.store.delete_draft_for_scope(&DraftScope::Chat { chat_id: chat_id.clone() });
+        let _ = app.store.delete_draft_for_scope(&DraftScope::Chat {
+            chat_id: chat_id.clone(),
+        });
         let app = app.clone();
         let cid = chat_id.clone();
         busy.set(true);
@@ -278,7 +311,11 @@ fn ChatBody(chat_id: ChatId) -> Element {
 fn ChatBubble(message: ChatMessage) -> Element {
     let app = current_app();
     let is_player = message.sender.is_player();
-    let align = if is_player { "justify-end" } else { "justify-start" };
+    let align = if is_player {
+        "justify-end"
+    } else {
+        "justify-start"
+    };
     let bubble = if is_player {
         "bg-primary text-primary-text rounded-br-sm"
     } else {

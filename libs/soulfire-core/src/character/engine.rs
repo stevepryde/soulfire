@@ -9,13 +9,15 @@ use lib_soulfire::character::{
     Character, CharacterBuilderMessage, CharacterBuilderRole, CharacterBuilderSession,
     CharacterBuilderSnapshot, InitialMessage,
 };
-use lib_soulfire::ids::{AdventureId, CharacterBuilderMessageId, CharacterBuilderSnapshotId, CharacterId};
+use lib_soulfire::ids::{
+    AdventureId, CharacterBuilderMessageId, CharacterBuilderSnapshotId, CharacterId,
+};
 use lib_soulfire::metric::MetricLabel;
+use lib_soulfire::metric::UsageMetric;
 use lib_soulfire::strings::{
     CharacterContext, CharacterDescription, CharacterName, CharacterPrompt, CharacterSubtitle,
     ChatTitle, InitialMessageText,
 };
-use lib_soulfire::metric::UsageMetric;
 
 use crate::ai::fence::parse_lenient;
 use crate::ai::registry::resolve_model;
@@ -94,7 +96,11 @@ impl CharacterEngine {
         let recent = recent_builder_text(&session);
         session.push_message(self.builder_message(CharacterBuilderRole::User, user_message));
 
-        let model = resolve_model(None, self.store.app_profile()?.default_ai_model, AiModel::default_chat_narrative());
+        let model = resolve_model(
+            None,
+            self.store.app_profile()?.default_ai_model,
+            AiModel::default_chat_narrative(),
+        );
         let request = GenerationRequest {
             model,
             instructions: Some(prompts::builder_instructions()),
@@ -115,12 +121,19 @@ impl CharacterEngine {
             },
         };
         let response = self.ai.generate(request).await?;
-        self.meter(MetricLabel::CharacterBuilder, model, response.usage, Some(character_id))?;
+        self.meter(
+            MetricLabel::CharacterBuilder,
+            model,
+            response.usage,
+            Some(character_id),
+        )?;
 
         let result: BuilderResult = parse_lenient(&response.text)
             .map_err(|e| CoreError::Serialization(format!("builder response: {e}")))?;
 
-        session.push_message(self.builder_message(CharacterBuilderRole::Assistant, &result.assistant_message));
+        session.push_message(
+            self.builder_message(CharacterBuilderRole::Assistant, &result.assistant_message),
+        );
 
         // Snapshot the prior state before applying changes (CHAR-8).
         if result.changes_character() {
@@ -171,7 +184,11 @@ impl CharacterEngine {
             .store
             .adventure(adventure_id)?
             .ok_or_else(|| CoreError::NotFound(adventure_id.to_string()))?;
-        let model = resolve_model(None, self.store.app_profile()?.default_ai_model, AiModel::default_chat_narrative());
+        let model = resolve_model(
+            None,
+            self.store.app_profile()?.default_ai_model,
+            AiModel::default_chat_narrative(),
+        );
 
         // Persona profile (stable traits → extracted_context).
         let persona_req = GenerationRequest {
@@ -265,7 +282,8 @@ impl CharacterEngine {
             character.prompt = CharacterPrompt::coerce(prompt);
         }
         if let Some(initial) = &result.initial_message {
-            character.initial_message = InitialMessage::Message(InitialMessageText::coerce(initial));
+            character.initial_message =
+                InitialMessage::Message(InitialMessageText::coerce(initial));
         }
     }
 
@@ -281,7 +299,11 @@ impl CharacterEngine {
         }
     }
 
-    fn builder_message(&self, role: CharacterBuilderRole, content: &str) -> CharacterBuilderMessage {
+    fn builder_message(
+        &self,
+        role: CharacterBuilderRole,
+        content: &str,
+    ) -> CharacterBuilderMessage {
         CharacterBuilderMessage {
             message_id: CharacterBuilderMessageId::new(),
             role,
@@ -296,7 +318,13 @@ impl CharacterEngine {
             .ok_or_else(|| CoreError::NotFound(id.to_string()))
     }
 
-    fn meter(&self, label: MetricLabel, model: AiModel, usage: Usage, character_id: Option<&CharacterId>) -> CoreResult<()> {
+    fn meter(
+        &self,
+        label: MetricLabel,
+        model: AiModel,
+        usage: Usage,
+        character_id: Option<&CharacterId>,
+    ) -> CoreResult<()> {
         let metric = UsageMetric::builder()
             .created_at(self.clock.now())
             .label(label)

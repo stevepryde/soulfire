@@ -74,7 +74,16 @@ impl ColorTheme {
 /// A user-facing content toggle that gates a clearly-delimited sub-section of a
 /// locked prompt block (`PROMPT-6`, `PROMPT-7`). The set is fixed and enumerable.
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, strum::Display, strum::EnumString,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    strum::Display,
+    strum::EnumString,
 )]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -147,7 +156,10 @@ mod tests {
 
     #[test]
     fn color_theme_serializes_snake_case() {
-        assert_eq!(serde_json::to_string(&ColorTheme::Teal).unwrap(), "\"teal\"");
+        assert_eq!(
+            serde_json::to_string(&ColorTheme::Teal).unwrap(),
+            "\"teal\""
+        );
         assert_eq!(ColorTheme::ALL.len(), 7);
     }
 

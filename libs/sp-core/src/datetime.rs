@@ -290,7 +290,13 @@ impl Default for SpDate {
 
 impl Display for SpDate {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:04}-{:02}-{:02}", self.year(), self.month(), self.day())
+        write!(
+            f,
+            "{:04}-{:02}-{:02}",
+            self.year(),
+            self.month(),
+            self.day()
+        )
     }
 }
 

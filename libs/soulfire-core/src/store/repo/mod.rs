@@ -62,6 +62,10 @@ pub(crate) fn select_many<T: DeserializeOwned>(
 }
 
 /// Count rows matching a query (the query must select a single count column).
-pub(crate) fn count(conn: &Connection, sql: &str, params: impl rusqlite::Params) -> CoreResult<i64> {
+pub(crate) fn count(
+    conn: &Connection,
+    sql: &str,
+    params: impl rusqlite::Params,
+) -> CoreResult<i64> {
     Ok(conn.query_row(sql, params, |r| r.get(0))?)
 }

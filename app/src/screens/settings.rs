@@ -97,7 +97,13 @@ fn AdventureDefaults(player: lib_soulfire::profile::PlayerProfile) -> Element {
     let app = current_app();
     let mut name = use_signal(|| player.player_name.to_string());
     let mut attrs = use_signal(|| player.player_attributes.to_string());
-    let mut ext = use_signal(|| player.prompt_extension.as_ref().map(|p| p.to_string()).unwrap_or_default());
+    let mut ext = use_signal(|| {
+        player
+            .prompt_extension
+            .as_ref()
+            .map(|p| p.to_string())
+            .unwrap_or_default()
+    });
 
     rsx! {
         p { class: "text-xs text-secondary-text mb-3", "Used when starting new adventures; affects only adventures started afterward." }
@@ -137,7 +143,11 @@ fn Section(title: String, children: Element) -> Element {
 fn accent_swatch(theme: ColorTheme, current: ColorTheme) -> Element {
     let app = current_app();
     let selected = theme == current;
-    let ring = if selected { "ring-2 ring-primary border-primary" } else { "border-border" };
+    let ring = if selected {
+        "ring-2 ring-primary border-primary"
+    } else {
+        "border-border"
+    };
     rsx! {
         button {
             class: "flex flex-col items-center gap-2 p-3 rounded-lg border-2 {ring} hover:scale-105 transition-transform",
@@ -156,7 +166,11 @@ fn accent_swatch(theme: ColorTheme, current: ColorTheme) -> Element {
 fn model_chip(model: AiModel, current: Option<AiModel>) -> Element {
     let app = current_app();
     let selected = current == Some(model);
-    let cls = if selected { "bg-primary text-primary-text" } else { "bg-surface border border-border text-secondary-text" };
+    let cls = if selected {
+        "bg-primary text-primary-text"
+    } else {
+        "bg-surface border border-border text-secondary-text"
+    };
     rsx! {
         button {
             class: "px-3 py-1.5 rounded-lg text-sm {cls}",

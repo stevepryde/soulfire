@@ -40,7 +40,12 @@ fn harness() -> H {
     let ai = AiService::new(provider.clone(), Arc::new(Keys));
     let clock = Arc::new(MockClock::at_epoch()) as Arc<dyn Clock>;
     let engine = CharacterEngine::new(store.clone(), ai, clock);
-    H { _dir: dir, store, provider, engine }
+    H {
+        _dir: dir,
+        store,
+        provider,
+        engine,
+    }
 }
 
 fn base_character() -> Character {
@@ -67,14 +72,25 @@ async fn builder_applies_changes_and_pushes_snapshot_then_undo_restores() {
         50,
         20,
     ));
-    let result = h.engine.builder_send(&c.character_id, "make her bolder").await.unwrap();
+    let result = h
+        .engine
+        .builder_send(&c.character_id, "make her bolder")
+        .await
+        .unwrap();
     assert_eq!(result.assistant_message, "Made her bolder.");
 
     let updated = h.store.character(&c.character_id).unwrap().unwrap();
-    assert_eq!(updated.prompt.as_str(), "You are Lyra, bold and sharp-tongued.");
+    assert_eq!(
+        updated.prompt.as_str(),
+        "You are Lyra, bold and sharp-tongued."
+    );
 
     // A snapshot was captured.
-    let session = h.store.character_builder_session(&c.character_id).unwrap().unwrap();
+    let session = h
+        .store
+        .character_builder_session(&c.character_id)
+        .unwrap()
+        .unwrap();
     assert_eq!(session.snapshots.len(), 1);
 
     // Undo restores the prior prompt.
@@ -93,8 +109,15 @@ async fn builder_without_field_changes_pushes_no_snapshot() {
         10,
         5,
     ));
-    h.engine.builder_send(&c.character_id, "help").await.unwrap();
-    let session = h.store.character_builder_session(&c.character_id).unwrap().unwrap();
+    h.engine
+        .builder_send(&c.character_id, "help")
+        .await
+        .unwrap();
+    let session = h
+        .store
+        .character_builder_session(&c.character_id)
+        .unwrap()
+        .unwrap();
     assert!(session.snapshots.is_empty());
 }
 
@@ -124,20 +147,46 @@ async fn extraction_produces_character_with_context_state_origin_and_chat() {
     // extracted_context and character_state, origin fields, and an opened chat.
     let h = harness();
     let adv = seed_adventure(&h);
-    h.provider.push(Scripted::text("You are Mara, a wary guide.", 80, 60)); // persona
-    h.provider.push(Scripted::text("You feel cautious but curious.", 40, 30)); // state
-    h.provider.push(Scripted::text("Hello again, traveler.", 30, 10)); // opening (Prompt initial)
+    h.provider
+        .push(Scripted::text("You are Mara, a wary guide.", 80, 60)); // persona
+    h.provider
+        .push(Scripted::text("You feel cautious but curious.", 40, 30)); // state
+    h.provider
+        .push(Scripted::text("Hello again, traveler.", 30, 10)); // opening (Prompt initial)
 
-    let character = h.engine.extract_npc(&adv.adventure_id, "Mara").await.unwrap();
+    let character = h
+        .engine
+        .extract_npc(&adv.adventure_id, "Mara")
+        .await
+        .unwrap();
 
     assert_eq!(character.name.as_str(), "Mara");
-    assert!(character.extracted_context.unwrap().as_str().contains("wary guide"));
-    assert!(character.character_state.unwrap().as_str().contains("cautious"));
-    assert_eq!(character.source_adventure_id.as_ref(), Some(&adv.adventure_id));
+    assert!(
+        character
+            .extracted_context
+            .unwrap()
+            .as_str()
+            .contains("wary guide")
+    );
+    assert!(
+        character
+            .character_state
+            .unwrap()
+            .as_str()
+            .contains("cautious")
+    );
+    assert_eq!(
+        character.source_adventure_id.as_ref(),
+        Some(&adv.adventure_id)
+    );
     assert_eq!(character.source_npc_name.as_deref(), Some("Mara"));
 
     // A chat was created and opened with an opening message + a title.
-    let chat_id = h.store.chat_id_for_character(&character.character_id).unwrap().unwrap();
+    let chat_id = h
+        .store
+        .chat_id_for_character(&character.character_id)
+        .unwrap()
+        .unwrap();
     let chat = h.store.chat(&chat_id).unwrap().unwrap();
     assert_eq!(chat.title.as_str(), "Mara");
     let msgs = h.store.chat_messages(&chat_id).unwrap();
@@ -150,7 +199,8 @@ async fn failed_extraction_creates_no_partial_character() {
     // AC-CHAR-d: a forced extraction failure leaves no new character or chat.
     let h = harness();
     let adv = seed_adventure(&h);
-    h.provider.push(Scripted::Error(ProviderError::RateLimited("429".into()))); // persona fails
+    h.provider
+        .push(Scripted::Error(ProviderError::RateLimited("429".into()))); // persona fails
 
     let err = h.engine.extract_npc(&adv.adventure_id, "Mara").await;
     assert!(err.is_err());

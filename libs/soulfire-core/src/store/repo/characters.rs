@@ -108,7 +108,10 @@ impl Store {
                 "DELETE FROM images WHERE owner_kind = 'character' AND owner_id = ?1",
                 params![id_s],
             )?;
-            tx.execute("DELETE FROM characters WHERE character_id = ?1", params![id_s])?;
+            tx.execute(
+                "DELETE FROM characters WHERE character_id = ?1",
+                params![id_s],
+            )?;
             tx.commit()?;
             Ok(())
         })

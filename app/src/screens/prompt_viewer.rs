@@ -31,7 +31,12 @@ pub fn AdventurePromptViewer(adventure_id: AdventureId) -> Element {
     };
     let settings = app.store.app_settings().unwrap_or_default();
     let adult = settings.content_toggles.adult_content;
-    let ext = app.store.player_profile().unwrap_or_default().prompt_extension.map(|p| p.to_string());
+    let ext = app
+        .store
+        .player_profile()
+        .unwrap_or_default()
+        .prompt_extension
+        .map(|p| p.to_string());
 
     let instructions = wp::narrative_instructions(adv.world_prompt.as_str(), ext.as_deref(), adult);
     let input = wp::narrative_input(
@@ -43,7 +48,10 @@ pub fn AdventurePromptViewer(adventure_id: AdventureId) -> Element {
         "<your next action>",
     );
     let total: usize = estimate_tokens(&instructions)
-        + input.iter().map(|m| estimate_tokens(&m.content)).sum::<usize>();
+        + input
+            .iter()
+            .map(|m| estimate_tokens(&m.content))
+            .sum::<usize>();
 
     rsx! {
         Page { title: "Adventure Prompt".to_string(),

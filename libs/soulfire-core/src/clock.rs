@@ -41,9 +41,7 @@ impl MockClock {
 
     /// Create a mock clock at a fixed, reproducible epoch instant.
     pub fn at_epoch() -> Self {
-        MockClock::new(
-            SpDateTime::from_timestamp(1_700_000_000).expect("valid fixed test instant"),
-        )
+        MockClock::new(SpDateTime::from_timestamp(1_700_000_000).expect("valid fixed test instant"))
     }
 
     /// Advance the clock by `seconds`.

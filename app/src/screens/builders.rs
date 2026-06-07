@@ -37,7 +37,12 @@ pub fn CharacterBuilder(character_id: CharacterId) -> Element {
     let messages: Vec<(bool, String)> = session
         .messages
         .iter()
-        .map(|m| (matches!(m.role, CharacterBuilderRole::User), m.content.clone()))
+        .map(|m| {
+            (
+                matches!(m.role, CharacterBuilderRole::User),
+                m.content.clone(),
+            )
+        })
         .collect();
     let has_snapshots = !session.snapshots.is_empty();
 
@@ -251,7 +256,11 @@ fn BuilderShell(
 
 #[component]
 fn BTab(active: bool, label: String, onclick: EventHandler<MouseEvent>) -> Element {
-    let cls = if active { "border-primary text-primary" } else { "border-transparent text-secondary-text" };
+    let cls = if active {
+        "border-primary text-primary"
+    } else {
+        "border-transparent text-secondary-text"
+    };
     rsx! {
         button { class: "px-4 py-2 -mb-px border-b-2 font-medium {cls}", onclick: move |e| onclick.call(e), "{label}" }
     }

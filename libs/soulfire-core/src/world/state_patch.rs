@@ -478,7 +478,8 @@ mod tests {
         assert_eq!(parse_patches_from_value(&wrapper).unwrap().len(), 1);
         let raw = json!([{"path": "x", "value": 2}]);
         assert_eq!(parse_patches_from_value(&raw).unwrap()[0].path, "x");
-        let with_match = json!({"patches": [{"path": "inv", "op": "remove", "match": {"name": "potion"}}]});
+        let with_match =
+            json!({"patches": [{"path": "inv", "op": "remove", "match": {"name": "potion"}}]});
         let p = parse_patches_from_value(&with_match).unwrap();
         assert_eq!(p[0].op, PatchOp::Remove);
         assert_eq!(p[0].value, json!({"name": "potion"}));

@@ -9,7 +9,8 @@ use lib_soulfire::ids::{WorldBlueprintId, WorldBuilderMessageId, WorldBuilderSna
 use lib_soulfire::metric::{MetricLabel, UsageMetric};
 use lib_soulfire::strings::{WorldDescription, WorldPrompt, WorldTitle};
 use lib_soulfire::world::{
-    WorldBlueprint, WorldBuilderMessage, WorldBuilderRole, WorldBuilderSession, WorldBuilderSnapshot,
+    WorldBlueprint, WorldBuilderMessage, WorldBuilderRole, WorldBuilderSession,
+    WorldBuilderSnapshot,
 };
 
 use crate::ai::fence::parse_lenient;
@@ -140,7 +141,8 @@ impl WorldBuilderEngine {
         blueprint.world_prompt = snapshot.world_prompt;
         blueprint.updated_at = self.clock.now();
         self.store.save_blueprint(&blueprint)?;
-        session.push_message(self.message(WorldBuilderRole::Assistant, "Reverted the last change."));
+        session
+            .push_message(self.message(WorldBuilderRole::Assistant, "Reverted the last change."));
         self.store.save_world_builder_session(&session)?;
         Ok(true)
     }
@@ -164,7 +166,12 @@ impl WorldBuilderEngine {
         }
     }
 
-    fn meter(&self, model: AiModel, usage: Usage, blueprint_id: &WorldBlueprintId) -> CoreResult<()> {
+    fn meter(
+        &self,
+        model: AiModel,
+        usage: Usage,
+        blueprint_id: &WorldBlueprintId,
+    ) -> CoreResult<()> {
         let metric = UsageMetric::builder()
             .created_at(self.clock.now())
             .label(MetricLabel::WorldBuilder)

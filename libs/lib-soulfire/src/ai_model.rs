@@ -14,7 +14,16 @@ use serde::{Deserialize, Serialize};
 /// AI provider vendor. OpenAI is the only registered vendor at launch; the enum
 /// exists so additional providers can be added behind the seam (`AI-2`).
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, strum::Display, strum::EnumString,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    strum::Display,
+    strum::EnumString,
 )]
 #[strum(serialize_all = "snake_case")]
 #[serde(rename_all = "snake_case")]

@@ -82,7 +82,10 @@ fn trusted_renders_unordered_list() {
 #[test]
 fn trusted_renders_blockquote() {
     let html = render_trusted("> hello");
-    assert!(html.contains("<blockquote"), "expected blockquote in: {html}");
+    assert!(
+        html.contains("<blockquote"),
+        "expected blockquote in: {html}"
+    );
     assert!(html.contains("hello"));
 }
 
@@ -98,7 +101,10 @@ fn trusted_renders_bold_and_italic() {
 #[test]
 fn chat_strips_link_tag_keeps_text_drops_href() {
     let html = render_chat("[click here](https://evil.com)");
-    assert!(!html.contains("<a "), "<a> tag must not appear in chat mode: {html}");
+    assert!(
+        !html.contains("<a "),
+        "<a> tag must not appear in chat mode: {html}"
+    );
     assert!(!html.contains("evil.com"), "href must not leak: {html}");
     assert!(!html.contains("href"), "no href attr at all: {html}");
     assert!(html.contains("click here"));
@@ -107,7 +113,10 @@ fn chat_strips_link_tag_keeps_text_drops_href() {
 #[test]
 fn chat_strips_inline_code_tag() {
     let html = render_chat("see `foo` here");
-    assert!(!html.contains("<code"), "<code> tag must not appear: {html}");
+    assert!(
+        !html.contains("<code"),
+        "<code> tag must not appear: {html}"
+    );
     assert!(html.contains("foo"));
     assert!(html.contains("see "));
     assert!(html.contains(" here"));
@@ -171,7 +180,10 @@ fn chat_renders_nested_list_as_nested_ul() {
 fn chat_renders_indented_bullets_as_a_list() {
     let html = render_chat("**Heading**\n  - one\n  - two");
     assert!(html.contains("<strong"));
-    assert!(html.contains("<ul"), "indented bullets must be a list: {html}");
+    assert!(
+        html.contains("<ul"),
+        "indented bullets must be a list: {html}"
+    );
     assert!(html.contains("<li"));
     assert!(html.contains("one"));
     assert!(html.contains("two"));
@@ -188,8 +200,15 @@ fn chat_real_world_ai_narrative() {
         \x20\x20- Visit the library.";
     let html = render_chat(src);
     assert_eq!(html.matches("<ul").count(), 2, "two separate lists: {html}");
-    assert_eq!(html.matches("<strong").count(), 2, "two bold headings: {html}");
-    assert!(!html.contains("&lt;"), "should not contain escaped tags: {html}");
+    assert_eq!(
+        html.matches("<strong").count(),
+        2,
+        "two bold headings: {html}"
+    );
+    assert!(
+        !html.contains("&lt;"),
+        "should not contain escaped tags: {html}"
+    );
 }
 
 #[test]

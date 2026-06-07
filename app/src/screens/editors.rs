@@ -36,18 +36,65 @@ const AVATAR_CHOICES: [CharacterImage; 8] = [
 #[component]
 pub fn CharacterEditor(id: Option<CharacterId>) -> Element {
     let app = current_app();
-    let existing = id.as_ref().and_then(|i| app.store.character(i).ok().flatten());
+    let existing = id
+        .as_ref()
+        .and_then(|i| app.store.character(i).ok().flatten());
     let is_edit = existing.is_some();
 
-    let mut name = use_signal(|| existing.as_ref().map(|c| c.name.to_string()).unwrap_or_default());
-    let mut subtitle = use_signal(|| existing.as_ref().map(|c| c.subtitle.to_string()).unwrap_or_default());
-    let mut description = use_signal(|| existing.as_ref().map(|c| c.description.to_string()).unwrap_or_default());
-    let mut prompt = use_signal(|| existing.as_ref().map(|c| c.prompt.to_string()).unwrap_or_default());
-    let mut initial = use_signal(|| existing.as_ref().map(|c| c.initial_message.text().to_string()).unwrap_or_default());
-    let mut is_prompt_initial = use_signal(|| existing.as_ref().map(|c| c.initial_message.is_prompt()).unwrap_or(false));
-    let mut avatar = use_signal(|| existing.as_ref().and_then(|c| c.image).unwrap_or(CharacterImage::EmojiButterfly));
-    let mut max_tokens = use_signal(|| existing.as_ref().map(|c| c.creativity.max_tokens).unwrap_or(2000));
-    let mut temperature = use_signal(|| existing.as_ref().map(|c| c.creativity.temperature).unwrap_or(1.0));
+    let mut name = use_signal(|| {
+        existing
+            .as_ref()
+            .map(|c| c.name.to_string())
+            .unwrap_or_default()
+    });
+    let mut subtitle = use_signal(|| {
+        existing
+            .as_ref()
+            .map(|c| c.subtitle.to_string())
+            .unwrap_or_default()
+    });
+    let mut description = use_signal(|| {
+        existing
+            .as_ref()
+            .map(|c| c.description.to_string())
+            .unwrap_or_default()
+    });
+    let mut prompt = use_signal(|| {
+        existing
+            .as_ref()
+            .map(|c| c.prompt.to_string())
+            .unwrap_or_default()
+    });
+    let mut initial = use_signal(|| {
+        existing
+            .as_ref()
+            .map(|c| c.initial_message.text().to_string())
+            .unwrap_or_default()
+    });
+    let mut is_prompt_initial = use_signal(|| {
+        existing
+            .as_ref()
+            .map(|c| c.initial_message.is_prompt())
+            .unwrap_or(false)
+    });
+    let mut avatar = use_signal(|| {
+        existing
+            .as_ref()
+            .and_then(|c| c.image)
+            .unwrap_or(CharacterImage::EmojiButterfly)
+    });
+    let mut max_tokens = use_signal(|| {
+        existing
+            .as_ref()
+            .map(|c| c.creativity.max_tokens)
+            .unwrap_or(2000)
+    });
+    let mut temperature = use_signal(|| {
+        existing
+            .as_ref()
+            .map(|c| c.creativity.temperature)
+            .unwrap_or(1.0)
+    });
 
     let save = use_callback(move |_: ()| {
         // Validate required fields (CHAR-5).
@@ -172,12 +219,29 @@ pub fn CharacterEditor(id: Option<CharacterId>) -> Element {
 #[component]
 pub fn WorldEditor(id: Option<WorldBlueprintId>) -> Element {
     let app = current_app();
-    let existing = id.as_ref().and_then(|i| app.store.blueprint(i).ok().flatten());
+    let existing = id
+        .as_ref()
+        .and_then(|i| app.store.blueprint(i).ok().flatten());
     let is_edit = existing.is_some();
 
-    let mut title = use_signal(|| existing.as_ref().map(|b| b.title.to_string()).unwrap_or_default());
-    let mut description = use_signal(|| existing.as_ref().map(|b| b.description.to_string()).unwrap_or_default());
-    let mut world_prompt = use_signal(|| existing.as_ref().map(|b| b.world_prompt.to_string()).unwrap_or_default());
+    let mut title = use_signal(|| {
+        existing
+            .as_ref()
+            .map(|b| b.title.to_string())
+            .unwrap_or_default()
+    });
+    let mut description = use_signal(|| {
+        existing
+            .as_ref()
+            .map(|b| b.description.to_string())
+            .unwrap_or_default()
+    });
+    let mut world_prompt = use_signal(|| {
+        existing
+            .as_ref()
+            .map(|b| b.world_prompt.to_string())
+            .unwrap_or_default()
+    });
 
     let save = use_callback(move |_: ()| {
         if title().trim().is_empty() {
@@ -242,7 +306,10 @@ fn PortraitSection(character_id: Option<CharacterId>) -> Element {
     };
     let character = app.store.character(&cid).ok().flatten();
     let has = character.as_ref().and_then(|c| c.portrait).is_some();
-    let transform = character.as_ref().map(|c| c.image_transform).unwrap_or_default();
+    let transform = character
+        .as_ref()
+        .map(|c| c.image_transform)
+        .unwrap_or_default();
     let uri = if has {
         crate::image_util::data_uri(&app, ImageOwnerKind::Character, &cid.to_string())
     } else {
@@ -471,7 +538,11 @@ fn Field(label: String, children: Element) -> Element {
 
 #[component]
 fn TypeToggle(label: String, active: bool, onclick: EventHandler<MouseEvent>) -> Element {
-    let cls = if active { "bg-primary text-primary-text" } else { "bg-surface border border-border text-secondary-text" };
+    let cls = if active {
+        "bg-primary text-primary-text"
+    } else {
+        "bg-surface border border-border text-secondary-text"
+    };
     rsx! {
         button { class: "px-3 py-1.5 rounded-lg text-sm {cls}", onclick: move |e| onclick.call(e), "{label}" }
     }

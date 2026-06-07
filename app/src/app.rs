@@ -153,7 +153,11 @@ fn Shell() -> Element {
     let onboarding = use_context::<Signal<bool>>();
 
     data::subscribe();
-    let theme = app.store.app_settings().map(|s| s.color_theme).unwrap_or_default();
+    let theme = app
+        .store
+        .app_settings()
+        .map(|s| s.color_theme)
+        .unwrap_or_default();
     let immersive = SCREEN.read().is_immersive() || onboarding();
 
     rsx! {
@@ -224,7 +228,11 @@ fn NavItem(dest: Destination, active: bool, icon: String, label: String) -> Elem
 
 #[component]
 fn BottomItem(dest: Destination, active: bool, icon: String, label: String) -> Element {
-    let cls = if active { "text-primary" } else { "text-secondary-text" };
+    let cls = if active {
+        "text-primary"
+    } else {
+        "text-secondary-text"
+    };
     rsx! {
         button {
             class: "flex-1 flex flex-col items-center justify-center py-2 gap-0.5 min-h-12 {cls}",

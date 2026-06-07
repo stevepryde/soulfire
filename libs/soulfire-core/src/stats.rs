@@ -104,7 +104,13 @@ mod tests {
     use super::*;
     use lib_soulfire::ids::ChatId;
 
-    fn metric(label: MetricLabel, model: AiModel, input: u64, cached: u64, output: u64) -> UsageMetric {
+    fn metric(
+        label: MetricLabel,
+        model: AiModel,
+        input: u64,
+        cached: u64,
+        output: u64,
+    ) -> UsageMetric {
         UsageMetric::builder()
             .label(label)
             .chat_id(ChatId::new())
@@ -121,7 +127,13 @@ mod tests {
         let metrics = vec![
             metric(MetricLabel::ChatMessage, AiModel::Gpt5_1, 100, 20, 50),
             metric(MetricLabel::ChatMessage, AiModel::Gpt5_1, 200, 0, 80),
-            metric(MetricLabel::AdventureAction, AiModel::Gpt5_4Nano, 300, 30, 40),
+            metric(
+                MetricLabel::AdventureAction,
+                AiModel::Gpt5_4Nano,
+                300,
+                30,
+                40,
+            ),
         ];
         let t = totals(&metrics);
         assert_eq!(t.requests, 3);

@@ -31,9 +31,19 @@ pub fn WorldsHome() -> Element {
     let mut adv_limit = use_signal(|| 20u32);
     let mut world_limit = use_signal(|| 20u32);
     let q = search();
-    let query = if q.trim().is_empty() { None } else { Some(q.trim()) };
-    let adventures = app.store.list_adventures(adv_limit(), 0).unwrap_or_default();
-    let worlds = app.store.list_blueprints(query, world_limit(), 0).unwrap_or_default();
+    let query = if q.trim().is_empty() {
+        None
+    } else {
+        Some(q.trim())
+    };
+    let adventures = app
+        .store
+        .list_adventures(adv_limit(), 0)
+        .unwrap_or_default();
+    let worlds = app
+        .store
+        .list_blueprints(query, world_limit(), 0)
+        .unwrap_or_default();
     let adv_more = adventures.len() as u32 == adv_limit();
     let world_more = worlds.len() as u32 == world_limit();
 
@@ -152,7 +162,11 @@ fn AdventureCard(adventure: Adventure) -> Element {
         .as_ref()
         .map(|t| t.to_string())
         .unwrap_or_else(|| "Adventure".to_string());
-    let emoji = adventure.world_image.map(|i| i.emoji()).unwrap_or("🌍").to_string();
+    let emoji = adventure
+        .world_image
+        .map(|i| i.emoji())
+        .unwrap_or("🌍")
+        .to_string();
     let desc = adventure
         .world_description
         .as_ref()
@@ -160,9 +174,13 @@ fn AdventureCard(adventure: Adventure) -> Element {
         .unwrap_or_default();
     let adv_id = adventure.adventure_id.clone();
     let del_id = adventure.adventure_id.clone();
-    let uri = adventure
-        .world_cover
-        .and_then(|_| data_uri(&app, ImageOwnerKind::World, &adventure.blueprint_id.to_string()));
+    let uri = adventure.world_cover.and_then(|_| {
+        data_uri(
+            &app,
+            ImageOwnerKind::World,
+            &adventure.blueprint_id.to_string(),
+        )
+    });
     let mut confirming = use_signal(|| false);
     rsx! {
         div { class: "bg-surface border border-border rounded-xl p-4",
@@ -201,10 +219,18 @@ fn AdventureCard(adventure: Adventure) -> Element {
 #[component]
 fn WorldCard(blueprint: WorldBlueprint) -> Element {
     let app = current_app();
-    let emoji = blueprint.image.map(|i| i.emoji()).unwrap_or("🌍").to_string();
-    let uri = blueprint
-        .cover
-        .and_then(|_| data_uri(&app, ImageOwnerKind::World, &blueprint.blueprint_id.to_string()));
+    let emoji = blueprint
+        .image
+        .map(|i| i.emoji())
+        .unwrap_or("🌍")
+        .to_string();
+    let uri = blueprint.cover.and_then(|_| {
+        data_uri(
+            &app,
+            ImageOwnerKind::World,
+            &blueprint.blueprint_id.to_string(),
+        )
+    });
     let app_del = app.clone();
     let bp = blueprint.clone();
     let bp_edit = blueprint.blueprint_id.clone();

@@ -228,7 +228,11 @@ fn compact_for_recent_turn(text: &str, max_words: usize) -> String {
     if let Some(sentence_limited) = compact_to_sentence_boundary(text, max_words) {
         return sentence_limited;
     }
-    let mut truncated = words.into_iter().take(max_words).collect::<Vec<_>>().join(" ");
+    let mut truncated = words
+        .into_iter()
+        .take(max_words)
+        .collect::<Vec<_>>()
+        .join(" ");
     truncated.push_str("...");
     truncated
 }
@@ -437,8 +441,16 @@ mod tests {
     fn significant_events_legacy_and_next_id() {
         assert_eq!(parse_significant_events("freeform")[0].id, "evt_1");
         let events = vec![
-            SignificantEvent { id: "evt_1".into(), text: "a".into(), weight: 3 },
-            SignificantEvent { id: "evt_7".into(), text: "b".into(), weight: 3 },
+            SignificantEvent {
+                id: "evt_1".into(),
+                text: "a".into(),
+                weight: 3,
+            },
+            SignificantEvent {
+                id: "evt_7".into(),
+                text: "b".into(),
+                weight: 3,
+            },
         ];
         assert_eq!(next_id_from_events(&events), 8);
     }
@@ -446,13 +458,24 @@ mod tests {
     #[test]
     fn diff_updates_remove_update_add_with_clamp() {
         let existing = vec![
-            SignificantEvent { id: "evt_1".into(), text: "keep".into(), weight: 4 },
-            SignificantEvent { id: "evt_2".into(), text: "old".into(), weight: 2 },
+            SignificantEvent {
+                id: "evt_1".into(),
+                text: "keep".into(),
+                weight: 4,
+            },
+            SignificantEvent {
+                id: "evt_2".into(),
+                text: "old".into(),
+                weight: 2,
+            },
         ];
         let mut update = HashMap::new();
         update.insert("evt_2".to_string(), "revised".to_string());
         let updates = SignificantEventUpdates {
-            add: vec![NewSignificantEvent::WithWeight { text: "fresh".into(), weight: 9 }],
+            add: vec![NewSignificantEvent::WithWeight {
+                text: "fresh".into(),
+                weight: 9,
+            }],
             update,
             remove: vec![],
         };

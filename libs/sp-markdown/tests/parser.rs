@@ -101,10 +101,7 @@ fn italic_asterisk_and_underscore() {
 #[test]
 fn underscore_inside_word_is_literal() {
     let blocks = parse("foo_bar_baz");
-    assert_eq!(
-        blocks,
-        vec![Block::Paragraph(vec![text("foo_bar_baz")])]
-    );
+    assert_eq!(blocks, vec![Block::Paragraph(vec![text("foo_bar_baz")])]);
 }
 
 #[test]
@@ -252,7 +249,9 @@ fn link_javascript_scheme_rejected() {
             panic!("javascript: link should be rejected, got: {:?}", inline);
         }
     }
-    let has_click = para.iter().any(|i| matches!(i, Inline::Text(t) if t.contains("click")));
+    let has_click = para
+        .iter()
+        .any(|i| matches!(i, Inline::Text(t) if t.contains("click")));
     assert!(has_click, "visible link text should remain: {:?}", para);
 }
 
@@ -585,7 +584,12 @@ fn list_immediately_after_paragraph_no_blank_line() {
 #[test]
 fn list_immediately_after_bold_pseudo_heading() {
     let blocks = parse("**Heading**\n  - bullet one\n  - bullet two");
-    assert_eq!(blocks.len(), 2, "expected paragraph then list: {:?}", blocks);
+    assert_eq!(
+        blocks.len(),
+        2,
+        "expected paragraph then list: {:?}",
+        blocks
+    );
     let Block::Paragraph(para) = &blocks[0] else {
         panic!();
     };
@@ -663,18 +667,12 @@ fn ai_real_world_narrative_with_indented_bullets() {
     );
     assert!(matches!(blocks[0], Block::Paragraph(_)));
     assert!(matches!(blocks[1], Block::Paragraph(_)));
-    let Block::List {
-        items: items_a, ..
-    } = &blocks[2]
-    else {
+    let Block::List { items: items_a, .. } = &blocks[2] else {
         panic!("blocks[2] should be a list, got {:?}", blocks[2]);
     };
     assert_eq!(items_a.len(), 3);
     assert!(matches!(blocks[3], Block::Paragraph(_)));
-    let Block::List {
-        items: items_b, ..
-    } = &blocks[4]
-    else {
+    let Block::List { items: items_b, .. } = &blocks[4] else {
         panic!("blocks[4] should be a list, got {:?}", blocks[4]);
     };
     assert_eq!(items_b.len(), 2);
@@ -691,11 +689,19 @@ fn ai_short_list_then_ordered_list() {
     let unordered = blocks
         .iter()
         .find(|b| matches!(b, Block::List { ordered: false, .. }));
-    assert!(unordered.is_some(), "should have an unordered list: {:?}", blocks);
+    assert!(
+        unordered.is_some(),
+        "should have an unordered list: {:?}",
+        blocks
+    );
     let ordered = blocks
         .iter()
         .find(|b| matches!(b, Block::List { ordered: true, .. }));
-    assert!(ordered.is_some(), "should have an ordered list: {:?}", blocks);
+    assert!(
+        ordered.is_some(),
+        "should have an ordered list: {:?}",
+        blocks
+    );
     let Block::List {
         items: ord_items, ..
     } = ordered.unwrap()
@@ -740,15 +746,13 @@ fn loose_list_with_nested_bullets_between_items() {
     assert!(ordered);
     assert_eq!(items.len(), 2, "two top-level numbered items");
     for (idx, item) in items.iter().enumerate() {
-        assert_eq!(item.len(), 2, "item {idx} should have paragraph + nested ul");
+        assert_eq!(
+            item.len(),
+            2,
+            "item {idx} should have paragraph + nested ul"
+        );
         assert!(matches!(item[0], Block::Paragraph(_)));
-        assert!(matches!(
-            item[1],
-            Block::List {
-                ordered: false,
-                ..
-            }
-        ));
+        assert!(matches!(item[1], Block::List { ordered: false, .. }));
     }
 }
 
@@ -775,7 +779,12 @@ fn ai_real_world_numbered_narrative() {
         \x20\x20\x20- Check what you can afford with your **10 gold**.\n\
         \x20\x20\x20- Listen for rumors.";
     let blocks = parse(src);
-    assert_eq!(blocks.len(), 2, "intro paragraph + one numbered list, got: {:?}", blocks);
+    assert_eq!(
+        blocks.len(),
+        2,
+        "intro paragraph + one numbered list, got: {:?}",
+        blocks
+    );
     assert!(matches!(blocks[0], Block::Paragraph(_)));
     let Block::List { ordered, items } = &blocks[1] else {
         panic!("blocks[1] should be the numbered list, got {:?}", blocks[1]);
@@ -830,7 +839,13 @@ fn unmatched_bold_at_start_renders_as_literal() {
     );
     let combined: String = para
         .iter()
-        .filter_map(|i| if let Inline::Text(t) = i { Some(t.as_str()) } else { None })
+        .filter_map(|i| {
+            if let Inline::Text(t) = i {
+                Some(t.as_str())
+            } else {
+                None
+            }
+        })
         .collect();
     assert!(combined.contains("**"));
     assert!(combined.contains("unclosed bold here"));
