@@ -14,6 +14,7 @@ pub mod clock;
 pub mod error;
 pub mod keychain;
 pub mod prompt;
+pub mod stats;
 pub mod store;
 pub mod world;
 
