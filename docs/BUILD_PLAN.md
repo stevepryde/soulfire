@@ -120,14 +120,23 @@ Legend: [ ] todo · [~] in progress · [x] done
 - [x] Beneath Verath lead starter (authored, OG act format); seed_starter_worlds idempotent, ledger-
   tracked, no-duplicate, no-resurrect-deleted (ONB-5/DATA-21). CORE COMPLETE: 172 tests.
 
-### Layer 11 — Dioxus UI (`app`, UI + ONB surfaces)
-- [ ] theme tokens + accent system (port OG input.css); app shell; nav (sidebar/bottom)
-- [ ] lock/onboarding/first-run story; worlds home; play screen; chat screen; characters list;
-  editors + builders; settings; profile; prompt viewer; token stats; image crop editors
-- [ ] extracted view-logic unit tests (TEST-6); app smoke (TEST-17); docs/MANUAL_SMOKE.md
+### Layer 11 — Dioxus UI (`app`, UI + ONB surfaces) — IN PROGRESS (compiles clean)
+- [x] theme tokens + accent system (ported OG input.css + compiled CSS); app shell; nav
+  (sidebar/bottom); title bar; immersive vs standard surfaces; toast container
+- [x] lock + first-run setup (password + key + seed); engine wiring (AppContext + store-backed keys)
+- [x] worlds home (tabs/cards/start/continue); immersive play (streamed narration, message-by-type,
+  /gm proposal accept/reject, composer status, NPC extraction); characters list; immersive chat
+  (streamed, markdown bubbles, emoji reactions); character + world editors; settings (accent, masked
+  key, model, adult toggle, editable adventure defaults); profile + lock; token stats
+- [x] prompt viewer/editor (PROMPT-9/10/11); confirmation dialogs (UI-7); docs/MANUAL_SMOKE.md (TEST-6)
+- [ ] remaining: conversational builders UI (CHAR-6/WORLD-20); first-run story name-capture +
+  auto-start (ONB-2/3); image crop/transform editors + generate buttons (IMG-7); composer draft
+  persistence (DATA-26); adventure prompt viewer; list search/pagination; bundle Inter/Merriweather
 
-### Layer 12 — packaging (PKG)
-- [ ] Dioxus.toml, assets pipeline, per-target build config; data-location; forward-migration test
+### Layer 12 — packaging (PKG) — STARTED
+- [x] Dioxus.toml (app/bundle ids, tailwind input/output); compiled CSS committed
+- [ ] per-target build/bundle config (5 targets); font bundling; data-location doc; forward-migration
+  test; mobile build verification in CI
 
 ## Notes / decisions
 - OG `AiModel` carried pricing + Gemini; rebuild drops both (OpenAI-only, no cost — STAT). Registry
