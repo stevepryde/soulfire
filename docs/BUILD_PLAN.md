@@ -120,7 +120,7 @@ Legend: [ ] todo · [~] in progress · [x] done
 - [x] Beneath Verath lead starter (authored, OG act format); seed_starter_worlds idempotent, ledger-
   tracked, no-duplicate, no-resurrect-deleted (ONB-5/DATA-21). CORE COMPLETE: 172 tests.
 
-### Layer 11 — Dioxus UI (`app`, UI + ONB surfaces) — IN PROGRESS (compiles clean)
+### Layer 11 — Dioxus UI (`app`, UI + ONB surfaces) — DONE (compiles clean, no app warnings)
 - [x] theme tokens + accent system (ported OG input.css + compiled CSS); app shell; nav
   (sidebar/bottom); title bar; immersive vs standard surfaces; toast container
 - [x] lock + first-run setup (password + key + seed); engine wiring (AppContext + store-backed keys)
@@ -133,13 +133,19 @@ Legend: [ ] todo · [~] in progress · [x] done
   builders with Chat/Inspect + undo (CHAR-6/WORLD-20, incl. WorldBuilderEngine in core); NPC
   extraction from play; image generate/regenerate/clear + pan/zoom/reset framing (IMG-1..3/7/8);
   composer draft persistence (DATA-26); list search (UI-8/17); render smoke test (TEST-6)
-- [ ] remaining polish: card thumbnails for stored portraits/covers; drag-to-pan (sliders for now);
-  adventure prompt viewer; "load more" pagination; bundle Inter/Merriweather fonts
+- [x] polish: card thumbnails for stored portraits/covers (Cover/portrait via base64 data URIs);
+  drag-to-pan framing (FrameEditor pointer drag + zoom/reset); adventure prompt viewer
+  (AdventurePromptViewer); "load more" pagination (UI-22); builder in-flight "Thinking…" state
+- [ ] bundle Inter/Merriweather fonts — blocked on licensed `.woff2` assets (OG ships none; a CDN
+  would violate SEC-11 local-first). CSS falls back to platform sans/serif. See docs/PACKAGING.md.
 
-### Layer 12 — packaging (PKG) — STARTED
+### Layer 12 — packaging (PKG) — MOSTLY DONE
 - [x] Dioxus.toml (app/bundle ids, tailwind input/output); compiled CSS committed
-- [ ] per-target build/bundle config (5 targets); font bundling; data-location doc; forward-migration
-  test; mobile build verification in CI
+- [x] CI workflow: fmt --check + workspace build/test + desktop build matrix (Linux/macOS)
+- [x] data-location doc (docs/PACKAGING.md, PKG-3); per-target build/bundle commands documented
+- [x] forward-migration / reopen test (PKG-4) + Store::schema_version()
+- [ ] mobile (Android/iOS) build verification — needs a device/emulator toolchain unavailable here;
+  the single source tree compiles for desktop, and no platform-specific code blocks the mobile build
 
 ## Notes / decisions
 - OG `AiModel` carried pricing + Gemini; rebuild drops both (OpenAI-only, no cost — STAT). Registry
