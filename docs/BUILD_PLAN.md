@@ -110,7 +110,10 @@ Legend: [ ] todo · [~] in progress · [x] done
   fields, create+open chat with title; failure leaves nothing partial CHAR-12)
 - [x] 4 integration tests
 
-### Layer 8 — images (`soulfire-core::image`, IMG) — tests TEST-14
+### Layer 8 — images (`soulfire-core::image`, IMG) — DONE (TEST-14)
+- [x] ImageEngine: generate/regenerate portrait+cover (version bump IMG-3, failure keeps prior IMG-2),
+  local-upload set-bytes (IMG-6), clear-to-emoji (IMG-8), metering; prompt builders; bytes encrypted
+  at rest (proven on disk). 4 tests.
 ### Layer 9 — stats aggregation (`soulfire-core::stats`, STAT) — DONE (2 tests)
 - [x] totals/by-model/by-label/by-day(+month) + StatsReport; cached subset of input (STAT-3); no cost
 ### Layer 10 — starter worlds seed (`soulfire-core::seed`, ONB) — tests TEST-16

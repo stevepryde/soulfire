@@ -13,6 +13,7 @@ pub mod chat;
 pub mod character;
 pub mod clock;
 pub mod error;
+pub mod image;
 pub mod keychain;
 pub mod prompt;
 pub mod stats;
