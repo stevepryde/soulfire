@@ -102,7 +102,12 @@ pub fn Characters() -> Element {
             } else {
                 div { class: "flex flex-col gap-2",
                     for c in list.clone() {
-                        CharacterRow { character: c }
+                        CharacterRow {
+                            character: c,
+                            on_delete: move |id: CharacterId| {
+                                items.write().retain(|c| c.character_id != id);
+                            },
+                        }
                     }
                 }
                 if more() {
@@ -118,7 +123,12 @@ pub fn Characters() -> Element {
 }
 
 #[component]
-fn CharacterRow(character: lib_soulfire::character::Character) -> Element {
+fn CharacterRow(
+    character: lib_soulfire::character::Character,
+    /// Called with the deleted id so the parent can drop just this row from its
+    /// loaded list, without re-fetching the page (`UI-22`).
+    on_delete: EventHandler<CharacterId>,
+) -> Element {
     use soulfire_core::store::ImageOwnerKind;
     let app = current_app();
     let avatar = character
@@ -171,9 +181,10 @@ fn CharacterRow(character: lib_soulfire::character::Character) -> Element {
                 confirm_label: "Delete".to_string(),
                 confirm_word: Some("delete".to_string()),
                 on_confirm: move |_| {
-                    let _ = app.store.delete_character(&cid_del);
+                    if app.store.delete_character(&cid_del).is_ok() {
+                        on_delete.call(cid_del.clone());
+                    }
                     confirming.set(false);
-                    data::touch();
                 },
                 on_cancel: move |_| confirming.set(false),
             }

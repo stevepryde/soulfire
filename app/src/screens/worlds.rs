@@ -4,6 +4,7 @@
 use dioxus::prelude::*;
 use sp_ui::toast::ToastService;
 
+use lib_soulfire::ids::{AdventureId, WorldBlueprintId};
 use lib_soulfire::world::{Adventure, WorldBlueprint};
 
 use soulfire_core::store::ImageOwnerKind;
@@ -97,8 +98,8 @@ pub fn WorldsHome() -> Element {
         })
     };
 
-    let adventures = adventures();
-    let worlds = worlds();
+    let adv_list = adventures();
+    let world_list = worlds();
 
     rsx! {
         Page { title: "Worlds".to_string(),
@@ -109,11 +110,18 @@ pub fn WorldsHome() -> Element {
 
             match tab() {
                 Tab::Adventures => rsx! {
-                    if adventures.is_empty() {
+                    if adv_list.is_empty() {
                         EmptyState { message: "No adventures yet. Open a world to begin.".to_string() }
                     } else {
                         div { class: "grid gap-4 sm:grid-cols-2",
-                            for adv in adventures.clone() { AdventureCard { adventure: adv } }
+                            for adv in adv_list.clone() {
+                                AdventureCard {
+                                    adventure: adv,
+                                    on_delete: move |id: AdventureId| {
+                                        adventures.write().retain(|a| a.adventure_id != id);
+                                    },
+                                }
+                            }
                         }
                         if adv_more() {
                             button {
@@ -152,11 +160,21 @@ pub fn WorldsHome() -> Element {
                         value: "{search}",
                         oninput: move |e| search.set(e.value()),
                     }
-                    if worlds.is_empty() {
+                    if world_list.is_empty() {
                         EmptyState { message: "No worlds yet. Create one to start an adventure.".to_string() }
                     } else {
                         div { class: "grid gap-4 sm:grid-cols-2",
-                            for bp in worlds.clone() { WorldCard { blueprint: bp } }
+                            for bp in world_list.clone() {
+                                WorldCard {
+                                    blueprint: bp,
+                                    // Deleting a world cascades to its adventures, so drop
+                                    // those from the adventures list too (no refetch).
+                                    on_delete: move |id: WorldBlueprintId| {
+                                        worlds.write().retain(|b| b.blueprint_id != id);
+                                        adventures.write().retain(|a| a.blueprint_id != id);
+                                    },
+                                }
+                            }
                         }
                         if world_more() {
                             button {
@@ -208,7 +226,7 @@ fn Cover(emoji: String, completed: bool, #[props(default)] uri: Option<String>) 
 }
 
 #[component]
-fn AdventureCard(adventure: Adventure) -> Element {
+fn AdventureCard(adventure: Adventure, on_delete: EventHandler<AdventureId>) -> Element {
     let app = current_app();
     let title = adventure
         .world_title
@@ -259,9 +277,10 @@ fn AdventureCard(adventure: Adventure) -> Element {
                 danger: true,
                 confirm_label: "Delete".to_string(),
                 on_confirm: move |_| {
-                    let _ = app.store.delete_adventure(&del_id);
+                    if app.store.delete_adventure(&del_id).is_ok() {
+                        on_delete.call(del_id.clone());
+                    }
                     confirming.set(false);
-                    data::touch();
                 },
                 on_cancel: move |_| confirming.set(false),
             }
@@ -270,7 +289,7 @@ fn AdventureCard(adventure: Adventure) -> Element {
 }
 
 #[component]
-fn WorldCard(blueprint: WorldBlueprint) -> Element {
+fn WorldCard(blueprint: WorldBlueprint, on_delete: EventHandler<WorldBlueprintId>) -> Element {
     let app = current_app();
     let emoji = blueprint
         .image
@@ -304,9 +323,10 @@ fn WorldCard(blueprint: WorldBlueprint) -> Element {
                 confirm_label: "Delete".to_string(),
                 confirm_word: Some("delete".to_string()),
                 on_confirm: move |_| {
-                    let _ = app_del.store.delete_blueprint(&bp_del);
+                    if app_del.store.delete_blueprint(&bp_del).is_ok() {
+                        on_delete.call(bp_del.clone());
+                    }
                     confirming.set(false);
-                    data::touch();
                 },
                 on_cancel: move |_| confirming.set(false),
             }
