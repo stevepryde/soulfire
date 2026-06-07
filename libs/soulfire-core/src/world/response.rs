@@ -167,6 +167,17 @@ pub fn parse_full_update(text: &str, next_id: u32) -> anyhow::Result<FullUpdate>
     })
 }
 
+/// Extract the adventure-state string from an initial-state generation
+/// response (`WORLD-3`): the model returns the state object directly, possibly
+/// fenced. Returns the compact JSON string (an object passes through serialized).
+pub fn rescue_state_string(text: &str) -> String {
+    let inner = rescue_json_block(text);
+    match serde_json::from_str::<Value>(inner) {
+        Ok(v) => state_to_string(&v),
+        Err(_) => inner.to_string(),
+    }
+}
+
 /// Parse the `/gm` classification, defaulting to answer-only (`WORLD-16`).
 pub fn parse_gm_intent(text: &str) -> GmIntent {
     let intent = parse_value(text)

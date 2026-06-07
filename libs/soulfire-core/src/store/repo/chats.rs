@@ -99,7 +99,7 @@ impl Store {
         self.with_conn(|conn| {
             select_many(
                 conn,
-                "SELECT data FROM chat_messages WHERE chat_id = ?1 ORDER BY created_at ASC, message_id ASC",
+                "SELECT data FROM chat_messages WHERE chat_id = ?1 ORDER BY rowid ASC",
                 params![chat_id.to_string()],
             )
         })
@@ -116,7 +116,7 @@ impl Store {
             let mut newest_first: Vec<ChatMessage> = select_many(
                 conn,
                 "SELECT data FROM chat_messages WHERE chat_id = ?1
-                 ORDER BY created_at DESC, message_id DESC LIMIT ?2",
+                 ORDER BY rowid DESC LIMIT ?2",
                 params![chat_id.to_string(), limit],
             )?;
             newest_first.reverse();

@@ -460,6 +460,134 @@ pub fn state_update_input(
     ]
 }
 
+/// The compaction directive injected when the live state is large (`WORLD-11`).
+pub const COMPACTION_PROMPT: &str = r#"**IMPORTANT:** The current adventure state is very large. Please compact and summarize the adventure state to reduce its size while retaining all critical information.
+Guidelines for compaction:
+- Retain ALL key details about player name, stats, inventory, locations, NPCs, acts/quests/milestones, and core story elements.
+- Retain ALL information regarding story/plot progress, important items, and major NPC relationships, future actions and story progression.
+- Omit old scene context that is no longer relevant to the current or future story
+- Omit any old narrative details no longer relevant to the current or future story."#;
+
+/// Intro-narrative instructions for starting an adventure (`WORLD-3`).
+pub fn intro_narrative_instructions(world_prompt: &str) -> String {
+    vec![
+        r#"You are a game master for a text adventure game.
+- Always write in second-person, addressing the player as "you".
+- The story is told from the player's perspective.
+- Never narrate the player's name in third-person.
+- Other characters may refer to the player by name in dialogue.
+- Dialogue and narration should alternate naturally.
+- Maintain present or near-present tense for immediacy.
+"#
+        .to_string(),
+        format!(
+            "# World Blueprint (contains rules, acts, quests, NPCs, and world logic):\n{world_prompt}"
+        ),
+        r#"Write an engaging introduction paragraph for this adventure.
+Write as if you are introducing the story to the player, addressing the player directly.
+Include:
+1. Set the scene and atmosphere
+2. Describe the player's name, basic description and starting situation.
+3. End with a prompt for the player to take their first action
+4. Do not reveal any future plot points or spoilers.
+
+Important:
+- The world blueprint is the authority on what is and isn't allowed.
+- Be consistent with the world's rules and logic (be strict with this!)
+- Also be consistent with the player's attributes, stats, inventory, and capabilities.
+- Keep the narrative engaging and immersive, using paragraphs as needed to enhance the flow.
+- No foreshadowing or hints about future events. The initial narrative should focus solely on the starting situation.
+
+Keep it short and concise. Just enough to set the scene. Be immersive and engaging.
+"#
+        .to_string(),
+    ]
+    .join("\n\n")
+}
+
+/// Initial-state generation instructions for starting an adventure (`WORLD-3`).
+/// The state must contain only what the player would know at the start.
+pub fn initial_state_instructions(world_prompt: &str) -> String {
+    vec![
+        "You are a game master for a text adventure. You are creating an initial adventure state for a text adventure game.".to_string(),
+        format!("# World Blueprint:\n{world_prompt}"),
+        r#"# Your task:
+
+Generate a representation of the initial adventure state in compact JSON format (no whitespace).
+
+The adventure state is the live source of truth for the world. It will be updated incrementally via patches after each player action, so it MUST be well-structured from the start with all required sections present. Future updates will modify existing fields — they will NOT add missing sections.
+
+## Adventure state MUST include ALL of the following sections:
+
+### 1. Player details:
+- Name, attributes, traits/personality tags.
+- Stats (health, mana, vigor, etc.) and skills.
+- Inventory (starting items).
+- The provided player attributes where available; generate fitting defaults for any missing details.
+
+### 2. Quest details:
+- Current act (0), active quests/milestones/missions, progress context.
+
+### 3. Current situation (CRITICAL — must be a structured object called "current_situation"):
+- `location`: current location with detail/nuance.
+- `time`: time of day (e.g. "morning", "midday", "afternoon", "evening", "night").
+- `day`: integer day counter, starting at 1.
+- `present`: who is currently in the scene (NPCs).
+- `atmosphere`: weather, mood, ambient details.
+- `context`: brief summary of what is happening right now.
+
+### 4. NPC details:
+- Known characters with relationship/affinity notes, personality, current attitude toward player.
+- Only NPCs the player has actually met or is aware of.
+
+### 5. Story threads:
+- Start as an empty array `[]`. Threads will emerge organically during play.
+
+### 6. GM Notes (gm_notes):
+- No active plans yet. Observe the player's first actions and begin forming narrative intentions.
+
+### 7. Flags & variables:
+- Key story or world state values (doors opened, alliances, discoveries). Start with any relevant initial flags.
+
+Keep it concise but include all sections above. The adventure sheet only needs to be parsed by the AI, so it does not need to be human-readable.
+
+DO NOT include:
+- Details from the world blueprint not yet known to the player.
+- Locations or NPCs not yet encountered.
+- Quests not yet assigned.
+- Any secret information about the story that is supposed to be slowly revealed later or never.
+"#
+        .to_string(),
+    ]
+    .join("\n\n")
+}
+
+/// Build the player-profile prompt section from the player profile (`WORLD-3`).
+pub fn player_profile_section(
+    player_name: &str,
+    player_attributes: &str,
+    prompt_extension: Option<&str>,
+) -> String {
+    let mut section = String::from("\n--\n# Player Profile:\n");
+    if player_name.is_empty() && player_attributes.is_empty() {
+        section.push_str("No default player profile specified. Generate appropriate player name and attributes that fit the world.\n");
+    } else {
+        if !player_name.is_empty() {
+            section.push_str(&format!("Name: {player_name}\n"));
+        }
+        if !player_attributes.is_empty() {
+            section.push_str(&format!("Attributes: {player_attributes}\n"));
+        }
+        section.push_str("\nNote: Use these as defaults when creating the player character. If any details are missing, generate appropriate ones that fit the world.\n");
+    }
+    if let Some(ext) = prompt_extension {
+        if !ext.is_empty() {
+            section.push_str(&format!("\n# Additional Directives:\n{ext}\n"));
+        }
+    }
+    section
+}
+
 /// `/gm` classification instructions (`WORLD-16`).
 pub fn gm_classification_instructions() -> String {
     r#"Classify one out-of-band game-master request.

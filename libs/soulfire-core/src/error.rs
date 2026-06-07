@@ -30,6 +30,10 @@ pub enum CoreError {
     #[error("invalid input: {0}")]
     Validation(String),
 
+    /// A turn is already in progress for this adventure (`WORLD-5`).
+    #[error("a turn is already in progress")]
+    TurnInProgress,
+
     /// A cryptographic operation failed (key derivation, verifier, rekey).
     #[error("crypto error: {0}")]
     Crypto(String),

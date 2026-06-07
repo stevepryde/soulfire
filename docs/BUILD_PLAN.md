@@ -91,7 +91,18 @@ Legend: [ ] todo · [~] in progress · [x] done
   (CHAT-12) with coalesced queue (CHAT-13)
 - [x] 6 integration tests (opening, stream+finalize+meter, reaction→AI reaction, summary regen +
   failure-preserves, state update + failure-preserves) + unit tests
-### Layer 6 — world turn engine (`soulfire-core::world`, WORLD) — tests TEST-13
+### Layer 6 — world turn engine (`soulfire-core::world`, WORLD) — DONE (tests TEST-13)
+- [x] state_patch validator (WORLD-12/14), memory ladder (WORLD-9/10), tolerant response parser
+  (WORLD-12/13/16), verbatim adventure prompts incl. 3 stances + JSON contracts (PROD-7)
+- [x] pure input parser (WORLD-15: /gm vs unknown vs action)
+- [x] WorldEngine: start_adventure (intro + initial-state, WORLD-3/4), take_turn (single-flight lock
+  + stale-heal WORLD-5, echo→stream narration→non-fatal state update, diff-first w/ full fallback +
+  compaction WORLD-11, memory no-wipe WORLD-10, story_status/has_completed WORLD-6), /gm classify→
+  answer/proposal staged with readable diff + accept/reject (WORLD-16/17), metering
+- [x] 6 integration tests (start, turn+diff, state-update-failure-non-fatal, lock refuse+self-heal,
+  warnings, /gm stage/accept/reject) + ~24 unit tests
+- Fixed message ordering to use SQLite rowid (insertion order) so same-timestamp messages stay
+  chronological — also fixes chat.
 ### Layer 7 — character builder + extraction (`soulfire-core::character`, CHAR) — tests TEST-12
 ### Layer 8 — images (`soulfire-core::image`, IMG) — tests TEST-14
 ### Layer 9 — stats aggregation (`soulfire-core::stats`, STAT) — tests TEST-15

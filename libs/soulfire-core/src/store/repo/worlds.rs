@@ -236,7 +236,7 @@ impl Store {
             select_many(
                 conn,
                 "SELECT data FROM adventure_messages WHERE adventure_id = ?1
-                 ORDER BY created_at ASC, message_id ASC",
+                 ORDER BY rowid ASC",
                 params![adventure_id.to_string()],
             )
         })
@@ -252,7 +252,7 @@ impl Store {
             let mut newest_first: Vec<AdventureMessage> = select_many(
                 conn,
                 "SELECT data FROM adventure_messages WHERE adventure_id = ?1
-                 ORDER BY created_at DESC, message_id DESC LIMIT ?2",
+                 ORDER BY rowid DESC LIMIT ?2",
                 params![adventure_id.to_string(), limit],
             )?;
             newest_first.reverse();
