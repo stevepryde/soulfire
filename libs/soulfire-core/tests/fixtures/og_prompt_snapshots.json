@@ -1,0 +1,204 @@
+{
+  "snapshots": [
+    {
+      "name": "character_chat_world_linked_instructions",
+      "bytes": 5219,
+      "sha256": "49f885de40f9ca07d1912057f0ff850611084578585dd69fed54ea3f54120427",
+      "anchors": [
+        "## World Context",
+        "## How to Be This Character",
+        "## Your Current State"
+      ]
+    },
+    {
+      "name": "chat_summary_prompt",
+      "bytes": 338,
+      "sha256": "71bd92d4f19bd976b95f7f42f90d86f3cb56db631e6cfaf374d8e97edc1d1e4f",
+      "anchors": [
+        "Summarize this conversation",
+        "Previous summary:",
+        "New messages:"
+      ]
+    },
+    {
+      "name": "chat_state_update_prompt",
+      "bytes": 1118,
+      "sha256": "fc30538b08afe02717e782339cd836163e8f07da80b2c1f5b11781826568baad",
+      "anchors": [
+        "## Character Profile",
+        "## Current Dynamic State",
+        "Return ONLY"
+      ]
+    },
+    {
+      "name": "character_builder_instructions",
+      "bytes": 2030,
+      "sha256": "3e4564188aad36d1dadaa26f15bd4c2c5431131c985449cb130a0a5e1be8e751",
+      "anchors": [
+        "collaborative character builder",
+        "\"assistant_message\"",
+        "description is only a compact"
+      ]
+    },
+    {
+      "name": "character_builder_input",
+      "bytes": 347,
+      "sha256": "0b669859e75b88c315c14d1023e81cdc00519b033c066c82f08c70639a25f6b0",
+      "anchors": [
+        "Current character:",
+        "Recent builder chat:",
+        "Latest user message:"
+      ]
+    },
+    {
+      "name": "npc_extraction_persona_prompt",
+      "bytes": 4152,
+      "sha256": "3fa9363e18279c2f16c2b5654e746959e97233e22e0ff6c8f9f3b87390d85e99",
+      "anchors": [
+        "extracting an NPC",
+        "## World Context",
+        "### Voice & Speaking Style"
+      ]
+    },
+    {
+      "name": "npc_extraction_initial_state_prompt",
+      "bytes": 1719,
+      "sha256": "b168d79b19008a61050e5ce69a84993b01182a9a55ff05dea613881f8f0d01ba",
+      "anchors": [
+        "initial dynamic state",
+        "### Current Emotional State",
+        "roughly 300-500 words"
+      ]
+    },
+    {
+      "name": "world_builder_instructions",
+      "bytes": 1596,
+      "sha256": "6a5135d36f9aad37ad6ce2556c0996d259e9c36bb90f1b6fe774483af9504546",
+      "anchors": [
+        "collaborative world builder",
+        "\"world_prompt\"",
+        "full replacement world prompt"
+      ]
+    },
+    {
+      "name": "world_intro_instructions",
+      "bytes": 1505,
+      "sha256": "dbaa5941964551c69c62f71144e7090dcc7f96a6600d9c3a9518336b7c326e67",
+      "anchors": [
+        "Write an engaging introduction paragraph",
+        "# World Blueprint",
+        "first action"
+      ]
+    },
+    {
+      "name": "world_initial_state_instructions",
+      "bytes": 2444,
+      "sha256": "fd42eaffbe54c6ba49ccfe7ed2f3cd68b0b515b8a5bced21323cb5a0b464bab0",
+      "anchors": [
+        "creating an initial adventure state",
+        "Current situation",
+        "GM Notes"
+      ]
+    },
+    {
+      "name": "world_narrative_instructions",
+      "bytes": 8996,
+      "sha256": "2cd0c1c0c3a6fb67ec3623991e35843640ce72016d53493c51b6d4d187e2ed72",
+      "anchors": [
+        "# Your task:",
+        "## Mature roleplay",
+        "# Additional Directives:"
+      ]
+    },
+    {
+      "name": "world_narrative_input_messages",
+      "bytes": 1384,
+      "sha256": "88017f9b036002abdafb41ddd06d9f8f99b98e6ceb0ee1deab4cb60d36b34ccf",
+      "anchors": [
+        "Significant Events",
+        "Current Adventure State",
+        "Player's Action"
+      ]
+    },
+    {
+      "name": "world_diff_state_instructions",
+      "bytes": 14896,
+      "sha256": "437cf63b2932421b8edf0e464d99a87e82f1e609ae8e97d2b319d58a2bab0da7",
+      "anchors": [
+        "\"patches\"",
+        "Conservation",
+        "## Mature roleplay"
+      ]
+    },
+    {
+      "name": "world_full_state_instructions",
+      "bytes": 11157,
+      "sha256": "253ef76c95bf2eaf8d207e5971158d06876e146fab25d9851f7c7147ccc8fbc8",
+      "anchors": [
+        "\"updated_state\"",
+        "significant_events",
+        "COMPACT NOW"
+      ]
+    },
+    {
+      "name": "gm_classification_instructions",
+      "bytes": 773,
+      "sha256": "bde1d6226be9486e2a4f21561fa48dc152f1ca3d914188609e5a9422e22f421c",
+      "anchors": [
+        "Classify one out-of-band",
+        "\"answer_only\"",
+        "\"both\""
+      ]
+    },
+    {
+      "name": "gm_answer_instructions",
+      "bytes": 1644,
+      "sha256": "2f43782d1bff997eb7c6d0fbb88b6be5fcec877f0848a8e74e17559e5092c9e4",
+      "anchors": [
+        "out-of-band request",
+        "\"response\"",
+        "## Consent gating"
+      ]
+    },
+    {
+      "name": "gm_proposal_instructions",
+      "bytes": 4266,
+      "sha256": "db50beba3a8c6ce5396f463234f9800b49729e8639489c047bf0fb81651f5b2b",
+      "anchors": [
+        "# Classified request intent:\nboth",
+        "\"updated_adventure_state\"",
+        "## Mature roleplay"
+      ]
+    },
+    {
+      "name": "gm_command_input_messages",
+      "bytes": 1207,
+      "sha256": "ab718bb1feff4dd36742eea86c2f4a8f2d1f856124345865b8169ecc31d01ba7",
+      "anchors": [
+        "Recent Roleplay Messages",
+        "Previous Story Narration",
+        "Out-of-band GM Request"
+      ]
+    },
+    {
+      "name": "image_character_portrait_prompt",
+      "bytes": 145,
+      "sha256": "b1f36fa9e760aae43a54028debf47449f99743f4f05d19410321ee599f56a27b",
+      "anchors": [
+        "character portrait",
+        "Lyra",
+        "Head-and-shoulders"
+      ]
+    },
+    {
+      "name": "image_world_cover_prompt",
+      "bytes": 141,
+      "sha256": "4c4bf0f4769e5beb6f4297216a3ca132d7b453d984a513a087170d122ce2147f",
+      "anchors": [
+        "Wide cinematic cover art",
+        "Beneath Verath",
+        "no text"
+      ]
+    }
+  ]
+}

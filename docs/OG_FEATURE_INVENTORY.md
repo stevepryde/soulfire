@@ -53,7 +53,7 @@ Local source areas scanned:
 | Phase 0: quarantine current state | Done | Dioxus UI was removed from this repo; the workspace currently contains Rust core crates only. |
 | Phase 1: spec update pass | Done enough for implementation | Specs describe the Tauri v2 + React stack, local-only removals, cursor pagination, and React/Tauri testing expectations. |
 | Phase 2: feature inventory and diff | Done here | This document is the first concrete OG parity matrix. Keep it current as work lands. |
-| Phase 3: Rust core | Partial | A broad Rust core exists, including encrypted SQLite, models, chat, worlds, builders, images, metrics, pagination, request-level config coverage, and representative OG-to-local data fixtures. Full prompt snapshots and some trust checks remain. |
+| Phase 3: Rust core | Partial | A broad Rust core exists, including encrypted SQLite, models, chat, worlds, builders, images, metrics, pagination, request-level config coverage, representative prompt hash snapshots, and OG-to-local data fixtures. Some trust checks remain. |
 | Phase 4: Tauri bridge | Missing | No Tauri crate, typed command DTO layer, command permissions, or event bridge exists in this checkout. |
 | Phase 5: React UI fidelity port | Missing | No React/Vite/Tailwind app exists in this checkout. OG UI remains reference-only. |
 | Phase 6: desktop/mobile readiness | Missing | No Tauri app to launch/package yet. |
@@ -115,7 +115,7 @@ These are intentionally removed, not parity gaps:
 | --- | --- | --- | --- |
 | `services/ai/openai.rs` | `ai/openai.rs`, `libs/ai-client` | Adapted | Uses the OpenAI Responses API path and BYOK key source. |
 | `services/ai/gemini.rs` | none | Deferred/removed for launch | Provider abstraction remains; Gemini safety-setting behavior is not launch scope. |
-| AI config/task defaults | `ai/types.rs`, `ai/registry.rs`, call-site configs | Partial | Request-level tests now pin the main chat, chat summary, character state update, builder, extraction, adventure, forced full-state update, `/gm`, and image request configs; full OG fixture snapshots remain. |
+| AI config/task defaults | `ai/types.rs`, `ai/registry.rs`, call-site configs | Partial | Request-level tests now pin the main chat, chat summary, character state update, builder, extraction, adventure, forced full-state update, `/gm`, and image request configs; prompt hash snapshots cover representative rendered prompts. |
 | Structured JSON output and fence rescue | `ai/types.rs`, `ai/fence.rs` | Ported | Schema and lenient parse helpers exist. |
 | Missing-key and transient retry behavior | `ai/service.rs` | Adapted | Local key source guards requests; retry is implemented in the service. |
 | Token usage capture | `model/metric.rs`, store metrics, engines | Adapted | Local stats replace OG billing/rate-limit accounting. |
@@ -206,7 +206,7 @@ The current repo has no React app yet. These OG UI surfaces are required unless 
 | Core model round-trip tests | Partial | Existing tests cover local models plus a representative OG-to-local fixture for feature records; add broader OG edge-case imports. |
 | Store security tests | Partial | Existing encrypted store tests exist; re-audit logs/errors and key handling before app bridge. |
 | Cursor pagination tests | Partial | Existing tests cover keyset behavior; verify all database-backed UI lists use the cursor contract. |
-| Prompt/config golden tests | Partial | Request-level config assertions cover chat, summary/state updater, builders, extraction, images, world intro/turn/diff/full update, and `/gm`; add fixture-backed full prompt snapshots next. |
+| Prompt/config golden tests | Partial | Request-level config assertions cover chat, summary/state updater, builders, extraction, images, world intro/turn/diff/full update, and `/gm`; `tests/prompt_snapshots.rs` pins representative full rendered prompts with SHA-256 snapshots and anchors. Broaden with request-object snapshots as bridge/UI work exposes more DTO paths. |
 | Data/service-flow fixture tests | Partial | Data fixture covers representative adapted records through serde and store persistence; core flow tests cover representative behavior. Add broader OG-derived success/failure/recovery fixtures. |
 | Tauri command tests | Missing | Blocked until Tauri bridge exists. |
 | React smoke/visual tests | Missing | Blocked until React app exists. |
@@ -216,10 +216,10 @@ The current repo has no React app yet. These OG UI surfaces are required unless 
 
 Work in this order unless the roadmap changes:
 
-1. **Phase 3 trust pass:** add OG fixture files and full prompt snapshots for one character chat,
-   one character builder turn, one NPC extraction, one world builder turn, one world intro, one world
-   turn, one state update, one image request, and one `/gm` proposal. Request-level config
-   assertions for these paths already exist in the Rust core tests.
+1. **Phase 3 trust pass:** broaden the current representative prompt hash snapshots with
+   request-object snapshots for full engine turns once bridge DTOs exist. Request-level config
+   assertions and rendered-prompt hash snapshots already cover the main chat, builder, extraction,
+   world, image, state-update, and `/gm` families.
 2. **Phase 3 data proof:** broaden OG-to-local model mapping fixtures beyond the current
    representative Character, Chat, ChatMessage, WorldBlueprint, Adventure, AdventureMessage,
    GmProposal, builder-session, metric, settings, profile, and draft records.
