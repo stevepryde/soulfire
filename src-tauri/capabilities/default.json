@@ -3,5 +3,9 @@
   "identifier": "default",
   "description": "Default capability for the main Soulfire window.",
   "windows": ["main"],
-  "permissions": ["core:default"]
+  "permissions": [
+    "core:default",
+    "allow-store-lifecycle",
+    "allow-profile-settings"
+  ]
 }

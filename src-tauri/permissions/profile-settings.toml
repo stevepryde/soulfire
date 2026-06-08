@@ -1,0 +1,11 @@
+[[permission]]
+identifier = "allow-profile-settings"
+description = "Allows the main Soulfire window to read and update the local singleton app profile, player profile, and app settings."
+commands.allow = [
+  "get_app_profile",
+  "save_app_profile",
+  "get_player_profile",
+  "save_player_profile",
+  "get_app_settings",
+  "save_app_settings",
+]

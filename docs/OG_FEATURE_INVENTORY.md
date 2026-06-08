@@ -54,7 +54,7 @@ Local source areas scanned:
 | Phase 1: spec update pass | Done enough for implementation | Specs describe the Tauri v2 + React stack, local-only removals, cursor pagination, and React/Tauri testing expectations. |
 | Phase 2: feature inventory and diff | Done here | This document is the first concrete OG parity matrix. Keep it current as work lands. |
 | Phase 3: Rust core | Partial | A broad Rust core exists, including encrypted SQLite, models, chat, worlds, builders, images, metrics, pagination, request-level config coverage, representative prompt hash snapshots, and OG-to-local data fixtures. Some trust checks remain. |
-| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, async typed setup/unlock/profile/settings commands, and the first event DTO vocabulary. Feature commands and event emission remain. |
+| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings commands, and the first event DTO vocabulary. Feature commands and event emission remain. |
 | Phase 5: React UI fidelity port | Missing | No React/Vite/Tailwind app exists in this checkout. OG UI remains reference-only. |
 | Phase 6: desktop/mobile readiness | Missing | No Tauri app to launch/package yet. |
 | Phase 7: validation | Partial | Core tests exist; OG prompt/config fixture parity, service-flow parity, Tauri command checks, React visual/smoke tests, and manual smoke docs remain. |
@@ -223,13 +223,11 @@ Work in this order unless the roadmap changes:
 2. **Phase 3 data proof:** broaden OG-to-local model mapping fixtures beyond the current
    representative Character, Chat, ChatMessage, WorldBlueprint, Adventure, AdventureMessage,
    GmProposal, builder-session, metric, settings, profile, and draft records.
-3. **Phase 4 bridge scaffold:** tighten command permissions for upcoming long-running/streaming
-   feature commands.
-4. **Phase 4 vertical commands:** setup/unlock/settings/profile commands exist; next expose one
+3. **Phase 4 vertical commands:** setup/unlock/settings/profile commands exist; next expose one
    character chat flow and one world adventure flow through commands/events.
-5. **Phase 5 React shell:** scaffold Vite/React/Tailwind/Bun with OG tokens, custom controls, shell
+4. **Phase 5 React shell:** scaffold Vite/React/Tailwind/Bun with OG tokens, custom controls, shell
    navigation, setup/unlock, and the two vertical-slice screens.
-6. **Phase 5 fidelity expansion:** port the remaining editors, builders, image framing, prompt viewer,
+5. **Phase 5 fidelity expansion:** port the remaining editors, builders, image framing, prompt viewer,
    settings/profile, stats, and smoke/visual checks.
 
 ## Definition Of Done For Phase 2

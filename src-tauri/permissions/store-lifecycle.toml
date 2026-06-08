@@ -1,0 +1,10 @@
+[[permission]]
+identifier = "allow-store-lifecycle"
+description = "Allows the main Soulfire window to check, set up, unlock, lock, and read status for the encrypted local store."
+commands.allow = [
+  "store_exists",
+  "setup_store",
+  "unlock_store",
+  "lock_store",
+  "store_status",
+]
