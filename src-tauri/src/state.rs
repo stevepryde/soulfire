@@ -52,6 +52,7 @@ impl AppState {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use soulfire_core::model::settings::{AppSettings, ColorTheme, ContentToggles};
 
     #[tokio::test(flavor = "current_thread")]
     async fn state_tracks_locked_and_unlocked_store() {
@@ -72,5 +73,39 @@ mod tests {
 
         state.clear_store();
         assert!(!state.is_unlocked());
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn state_persists_async_store_work_across_lock_cycle() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = AsyncStore::initialize(dir.path(), "pw").await.unwrap();
+        let state = AppState::default();
+        state.set_store(store);
+
+        let settings = AppSettings {
+            color_theme: ColorTheme::Teal,
+            content_toggles: ContentToggles {
+                adult_content: true,
+            },
+            ..AppSettings::default()
+        };
+        state
+            .with_store(move |store| {
+                store.save_app_settings(&settings)?;
+                Ok(())
+            })
+            .await
+            .unwrap();
+
+        state.clear_store();
+        assert!(matches!(
+            state.with_store(Store::app_settings).await,
+            Err(CommandError::Locked)
+        ));
+
+        state.set_store(AsyncStore::unlock(dir.path(), "pw").await.unwrap());
+        let restored = state.with_store(Store::app_settings).await.unwrap();
+        assert_eq!(restored.color_theme, ColorTheme::Teal);
+        assert!(restored.content_toggles.adult_content);
     }
 }
