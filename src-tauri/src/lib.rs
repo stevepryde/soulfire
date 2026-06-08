@@ -1,7 +1,9 @@
 mod commands;
 mod error;
+mod events;
 mod state;
 
+pub use events::{BRIDGE_EVENT, BridgeEvent, TaskKind, TaskStatus, emit_bridge_event};
 pub use state::AppState;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

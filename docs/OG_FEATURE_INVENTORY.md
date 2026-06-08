@@ -54,7 +54,7 @@ Local source areas scanned:
 | Phase 1: spec update pass | Done enough for implementation | Specs describe the Tauri v2 + React stack, local-only removals, cursor pagination, and React/Tauri testing expectations. |
 | Phase 2: feature inventory and diff | Done here | This document is the first concrete OG parity matrix. Keep it current as work lands. |
 | Phase 3: Rust core | Partial | A broad Rust core exists, including encrypted SQLite, models, chat, worlds, builders, images, metrics, pagination, request-level config coverage, representative prompt hash snapshots, and OG-to-local data fixtures. Some trust checks remain. |
-| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold plus typed setup/unlock/profile/settings commands. Feature commands and event streams remain. |
+| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, typed setup/unlock/profile/settings commands, and the first event DTO vocabulary. Feature commands and event emission remain. |
 | Phase 5: React UI fidelity port | Missing | No React/Vite/Tailwind app exists in this checkout. OG UI remains reference-only. |
 | Phase 6: desktop/mobile readiness | Missing | No Tauri app to launch/package yet. |
 | Phase 7: validation | Partial | Core tests exist; OG prompt/config fixture parity, service-flow parity, Tauri command checks, React visual/smoke tests, and manual smoke docs remain. |
@@ -88,7 +88,7 @@ These are intentionally removed, not parity gaps:
 | `models/worlds.rs` | `model/world.rs` | Adapted | World blueprints, adventures, messages, GM proposals, builder sessions, statuses, and image transform metadata exist; publication/rating/moderation fields are removed. |
 | `models/profile.rs` / `models/user.rs` | `model/profile.rs`, `model/settings.rs`, `model/credentials.rs` | Adapted | Split into local app profile, player profile, settings, and encrypted provider credentials. |
 | `models/ai_model.rs` | `model/ai_model.rs`, `ai/registry.rs` | Adapted | OpenAI-focused launch registry exists; OG provider sprawl is trimmed. |
-| `models/websocket.rs` | none yet | Missing | Needs Tauri event DTOs that preserve OG status/event semantics. |
+| `models/websocket.rs` | `src-tauri/src/events.rs` | Adapted | Replaced by typed Tauri bridge events for chat/adventure streaming, statuses, image-ready notifications, task status, and errors. |
 | `models/analytics.rs`, `models/ai_evaluation.rs` | `model/metric.rs`, `stats.rs` | Adapted/removed | User-facing token metrics exist; service-operator analytics/eval models are removed. |
 | `models/device.rs`, auth/billing/payment models | none | Removed | Obsolete in the local-only app. |
 | Bundled starter worlds | `seed.rs`, `model/install.rs` | Adapted | Starter seed ledger exists; verify exact OG starter payloads before UI/onboarding work. |
@@ -126,7 +126,7 @@ These are intentionally removed, not parity gaps:
 | OG source | Local source | Status | Notes |
 | --- | --- | --- | --- |
 | Open/load/delete chat routes | `chat/engine.rs`, store chat repos | Ported core / missing bridge | Core can open per-character chat and store/delete chats. Tauri feature commands missing. |
-| Streaming character reply | `chat/engine.rs`, `ai/service.rs` | Ported | Core streams deltas through a callback. Event bridge missing. |
+| Streaming character reply | `chat/engine.rs`, `ai/service.rs`, `src-tauri/src/events.rs` | Ported core / partial bridge | Core streams deltas through a callback; bridge event DTOs exist, but command emission is not wired yet. |
 | Prompt assembly | `prompt/character.rs`, `chat/prompts.rs` | Partial | Request-level tests pin key section ordering and config; representative OG golden payload snapshots remain. |
 | Chat summary/title generation | `chat/engine.rs`, `chat/prompts.rs` | Ported | Summary and title prompts exist. |
 | Reactions | `model/chat.rs`, `chat/engine.rs` | Ported | Allowed emoji filtering and persistence exist. UI missing. |
@@ -154,7 +154,7 @@ These are intentionally removed, not parity gaps:
 | World builder service | `world/builder.rs` | Ported | Structured full-field replacement, snapshots, chat history, undo, metrics, and request config parity exist. |
 | Adventure list/load/delete | `store/repo/worlds.rs` | Ported core / missing bridge | Core persistence exists; Tauri commands missing. |
 | Adventure start and intro | `world/engine.rs`, `world/prompts.rs` | Ported | Streams intro narration and persists initial state. Needs fixture parity tests. |
-| Player turn narration | `world/engine.rs`, `world/prompts.rs` | Ported | Streams narration through callback. Event bridge missing. |
+| Player turn narration | `world/engine.rs`, `world/prompts.rs`, `src-tauri/src/events.rs` | Ported core / partial bridge | Streams narration through a callback; bridge event DTOs exist, but command emission is not wired yet. |
 | Diff/full state updates | `world/engine.rs`, `world/state_patch.rs`, `world/response.rs` | Ported | Diff fallback to full update exists. Needs OG representative fixture tests. |
 | Story memory, recent events, significant events | `world/memory.rs`, `world/prompts.rs` | Ported | Uses `story_summary` with rolling/recent sections. |
 | Compaction | `world/prompts.rs` | Partial | Prompt exists; verify trigger/cadence and persistence against OG before trusting. |
@@ -208,7 +208,7 @@ The current repo has no React app yet. These OG UI surfaces are required unless 
 | Cursor pagination tests | Partial | Existing tests cover keyset behavior; verify all database-backed UI lists use the cursor contract. |
 | Prompt/config golden tests | Partial | Request-level config assertions cover chat, summary/state updater, builders, extraction, images, world intro/turn/diff/full update, and `/gm`; `tests/prompt_snapshots.rs` pins representative full rendered prompts with SHA-256 snapshots and anchors. Broaden with request-object snapshots as bridge/UI work exposes more DTO paths. |
 | Data/service-flow fixture tests | Partial | Data fixture covers representative adapted records through serde and store persistence; core flow tests cover representative behavior. Add broader OG-derived success/failure/recovery fixtures. |
-| Tauri command tests | Partial | `soulfire-app` has state-boundary tests for locked/unlocked store state. Add command invocation tests as feature commands/events land. |
+| Tauri command/event tests | Partial | `soulfire-app` has state-boundary tests plus event serialization tests for React-facing names/fields. Add command invocation tests as feature commands/events land. |
 | React smoke/visual tests | Missing | Blocked until React app exists. |
 | Manual smoke checklist | Missing | Add alongside first vertical slice. |
 
@@ -223,8 +223,8 @@ Work in this order unless the roadmap changes:
 2. **Phase 3 data proof:** broaden OG-to-local model mapping fixtures beyond the current
    representative Character, Chat, ChatMessage, WorldBlueprint, Adventure, AdventureMessage,
    GmProposal, builder-session, metric, settings, profile, and draft records.
-3. **Phase 4 bridge scaffold:** add typed event payload vocabulary and command permissions for
-   upcoming long-running/streaming feature commands.
+3. **Phase 4 bridge scaffold:** tighten command permissions for upcoming long-running/streaming
+   feature commands.
 4. **Phase 4 vertical commands:** setup/unlock/settings/profile commands exist; next expose one
    character chat flow and one world adventure flow through commands/events.
 5. **Phase 5 React shell:** scaffold Vite/React/Tailwind/Bun with OG tokens, custom controls, shell
