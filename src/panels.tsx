@@ -164,6 +164,7 @@ export function WorldsPanel() {
   const [adventures, setAdventures] = useState<AdventureSummary[]>([]);
   const [selectedAdventure, setSelectedAdventure] = useState<AdventureDetail | null>(null);
   const [adventurePromptView, setAdventurePromptView] = useState<PromptView | null>(null);
+  const [adventureStats, setAdventureStats] = useState<TokenStatsReport | null>(null);
   const [blueprints, setBlueprints] = useState<WorldBlueprintSummary[]>([]);
   const [blueprintCount, setBlueprintCount] = useState<number | null>(null);
   const [selectedWorld, setSelectedWorld] = useState<WorldBlueprintDetail | null>(null);
@@ -241,6 +242,7 @@ export function WorldsPanel() {
     try {
       setSelectedAdventure(await command<AdventureDetail>("load_adventure", { adventureId }));
       setAdventurePromptView(null);
+      setAdventureStats(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -265,6 +267,20 @@ export function WorldsPanel() {
     }
   }
 
+  async function loadAdventureStats(adventureId: string) {
+    setDetailLoading(true);
+    setError(null);
+    try {
+      setAdventureStats(
+        await command<TokenStatsReport>("get_adventure_token_stats", { adventureId }),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDetailLoading(false);
+    }
+  }
+
   async function deleteSelectedContent() {
     setDeleting(true);
     setError(null);
@@ -279,6 +295,7 @@ export function WorldsPanel() {
         });
         setSelectedAdventure(null);
         setAdventurePromptView(null);
+        setAdventureStats(null);
       }
       setDeleteTarget(null);
       await refresh();
@@ -442,6 +459,14 @@ export function WorldsPanel() {
             Prompt View
           </button>
           <button
+            className="secondary-button list-footer-button"
+            type="button"
+            onClick={() => loadAdventureStats(selectedAdventure.adventure.adventure_id)}
+            disabled={detailLoading}
+          >
+            Token Stats
+          </button>
+          <button
             className="danger-text-button list-footer-button"
             type="button"
             onClick={() => setDeleteTarget("adventure")}
@@ -449,6 +474,12 @@ export function WorldsPanel() {
           >
             Delete Adventure
           </button>
+          {adventureStats ? (
+            <div className="scoped-stats">
+              <h4>Adventure Token Stats</h4>
+              <TokenTotalsGrid report={adventureStats} />
+            </div>
+          ) : null}
           {adventurePromptView ? <PromptViewPanel promptView={adventurePromptView} /> : null}
         </section>
       ) : null}
@@ -707,6 +738,29 @@ function totalTokens(totals: TokenTotals): number {
   return totals.inputTokens + totals.outputTokens;
 }
 
+function TokenTotalsGrid({ report }: { report: TokenStatsReport | null }) {
+  return (
+    <div className="metric-grid">
+      <article className="metric-card">
+        <span>Requests</span>
+        <strong>{formatNumber(report?.totals.requests ?? 0)}</strong>
+      </article>
+      <article className="metric-card">
+        <span>Input Tokens</span>
+        <strong>{formatNumber(report?.totals.inputTokens ?? 0)}</strong>
+      </article>
+      <article className="metric-card">
+        <span>Cached Input</span>
+        <strong>{formatNumber(report?.totals.cachedInputTokens ?? 0)}</strong>
+      </article>
+      <article className="metric-card">
+        <span>Output Tokens</span>
+        <strong>{formatNumber(report?.totals.outputTokens ?? 0)}</strong>
+      </article>
+    </div>
+  );
+}
+
 function PromptSectionCard({
   section,
   onSave,
@@ -862,24 +916,7 @@ export function StatsPanel() {
       {error ? (
         <InlineNotice icon={<AlertCircle size={20} />} title="Stats unavailable" detail={error} />
       ) : null}
-      <div className="metric-grid">
-        <article className="metric-card">
-          <span>Requests</span>
-          <strong>{formatNumber(report?.totals.requests ?? 0)}</strong>
-        </article>
-        <article className="metric-card">
-          <span>Input Tokens</span>
-          <strong>{formatNumber(report?.totals.inputTokens ?? 0)}</strong>
-        </article>
-        <article className="metric-card">
-          <span>Cached Input</span>
-          <strong>{formatNumber(report?.totals.cachedInputTokens ?? 0)}</strong>
-        </article>
-        <article className="metric-card">
-          <span>Output Tokens</span>
-          <strong>{formatNumber(report?.totals.outputTokens ?? 0)}</strong>
-        </article>
-      </div>
+      <TokenTotalsGrid report={report} />
       <div className="split-grid">
         <section className="list-panel">
           <div className="list-title">
