@@ -1,5 +1,6 @@
 import {
   AlertCircle,
+  BarChart3,
   BookOpen,
   KeyRound,
   Library,
@@ -24,6 +25,8 @@ import {
   ListPage,
   PlayerProfile,
   StoreStatus,
+  TokenStatsReport,
+  TokenTotals,
   WorldBlueprintSummary,
   canInvokeTauri,
   command,
@@ -311,6 +314,114 @@ export function CharactersPanel() {
             </article>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat().format(value);
+}
+
+function totalTokens(totals: TokenTotals): number {
+  return totals.inputTokens + totals.outputTokens;
+}
+
+function StatsTable({
+  rows,
+  labelKey,
+}: {
+  rows: Array<{ label?: string; model?: string; period?: string; totals: TokenTotals }>;
+  labelKey: "label" | "model" | "period";
+}) {
+  if (rows.length === 0) {
+    return <p className="muted">No breakdown yet.</p>;
+  }
+  return (
+    <div className="stats-table">
+      {rows.slice(0, 8).map((row) => (
+        <div key={row[labelKey]}>
+          <span>{labelFromSnake(String(row[labelKey]))}</span>
+          <strong>{formatNumber(totalTokens(row.totals))}</strong>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function StatsPanel() {
+  const [report, setReport] = useState<TokenStatsReport | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  async function refresh() {
+    setLoading(true);
+    setError(null);
+    try {
+      setReport(await command<TokenStatsReport>("get_token_stats"));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void refresh();
+  }, []);
+
+  return (
+    <section className="workspace-band">
+      <div className="panel-heading with-action">
+        <div>
+          <BarChart3 size={20} />
+          <h2>Stats</h2>
+        </div>
+        <ToolbarButton
+          icon={<RefreshCcw size={16} />}
+          label="Refresh"
+          onClick={refresh}
+          disabled={loading}
+        />
+      </div>
+      {error ? (
+        <InlineNotice icon={<AlertCircle size={20} />} title="Stats unavailable" detail={error} />
+      ) : null}
+      <div className="metric-grid">
+        <article className="metric-card">
+          <span>Requests</span>
+          <strong>{formatNumber(report?.totals.requests ?? 0)}</strong>
+        </article>
+        <article className="metric-card">
+          <span>Input Tokens</span>
+          <strong>{formatNumber(report?.totals.inputTokens ?? 0)}</strong>
+        </article>
+        <article className="metric-card">
+          <span>Cached Input</span>
+          <strong>{formatNumber(report?.totals.cachedInputTokens ?? 0)}</strong>
+        </article>
+        <article className="metric-card">
+          <span>Output Tokens</span>
+          <strong>{formatNumber(report?.totals.outputTokens ?? 0)}</strong>
+        </article>
+      </div>
+      <div className="split-grid">
+        <section className="list-panel">
+          <div className="list-title">
+            <BarChart3 size={18} />
+            <h3>By Operation</h3>
+          </div>
+          {loading ? <p className="muted">Loading stats...</p> : null}
+          {report ? <StatsTable rows={report.byOperation} labelKey="label" /> : null}
+        </section>
+        <section className="list-panel">
+          <div className="list-title">
+            <BarChart3 size={18} />
+            <h3>By Model</h3>
+          </div>
+          {loading ? <p className="muted">Loading stats...</p> : null}
+          {report ? <StatsTable rows={report.byModel} labelKey="model" /> : null}
+        </section>
       </div>
     </section>
   );

@@ -548,6 +548,65 @@ textarea:focus {
   align-self: end;
 }
 
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.metric-card {
+  display: grid;
+  gap: 8px;
+  min-height: 96px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-panel);
+}
+
+.metric-card span {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.metric-card strong {
+  align-self: end;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #fff3e0;
+  font-size: 1.45rem;
+}
+
+.stats-table {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--line);
+}
+
+.stats-table div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 12px 13px;
+  background: #211c19;
+}
+
+.stats-table span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.stats-table strong {
+  color: var(--gold);
+  white-space: nowrap;
+}
+
 .settings-list {
   display: grid;
   gap: 1px;
@@ -668,7 +727,7 @@ textarea:focus {
   }
 
   .side-nav nav {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 6px;
   }
 
@@ -701,6 +760,10 @@ textarea:focus {
 
   .split-grid {
     grid-template-columns: 1fr;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .panel-heading.with-action {

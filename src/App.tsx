@@ -1,9 +1,9 @@
-import { Library, Settings, UserRound } from "lucide-react";
+import { BarChart3, Library, Settings, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { DEFAULT_STATUS, NavKey, StoreStatus, command } from "./bridge";
 import { AppLogo, NavButton, StatusPill } from "./chrome";
-import { CharactersPanel, SettingsPanel, UnlockSurface, WorldsPanel } from "./panels";
+import { CharactersPanel, SettingsPanel, StatsPanel, UnlockSurface, WorldsPanel } from "./panels";
 
 export function App() {
   const [status, setStatus] = useState<StoreStatus>(DEFAULT_STATUS);
@@ -17,6 +17,7 @@ export function App() {
 
   const panel = useMemo(() => {
     if (nav === "characters") return <CharactersPanel />;
+    if (nav === "stats") return <StatsPanel />;
     if (nav === "settings") return <SettingsPanel status={status} />;
     return <WorldsPanel />;
   }, [nav, status]);
@@ -44,6 +45,12 @@ export function App() {
             icon={<UserRound size={18} />}
             label="Characters"
             onClick={() => setNav("characters")}
+          />
+          <NavButton
+            active={nav === "stats"}
+            icon={<BarChart3 size={18} />}
+            label="Stats"
+            onClick={() => setNav("stats")}
           />
           <NavButton
             active={nav === "settings"}

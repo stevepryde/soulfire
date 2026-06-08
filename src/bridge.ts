@@ -6,7 +6,7 @@ export type StoreStatus = {
   schemaVersion: number | null;
 };
 
-export type NavKey = "worlds" | "characters" | "settings";
+export type NavKey = "worlds" | "characters" | "stats" | "settings";
 
 export type CharacterSummary = {
   character_id: string;
@@ -56,6 +56,22 @@ export type PlayerProfile = {
   player_name: string;
   player_attributes: string;
   prompt_extension?: string | null;
+};
+
+export type TokenTotals = {
+  requests: number;
+  inputTokens: number;
+  cachedInputTokens: number;
+  outputTokens: number;
+};
+
+export type TokenStatsReport = {
+  metricCount: number;
+  totals: TokenTotals;
+  byModel: Array<{ model: string; totals: TokenTotals }>;
+  byOperation: Array<{ label: string; totals: TokenTotals }>;
+  byDay: Array<{ period: string; totals: TokenTotals }>;
+  byMonth: Array<{ period: string; totals: TokenTotals }>;
 };
 
 export const COLOR_THEMES = [
