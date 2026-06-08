@@ -172,6 +172,8 @@ export function WorldsPanel() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<"world" | "adventure" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function refresh(nextSearch = search) {
@@ -263,6 +265,30 @@ export function WorldsPanel() {
     }
   }
 
+  async function deleteSelectedContent() {
+    setDeleting(true);
+    setError(null);
+    try {
+      if (deleteTarget === "world" && selectedWorld) {
+        await command("delete_world_blueprint", { blueprintId: selectedWorld.blueprint_id });
+        setSelectedWorld(null);
+      }
+      if (deleteTarget === "adventure" && selectedAdventure) {
+        await command("delete_adventure", {
+          adventureId: selectedAdventure.adventure.adventure_id,
+        });
+        setSelectedAdventure(null);
+        setAdventurePromptView(null);
+      }
+      setDeleteTarget(null);
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   useEffect(() => {
     void refresh();
   }, []);
@@ -283,6 +309,20 @@ export function WorldsPanel() {
       </div>
       {error ? (
         <InlineNotice icon={<AlertCircle size={20} />} title="Worlds unavailable" detail={error} />
+      ) : null}
+      {deleteTarget ? (
+        <ConfirmDialog
+          title={deleteTarget === "world" ? "Delete World" : "Delete Adventure"}
+          detail={
+            deleteTarget === "world"
+              ? "This removes the local world blueprint and any adventures stored under it."
+              : "This removes the selected local adventure, its messages, and staged proposals."
+          }
+          confirmLabel="Delete"
+          busy={deleting}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={deleteSelectedContent}
+        />
       ) : null}
       <form
         className="search-row"
@@ -370,6 +410,14 @@ export function WorldsPanel() {
             <p>{selectedWorld.description || "No description"}</p>
           </div>
           <pre>{selectedWorld.world_prompt}</pre>
+          <button
+            className="danger-text-button list-footer-button"
+            type="button"
+            onClick={() => setDeleteTarget("world")}
+            disabled={deleting}
+          >
+            Delete World
+          </button>
         </section>
       ) : detailLoading ? (
         <p className="muted">Loading world...</p>
@@ -393,6 +441,14 @@ export function WorldsPanel() {
           >
             Prompt View
           </button>
+          <button
+            className="danger-text-button list-footer-button"
+            type="button"
+            onClick={() => setDeleteTarget("adventure")}
+            disabled={deleting}
+          >
+            Delete Adventure
+          </button>
           {adventurePromptView ? <PromptViewPanel promptView={adventurePromptView} /> : null}
         </section>
       ) : null}
@@ -410,6 +466,8 @@ export function CharactersPanel() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function refresh(nextSearch = search) {
@@ -502,6 +560,23 @@ export function CharactersPanel() {
     }
   }
 
+  async function deleteSelectedCharacter() {
+    if (!selectedCharacter) return;
+    setDeleting(true);
+    setError(null);
+    try {
+      await command("delete_character", { characterId: selectedCharacter.character_id });
+      setSelectedCharacter(null);
+      setPromptView(null);
+      setConfirmDelete(false);
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   useEffect(() => {
     void refresh();
   }, []);
@@ -522,6 +597,16 @@ export function CharactersPanel() {
       </div>
       {error ? (
         <InlineNotice icon={<AlertCircle size={20} />} title="Characters unavailable" detail={error} />
+      ) : null}
+      {confirmDelete ? (
+        <ConfirmDialog
+          title="Delete Character"
+          detail="This removes the local character, its chat, messages, and chat draft."
+          confirmLabel="Delete"
+          busy={deleting}
+          onCancel={() => setConfirmDelete(false)}
+          onConfirm={deleteSelectedCharacter}
+        />
       ) : null}
       <form
         className="search-row"
@@ -590,6 +675,14 @@ export function CharactersPanel() {
             disabled={detailLoading}
           >
             Prompt View
+          </button>
+          <button
+            className="danger-text-button list-footer-button"
+            type="button"
+            onClick={() => setConfirmDelete(true)}
+            disabled={deleting}
+          >
+            Delete Character
           </button>
           {promptView ? (
             <PromptViewPanel

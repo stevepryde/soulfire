@@ -24,6 +24,7 @@ Status: current Tauri/React shell checklist. Update this file as new OG parity s
 - Load More appears only when the blueprint list has another cursor page.
 - Selecting a blueprint opens a read-only detail panel with its description and world prompt.
 - Selecting an active adventure opens a read-only state panel and can show the next-turn prompt view.
+- Delete World and Delete Adventure open in-app confirmation modals; Cancel preserves the item.
 
 ## Characters Shell
 
@@ -32,6 +33,7 @@ Status: current Tauri/React shell checklist. Update this file as new OG parity s
 - Selecting a character opens a read-only detail panel.
 - Prompt View shows section headers, locked/editable labels, sources, and token estimates.
 - Saving an editable character prompt section updates the detail prompt and keeps locked sections read-only.
+- Delete Character opens an in-app confirmation modal; Cancel preserves the character.
 
 ## Settings Shell
 
