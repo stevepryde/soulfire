@@ -77,6 +77,13 @@ export type AppSettings = {
   };
 };
 
+export type AppProfile = {
+  version?: number;
+  name?: string | null;
+  nickname?: string | null;
+  primary_language: string;
+};
+
 export type PlayerProfile = {
   version?: number;
   player_name: string;
@@ -122,6 +129,19 @@ export const COLOR_THEMES = [
   { value: "orange", label: "Orange", color: "#f97316" },
   { value: "teal", label: "Teal", color: "#14b8a6" },
   { value: "grey", label: "Grey", color: "#6b7280" },
+] as const;
+
+export const LANGUAGES = [
+  { value: "english", label: "English" },
+  { value: "thai", label: "Thai" },
+  { value: "spanish", label: "Spanish" },
+  { value: "german", label: "German" },
+  { value: "french", label: "French" },
+  { value: "indonesian", label: "Indonesian" },
+  { value: "italian", label: "Italian" },
+  { value: "japanese", label: "Japanese" },
+  { value: "brazilian portuguese", label: "Brazilian Portuguese" },
+  { value: "portuguese", label: "Portuguese" },
 ] as const;
 
 export const DEFAULT_STATUS: StoreStatus = {

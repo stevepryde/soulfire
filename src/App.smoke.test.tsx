@@ -84,6 +84,13 @@ beforeEach(() => {
         };
       case "get_openai_credential_status":
         return { configured: true, masked: "sk-...1234" };
+      case "get_app_profile":
+        return {
+          version: 1,
+          name: "Steve",
+          nickname: "SP",
+          primary_language: "english",
+        };
       case "get_app_settings":
         return {
           version: 1,
@@ -129,6 +136,8 @@ describe("App shell smoke", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Settings" }));
     expect(await screen.findByRole("heading", { name: "Settings" })).toBeTruthy();
+    expect(await screen.findByText("App Profile")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "English" })).toBeTruthy();
     expect(await screen.findByText(/sk-\.\.\.1234/)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Lock Store" })).toBeTruthy();
   });

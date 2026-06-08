@@ -816,6 +816,36 @@ textarea:focus {
   font-size: 0.86rem;
 }
 
+.option-field {
+  display: grid;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.option-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.option-button {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 10px;
+  background: #211c19;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.option-button.active {
+  border-color: var(--gold);
+  color: #fff3e0;
+  background: rgb(210 168 85 / 0.12);
+}
+
 .profile-form .primary-button {
   justify-self: end;
 }

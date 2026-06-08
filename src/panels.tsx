@@ -18,12 +18,14 @@ import { FormEvent, useEffect, useState } from "react";
 import {
   AdventureDetail,
   AdventureSummary,
+  AppProfile,
   AppSettings,
   COLOR_THEMES,
   CharacterDetail,
   CharacterSummary,
   CredentialStatus,
   DEFAULT_DATA_DIR,
+  LANGUAGES,
   ListPage,
   PlayerProfile,
   PromptSection,
@@ -829,6 +831,7 @@ export function SettingsPanel({
   onStatus: (status: StoreStatus) => void;
 }) {
   const [credential, setCredential] = useState<CredentialStatus | null>(null);
+  const [appProfile, setAppProfile] = useState<AppProfile | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [apiKey, setApiKey] = useState("");
@@ -839,12 +842,14 @@ export function SettingsPanel({
     setBusy(true);
     setError(null);
     try {
-      const [nextCredential, nextSettings, nextProfile] = await Promise.all([
+      const [nextCredential, nextAppProfile, nextSettings, nextProfile] = await Promise.all([
         command<CredentialStatus>("get_openai_credential_status"),
+        command<AppProfile>("get_app_profile"),
         command<AppSettings>("get_app_settings"),
         command<PlayerProfile>("get_player_profile"),
       ]);
       setCredential(nextCredential);
+      setAppProfile(nextAppProfile);
       setSettings(nextSettings);
       setProfile(nextProfile);
     } catch (err) {
@@ -889,6 +894,27 @@ export function SettingsPanel({
     try {
       const next = await command<AppSettings>("save_app_settings", { settings: nextSettings });
       setSettings(next);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveAppProfile(event: FormEvent) {
+    event.preventDefault();
+    if (!appProfile) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const next = await command<AppProfile>("save_app_profile", {
+        profile: {
+          ...appProfile,
+          name: appProfile.name?.trim() || null,
+          nickname: appProfile.nickname?.trim() || null,
+        },
+      });
+      setAppProfile(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -974,6 +1000,10 @@ export function SettingsPanel({
           <dd>{canInvokeTauri() ? "Tauri" : "Browser preview"}</dd>
         </div>
         <div>
+          <dt>Profile</dt>
+          <dd>{appProfile?.name || appProfile?.nickname || "Local player"}</dd>
+        </div>
+        <div>
           <dt>Accent</dt>
           <dd>{settings ? labelFromSnake(settings.color_theme) : "Loading"}</dd>
         </div>
@@ -982,6 +1012,65 @@ export function SettingsPanel({
           <dd>{settings?.content_toggles.adult_content ? "Enabled" : "Disabled"}</dd>
         </div>
       </dl>
+      <section className="settings-card">
+        <div className="list-title">
+          <UserRound size={18} />
+          <h3>App Profile</h3>
+        </div>
+        <form className="profile-form" onSubmit={saveAppProfile}>
+          <label>
+            <span>Display Name</span>
+            <input
+              value={appProfile?.name ?? ""}
+              onChange={(event) =>
+                setAppProfile((current) =>
+                  current ? { ...current, name: event.target.value } : current,
+                )
+              }
+              disabled={busy || !appProfile}
+            />
+          </label>
+          <label>
+            <span>Nickname</span>
+            <input
+              value={appProfile?.nickname ?? ""}
+              onChange={(event) =>
+                setAppProfile((current) =>
+                  current ? { ...current, nickname: event.target.value } : current,
+                )
+              }
+              disabled={busy || !appProfile}
+            />
+          </label>
+          <div className="option-field">
+            <span>Primary Language</span>
+            <div className="option-grid" aria-label="Primary language">
+              {LANGUAGES.map((language) => (
+                <button
+                  className={
+                    appProfile?.primary_language === language.value
+                      ? "option-button active"
+                      : "option-button"
+                  }
+                  key={language.value}
+                  type="button"
+                  onClick={() =>
+                    setAppProfile((current) =>
+                      current ? { ...current, primary_language: language.value } : current,
+                    )
+                  }
+                  disabled={busy || !appProfile}
+                >
+                  {language.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <button className="primary-button" type="submit" disabled={busy || !appProfile}>
+            Save
+          </button>
+        </form>
+      </section>
       <section className="settings-card">
         <div className="list-title">
           <UserRound size={18} />
