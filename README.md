@@ -1,8 +1,9 @@
 # soulfire
 Interactive Fiction and AI experience app.
 
-A single-user, local, BYOK desktop/mobile app built in Rust + Dioxus. See [`specs/`](specs/) for the
-design (source of truth) and [`AGENTS.md`](AGENTS.md) for how it's built.
+A single-user, local, BYOK desktop/mobile app being ported to Tauri v2 + React with a Rust core.
+See [`docs/OG_PARITY_ROADMAP.md`](docs/OG_PARITY_ROADMAP.md) for the current roadmap,
+[`specs/`](specs/) for the design source of truth, and [`AGENTS.md`](AGENTS.md) for how it's built.
 
 ## License
 

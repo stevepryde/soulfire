@@ -6,8 +6,6 @@ members = [
     "libs/ai-client",
     "libs/sp-core",
     "libs/sp-markdown",
-    "libs/sp-ui",
-    "app",
 ]
 
 [workspace.package]
@@ -25,12 +23,9 @@ lib-soulfire = { path = "libs/lib-soulfire" }
 ai-client = { path = "libs/ai-client" }
 sp-core = { path = "libs/sp-core" }
 sp-markdown = { path = "libs/sp-markdown" }
-sp-ui = { path = "libs/sp-ui" }
 soulfire-core = { path = "libs/soulfire-core" }
 
-# Third-party dependencies shared across the vendored crates and the app.
-# Versions track Soulfire-OG's workspace; `dioxus` targets the native
-# desktop/mobile renderers (no web), per specs/12-platform-packaging.md.
+# Third-party dependencies shared across the Rust core crates.
 anyhow = "1"
 argon2 = "0.5"
 async-trait = "0.1"
@@ -45,7 +40,6 @@ zeroize = "1.8"
 # Android's concatenated tzdata) and an actively-developed Temporal-based API.
 # Lives behind sp-core's SpDateTime wrapper, so the choice stays swappable.
 jiff = "0.2"
-dioxus = { version = "0.7" }
 futures = "0.3"
 indexmap = "2"
 paste = "1"

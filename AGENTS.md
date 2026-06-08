@@ -18,7 +18,7 @@ follow. A change should advance the goals and regress none — above all securit
 |----------|--------------------|-----------|
 | **Spec** (`specs/*.md`, incl. the UI design language) | *What* should it do, and *why*? | Source of truth |
 | **Tests** (unit/integration, manual smoke steps) | Does the code actually do what the spec says? | Validation against the spec |
-| **Code** (the Rust + Dioxus app) | *How* is it done? | Implementation of the spec |
+| **Code** (Rust core + Tauri/React app) | *How* is it done? | Implementation of the spec |
 
 A behavior that is not in the spec does not exist. Code exists to satisfy the spec; a test exists to
 prove a specific spec requirement once the behavior has settled.
@@ -86,6 +86,7 @@ of duplicating. [`specs/README.md`](specs/README.md) is the index and ID registr
   moderation/ratings/public-content framing (`PROD-11`).
 - **No cut corners.** Build the full-featured version, not an MVP. If something is under-specified,
   fix the spec — don't ship a stub.
-- **Native, not web.** Dioxus Desktop/Mobile is the rendering layer; there are no browser APIs.
-  Websockets, storage, keychain, and image I/O use native code, not web shims.
+- **Native/local app.** The approved direction is Tauri v2 + React with Rust owning durable product
+  logic, storage, AI orchestration, prompts, and security-sensitive behavior. The next implementation
+  step is to update the specs for this stack pivot before rebuilding the UI.
 - **Dual licensed** `MIT OR Apache-2.0` (`PROD-16`).

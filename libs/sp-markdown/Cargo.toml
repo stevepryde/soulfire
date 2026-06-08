@@ -6,13 +6,4 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 
-[features]
-default = ["dioxus"]
-dioxus = ["dep:dioxus"]
-
 [dependencies]
-dioxus = { workspace = true, optional = true }
-
-[dev-dependencies]
-dioxus = { workspace = true }
-dioxus-ssr = "0.7"
