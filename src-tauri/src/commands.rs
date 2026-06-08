@@ -6,4 +6,5 @@ pub(crate) mod credentials;
 pub(crate) mod lifecycle;
 pub(crate) mod profile;
 pub(crate) mod settings;
+pub(crate) mod stats;
 pub(crate) mod worlds;

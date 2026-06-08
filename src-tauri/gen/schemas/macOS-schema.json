@@ -207,6 +207,12 @@
           "markdownDescription": "Allows the main Soulfire window to read and update the local singleton app profile, player profile, and app settings."
         },
         {
+          "description": "Allows the main Soulfire window to read and clear local token usage statistics through typed commands.",
+          "type": "string",
+          "const": "allow-stats",
+          "markdownDescription": "Allows the main Soulfire window to read and clear local token usage statistics through typed commands."
+        },
+        {
           "description": "Allows the main Soulfire window to check, set up, unlock, lock, and read status for the encrypted local store.",
           "type": "string",
           "const": "allow-store-lifecycle",

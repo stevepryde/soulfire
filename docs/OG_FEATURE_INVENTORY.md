@@ -54,7 +54,7 @@ Local source areas scanned:
 | Phase 1: spec update pass | Done enough for implementation | Specs describe the Tauri v2 + React stack, local-only removals, cursor pagination, and React/Tauri testing expectations. |
 | Phase 2: feature inventory and diff | Done here | This document is the first concrete OG parity matrix. Keep it current as work lands. |
 | Phase 3: Rust core | Partial | A broad Rust core exists, including encrypted SQLite, models, chat, worlds, builders, images, metrics, pagination, request-level config coverage, representative prompt hash snapshots, and OG-to-local data fixtures. Some trust checks remain. |
-| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, character list/load/delete, chat load/delete/open/send, world/adventure list/load/delete, adventure start/turn/GM-proposal decision commands, and the first event DTO vocabulary. Remaining create/edit/builder/image/prompt/stats commands are still missing. |
+| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, token-stats read/clear commands, character list/load/delete, chat load/delete/open/send, world/adventure list/load/delete, adventure start/turn/GM-proposal decision commands, and the first event DTO vocabulary. Remaining create/edit/builder/image/prompt commands are still missing. |
 | Phase 5: React UI fidelity port | Missing | No React/Vite/Tailwind app exists in this checkout. OG UI remains reference-only. |
 | Phase 6: desktop/mobile readiness | Missing | No Tauri app to launch/package yet. |
 | Phase 7: validation | Partial | Core tests exist; OG prompt/config fixture parity, service-flow parity, Tauri command checks, React visual/smoke tests, and manual smoke docs remain. |
@@ -184,7 +184,7 @@ The current repo has no React app yet. These OG UI surfaces are required unless 
 | Character chat | Missing | Port bubbles, streaming feel, reactions, draft behavior, status labels. |
 | Prompt viewer/editor | Missing | Port locked/editable section treatment; editable system prompts are deferred unless specs change. |
 | Settings/profile | Missing | Port provider key management, theme/accent, player profile, content toggle, local-only storage actions. |
-| Token stats | Missing | Build from local metrics, not OG admin analytics. |
+| Token stats | Partial bridge / missing UI | Tauri exposes aggregate, per-chat, per-adventure, and clear-history token stats commands built from local metrics. React stats screen remains missing. |
 | Modals/toasts/confirmation/error/loading/empty states | Missing | Port visible behaviors and local destructive-action confirmation patterns. |
 | Admin, auth, billing, terms/privacy/landing | Removed | Not part of local app surface. |
 
@@ -223,10 +223,10 @@ Work in this order unless the roadmap changes:
 2. **Phase 3 data proof:** broaden OG-to-local model mapping fixtures beyond the current
    representative Character, Chat, ChatMessage, WorldBlueprint, Adventure, AdventureMessage,
    GmProposal, builder-session, metric, settings, profile, and draft records.
-3. **Phase 4 command breadth:** setup/unlock/settings/profile/credential, character/chat
-   list-load-delete/open-send, world/adventure list-load-delete/start-turn, and GM proposal
-   accept/reject commands exist; next expose remaining create/edit, builder, image, prompt-viewer,
-   and stats commands.
+3. **Phase 4 command breadth:** setup/unlock/settings/profile/credential, stats,
+   character/chat list-load-delete/open-send, world/adventure list-load-delete/start-turn, and GM
+   proposal accept/reject commands exist; next expose remaining create/edit, builder, image, and
+   prompt-viewer commands.
 4. **Phase 5 React shell:** scaffold Vite/React/Tailwind/Bun with OG tokens, custom controls, shell
    navigation, setup/unlock, and the two vertical-slice screens.
 5. **Phase 5 fidelity expansion:** port the remaining editors, builders, image framing, prompt viewer,

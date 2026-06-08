@@ -1,0 +1,9 @@
+[[permission]]
+identifier = "allow-stats"
+description = "Allows the main Soulfire window to read and clear local token usage statistics through typed commands."
+commands.allow = [
+  "get_token_stats",
+  "get_chat_token_stats",
+  "get_adventure_token_stats",
+  "clear_token_stats",
+]
