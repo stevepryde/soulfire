@@ -42,6 +42,22 @@ export type AdventureSummary = {
   updated_at?: string;
 };
 
+export type AdventureMessage = {
+  message_id: string;
+  message_type: string;
+  content: string;
+  created_at?: string;
+};
+
+export type AdventureDetail = {
+  adventure: AdventureSummary & {
+    world_prompt: string;
+    adventure_state: string;
+  };
+  messages: AdventureMessage[];
+  pendingProposals: unknown[];
+};
+
 export type ListPage<T> = {
   items: T[];
   hasMore: boolean;

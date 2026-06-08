@@ -175,14 +175,14 @@ The current repo has a React shell only. These OG UI surfaces are required unles
 | First-run/onboarding | Partial | Setup/unlock scaffold exists. Provider key flow, starter worlds, and first-run content affordances remain. |
 | Unlock/setup screens | Partial | Local-native setup/unlock calls the async Tauri store commands and works in browser preview fallback. Password/security UX still needs full smoke coverage. |
 | Worlds home | Partial data-backed shell | React loads in-progress adventures plus searchable, cursor-paged world blueprints through Tauri commands with loading/error/empty states and read-only blueprint detail panels. Port OG card richness, create, and full editor/play entry behavior, minus public/admin tabs. |
-| World play screen | Missing | Port immersive layout, composer, stream status, current adventure affordances, GM proposal cards. Tauri draft bridge for adventure composers exists; UI remains missing. |
+| World play screen | Missing | Port immersive layout, composer, stream status, current adventure affordances, GM proposal cards. Tauri draft bridge for adventure composers exists; React can inspect active adventure state and next-turn prompt sections from the shell, but play UI remains missing. |
 | World create/edit | Missing | Port tabs, template affordances, manual editor, image selector/transform, builder entry. |
 | World builder | Missing | Port chat + editable prompt/fields pattern. |
 | Character list | Partial data-backed shell | React loads/searches cursor-paged saved characters through Tauri commands with loading/error/empty states and read-only character detail panels. Port OG card art, create, editor, and chat entry behavior. |
 | Character create/edit | Missing | Port Profile/Prompt/Initial Message/Settings tabs, image selector/transform, builder entry. |
 | Character builder | Missing | Port chat + prompt tab pairing. |
 | Character chat | Missing | Port bubbles, streaming feel, reactions, draft behavior, status labels. |
-| Prompt viewer/editor | Partial data-backed shell | Character and adventure prompt-view commands exist. React shows character prompt sections with locked/editable labels and token estimates from the selected-character detail panel. Adventure prompt UI and editable-section save flow remain. |
+| Prompt viewer/editor | Partial data-backed shell | Character and adventure prompt-view commands exist. React shows character and adventure prompt sections with locked/editable labels and token estimates from shell detail panels. Editable-section save flow remains. |
 | Settings/profile | Partial data-backed shell | Store status/schema/runtime, OpenAI credential status/save/delete, accent swatches, adult-content toggle editing, and player profile editing exist. Port local-only storage actions and remaining OG settings affordances. |
 | Token stats | Partial data-backed shell | Tauri exposes aggregate, per-chat, per-adventure, and clear-history token stats commands built from local metrics. React exposes aggregate totals, model/operation breakdowns, and in-app clear-history confirmation; scoped chat/adventure stats remain. |
 | Modals/toasts/confirmation/error/loading/empty states | Partial | Loading/error/empty states exist on shell panels, and token-history clearing uses an in-app confirmation modal. Port remaining OG modal/toast patterns. |

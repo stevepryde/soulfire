@@ -16,6 +16,7 @@ import {
 import { FormEvent, useEffect, useState } from "react";
 
 import {
+  AdventureDetail,
   AdventureSummary,
   AppSettings,
   COLOR_THEMES,
@@ -158,6 +159,8 @@ export function UnlockSurface({
 
 export function WorldsPanel() {
   const [adventures, setAdventures] = useState<AdventureSummary[]>([]);
+  const [selectedAdventure, setSelectedAdventure] = useState<AdventureDetail | null>(null);
+  const [adventurePromptView, setAdventurePromptView] = useState<PromptView | null>(null);
   const [blueprints, setBlueprints] = useState<WorldBlueprintSummary[]>([]);
   const [selectedWorld, setSelectedWorld] = useState<WorldBlueprintDetail | null>(null);
   const [blueprintCursor, setBlueprintCursor] = useState<string | null>(null);
@@ -224,6 +227,36 @@ export function WorldsPanel() {
     }
   }
 
+  async function loadAdventureDetail(adventureId: string) {
+    setDetailLoading(true);
+    setError(null);
+    try {
+      setSelectedAdventure(await command<AdventureDetail>("load_adventure", { adventureId }));
+      setAdventurePromptView(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDetailLoading(false);
+    }
+  }
+
+  async function loadAdventurePromptView(adventureId: string) {
+    setDetailLoading(true);
+    setError(null);
+    try {
+      setAdventurePromptView(
+        await command<PromptView>("get_adventure_prompt_view", {
+          adventureId,
+          draftAction: null,
+        }),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDetailLoading(false);
+    }
+  }
+
   useEffect(() => {
     void refresh();
   }, []);
@@ -274,13 +307,18 @@ export function WorldsPanel() {
           ) : null}
           <div className="item-list">
             {adventures.map((adventure) => (
-              <article className="data-row" key={adventure.adventure_id}>
+              <button
+                className="data-row data-row-button"
+                key={adventure.adventure_id}
+                type="button"
+                onClick={() => loadAdventureDetail(adventure.adventure_id)}
+              >
                 <div>
                   <h4>{adventure.world_title ?? "Untitled adventure"}</h4>
                   <p>{adventure.world_description || labelFromSnake(adventure.story_status)}</p>
                 </div>
                 <span>{labelFromSnake(adventure.ready_status)}</span>
-              </article>
+              </button>
             ))}
           </div>
         </section>
@@ -326,6 +364,28 @@ export function WorldsPanel() {
         </section>
       ) : detailLoading ? (
         <p className="muted">Loading world...</p>
+      ) : null}
+      {selectedAdventure ? (
+        <section className="detail-panel">
+          <div>
+            <h3>{selectedAdventure.adventure.world_title ?? "Untitled adventure"}</h3>
+            <p>
+              {labelFromSnake(selectedAdventure.adventure.story_status)} ·{" "}
+              {selectedAdventure.messages.length} messages ·{" "}
+              {selectedAdventure.pendingProposals.length} pending proposals
+            </p>
+          </div>
+          <pre>{selectedAdventure.adventure.adventure_state || "No adventure state"}</pre>
+          <button
+            className="secondary-button list-footer-button"
+            type="button"
+            onClick={() => loadAdventurePromptView(selectedAdventure.adventure.adventure_id)}
+            disabled={detailLoading}
+          >
+            Prompt View
+          </button>
+          {adventurePromptView ? <PromptViewPanel promptView={adventurePromptView} /> : null}
+        </section>
       ) : null}
     </section>
   );
@@ -492,25 +552,7 @@ export function CharactersPanel() {
           >
             Prompt View
           </button>
-          {promptView ? (
-            <div className="prompt-view">
-              <div className="prompt-total">
-                <strong>{formatNumber(promptView.tokenEstimate)}</strong>
-                <span>estimated tokens</span>
-              </div>
-              {promptView.sections.map((section) => (
-                <article className="prompt-section" key={`${section.source}-${section.header}`}>
-                  <header>
-                    <h4>{section.header}</h4>
-                    <span>{section.locked ? "Locked" : "Editable"}</span>
-                  </header>
-                  <p>{labelFromSnake(section.source)}</p>
-                  <pre>{section.body}</pre>
-                  <small>{formatNumber(section.tokenEstimate)} tokens</small>
-                </article>
-              ))}
-            </div>
-          ) : null}
+          {promptView ? <PromptViewPanel promptView={promptView} /> : null}
         </section>
       ) : detailLoading ? (
         <p className="muted">Loading character...</p>
@@ -525,6 +567,28 @@ function formatNumber(value: number): string {
 
 function totalTokens(totals: TokenTotals): number {
   return totals.inputTokens + totals.outputTokens;
+}
+
+function PromptViewPanel({ promptView }: { promptView: PromptView }) {
+  return (
+    <div className="prompt-view">
+      <div className="prompt-total">
+        <strong>{formatNumber(promptView.tokenEstimate)}</strong>
+        <span>estimated tokens</span>
+      </div>
+      {promptView.sections.map((section) => (
+        <article className="prompt-section" key={`${section.source}-${section.header}`}>
+          <header>
+            <h4>{section.header}</h4>
+            <span>{section.locked ? "Locked" : "Editable"}</span>
+          </header>
+          <p>{labelFromSnake(section.source)}</p>
+          <pre>{section.body}</pre>
+          <small>{formatNumber(section.tokenEstimate)} tokens</small>
+        </article>
+      ))}
+    </div>
+  );
 }
 
 function StatsTable({
