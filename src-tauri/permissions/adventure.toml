@@ -4,4 +4,6 @@ description = "Allows the main Soulfire window to start adventures and submit ad
 commands.allow = [
   "start_adventure",
   "take_adventure_turn",
+  "accept_gm_proposal",
+  "reject_gm_proposal",
 ]

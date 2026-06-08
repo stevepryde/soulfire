@@ -42,6 +42,8 @@ pub fn run() {
             commands::chat::send_chat_message,
             commands::adventure::start_adventure,
             commands::adventure::take_adventure_turn,
+            commands::adventure::accept_gm_proposal,
+            commands::adventure::reject_gm_proposal,
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Soulfire");

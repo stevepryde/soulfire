@@ -54,7 +54,7 @@ Local source areas scanned:
 | Phase 1: spec update pass | Done enough for implementation | Specs describe the Tauri v2 + React stack, local-only removals, cursor pagination, and React/Tauri testing expectations. |
 | Phase 2: feature inventory and diff | Done here | This document is the first concrete OG parity matrix. Keep it current as work lands. |
 | Phase 3: Rust core | Partial | A broad Rust core exists, including encrypted SQLite, models, chat, worlds, builders, images, metrics, pagination, request-level config coverage, representative prompt hash snapshots, and OG-to-local data fixtures. Some trust checks remain. |
-| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, character list/load/delete, chat load/delete/open/send, world/adventure list/load/delete, the first adventure start/turn command/event slice, and the first event DTO vocabulary. Remaining create/edit/builder/image/prompt/stats commands are still missing. |
+| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, character list/load/delete, chat load/delete/open/send, world/adventure list/load/delete, adventure start/turn/GM-proposal decision commands, and the first event DTO vocabulary. Remaining create/edit/builder/image/prompt/stats commands are still missing. |
 | Phase 5: React UI fidelity port | Missing | No React/Vite/Tailwind app exists in this checkout. OG UI remains reference-only. |
 | Phase 6: desktop/mobile readiness | Missing | No Tauri app to launch/package yet. |
 | Phase 7: validation | Partial | Core tests exist; OG prompt/config fixture parity, service-flow parity, Tauri command checks, React visual/smoke tests, and manual smoke docs remain. |
@@ -158,7 +158,7 @@ These are intentionally removed, not parity gaps:
 | Diff/full state updates | `world/engine.rs`, `world/state_patch.rs`, `world/response.rs` | Ported | Diff fallback to full update exists. Needs OG representative fixture tests. |
 | Story memory, recent events, significant events | `world/memory.rs`, `world/prompts.rs` | Ported | Uses `story_summary` with rolling/recent sections. |
 | Compaction | `world/prompts.rs` | Partial | Prompt exists; verify trigger/cadence and persistence against OG before trusting. |
-| `/gm` answer/proposal flow | `world/input.rs`, `world/engine.rs`, `world/response.rs`, `src-tauri/src/commands.rs` | Partial bridge | Classify -> answer/proposal -> accept/reject exists. Tauri turn command emits command echo/completion and proposal-ready events; accept/reject bridge and UI remain missing. |
+| `/gm` answer/proposal flow | `world/input.rs`, `world/engine.rs`, `world/response.rs`, `src-tauri/src/commands/adventure.rs` | Partial bridge | Classify -> answer/proposal -> accept/reject exists. Tauri turn command emits command echo/completion and proposal-ready events; accept/reject commands return the decided proposal, updated adventure, and remaining pending proposals. UI remains missing. |
 | Adventure-state validator | `world/state_patch.rs` | Ported but needs validation audit | Patch validator exists; add fixtures for malformed paths and schema-critical failures. |
 | World cover generation/upload/clear | `image/mod.rs`, `store/repo/images.rs` | Adapted | AI generation plus local image bytes exist. |
 | Cover transform editor | none | Missing | React implementation should port OG cover geometry/interaction behavior. |
@@ -224,9 +224,9 @@ Work in this order unless the roadmap changes:
    representative Character, Chat, ChatMessage, WorldBlueprint, Adventure, AdventureMessage,
    GmProposal, builder-session, metric, settings, profile, and draft records.
 3. **Phase 4 command breadth:** setup/unlock/settings/profile/credential, character/chat
-   list-load-delete/open-send, and world/adventure list-load-delete/start-turn commands exist; next
-   expose remaining create/edit, builder, image, prompt-viewer, stats, and GM proposal accept/reject
-   commands.
+   list-load-delete/open-send, world/adventure list-load-delete/start-turn, and GM proposal
+   accept/reject commands exist; next expose remaining create/edit, builder, image, prompt-viewer,
+   and stats commands.
 4. **Phase 5 React shell:** scaffold Vite/React/Tailwind/Bun with OG tokens, custom controls, shell
    navigation, setup/unlock, and the two vertical-slice screens.
 5. **Phase 5 fidelity expansion:** port the remaining editors, builders, image framing, prompt viewer,

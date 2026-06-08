@@ -1,6 +1,7 @@
 use serde::Serialize;
-use soulfire_core::model::ids::{AdventureId, WorldBlueprintId};
+use soulfire_core::model::ids::{AdventureId, GmProposalId, WorldBlueprintId};
 use soulfire_core::model::world::{Adventure, AdventureMessage, GmProposal};
+use soulfire_core::store::AsyncStore;
 use soulfire_core::world::{TurnOutcome, TurnProgress};
 use tauri::{AppHandle, Runtime, State};
 
@@ -25,6 +26,36 @@ pub struct AdventureTurnResult {
     pub warning: Option<String>,
     pub proposal: Option<GmProposal>,
     pub state_update_failed: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GmProposalDecisionResult {
+    pub adventure: Adventure,
+    pub proposal: GmProposal,
+    pub pending_proposals: Vec<GmProposal>,
+}
+
+async fn gm_proposal_decision_result(
+    store: &AsyncStore,
+    proposal_id: GmProposalId,
+) -> Result<GmProposalDecisionResult, CommandError> {
+    Ok(store
+        .run(move |store| {
+            let proposal = store
+                .gm_proposal(&proposal_id)?
+                .ok_or_else(|| soulfire_core::CoreError::NotFound(proposal_id.to_string()))?;
+            let adventure = store.adventure(&proposal.adventure_id)?.ok_or_else(|| {
+                soulfire_core::CoreError::NotFound(proposal.adventure_id.to_string())
+            })?;
+            let pending_proposals = store.pending_gm_proposals(&proposal.adventure_id)?;
+            Ok(GmProposalDecisionResult {
+                adventure,
+                proposal,
+                pending_proposals,
+            })
+        })
+        .await?)
 }
 
 #[tauri::command]
@@ -257,4 +288,26 @@ pub async fn take_adventure_turn<R: Runtime>(
         proposal,
         state_update_failed,
     })
+}
+
+#[tauri::command]
+pub async fn accept_gm_proposal(
+    proposal_id: GmProposalId,
+    state: State<'_, AppState>,
+) -> Result<GmProposalDecisionResult, CommandError> {
+    let store = state.store_handle()?;
+    let engine = services::world_engine(&store);
+    engine.accept_proposal(&proposal_id).await?;
+    gm_proposal_decision_result(&store, proposal_id).await
+}
+
+#[tauri::command]
+pub async fn reject_gm_proposal(
+    proposal_id: GmProposalId,
+    state: State<'_, AppState>,
+) -> Result<GmProposalDecisionResult, CommandError> {
+    let store = state.store_handle()?;
+    let engine = services::world_engine(&store);
+    engine.reject_proposal(&proposal_id).await?;
+    gm_proposal_decision_result(&store, proposal_id).await
 }
