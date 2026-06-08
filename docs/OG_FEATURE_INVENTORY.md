@@ -54,7 +54,7 @@ Local source areas scanned:
 | Phase 1: spec update pass | Done enough for implementation | Specs describe the Tauri v2 + React stack, local-only removals, cursor pagination, and React/Tauri testing expectations. |
 | Phase 2: feature inventory and diff | Done here | This document is the first concrete OG parity matrix. Keep it current as work lands. |
 | Phase 3: Rust core | Partial | A broad Rust core exists, including encrypted SQLite, models, chat, worlds, builders, images, metrics, pagination, request-level config coverage, representative prompt hash snapshots, and OG-to-local data fixtures. Some trust checks remain. |
-| Phase 4: Tauri bridge | Missing | No Tauri crate, typed command DTO layer, command permissions, or event bridge exists in this checkout. |
+| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold plus typed setup/unlock/profile/settings commands. Feature commands and event streams remain. |
 | Phase 5: React UI fidelity port | Missing | No React/Vite/Tailwind app exists in this checkout. OG UI remains reference-only. |
 | Phase 6: desktop/mobile readiness | Missing | No Tauri app to launch/package yet. |
 | Phase 7: validation | Partial | Core tests exist; OG prompt/config fixture parity, service-flow parity, Tauri command checks, React visual/smoke tests, and manual smoke docs remain. |
@@ -72,7 +72,7 @@ These are intentionally removed, not parity gaps:
 | Admin tooling, analytics dashboard, moderation queues, AI eval admin UI | Removed | No service operator/admin surface. Local token stats replace user-facing usage insight. |
 | Public worlds, publication status, review submission, ratings | Removed | No public/shared content surface. Starter content is bundled locally. |
 | Daily/global request limits and free-plan image limits | Removed | Provider/account limits come from the user's own API key; local app does not impose service quotas. |
-| HTTP routes, websocket server, service-worker/PWA/deployment concerns | Adapted | Rebuild as typed Tauri commands and event channels. |
+| HTTP routes, websocket server, service-worker/PWA/deployment concerns | Adapted | Rebuild as typed Tauri commands and event channels; setup/unlock/profile/settings commands now exist. |
 | Mongo repositories and server migrations | Adapted | Rebuild as encrypted SQLite repositories and local forward migrations. |
 | Gemini provider implementation | Deferred/removed for launch | Specs target OpenAI BYOK first while keeping a provider abstraction. |
 | Landing, terms, privacy, subscribe, manage subscription pages | Removed | Public website/account flows are not app surfaces. |
@@ -125,7 +125,7 @@ These are intentionally removed, not parity gaps:
 
 | OG source | Local source | Status | Notes |
 | --- | --- | --- | --- |
-| Open/load/delete chat routes | `chat/engine.rs`, store chat repos | Ported | Core can open per-character chat and store/delete chats. Tauri commands missing. |
+| Open/load/delete chat routes | `chat/engine.rs`, store chat repos | Ported core / missing bridge | Core can open per-character chat and store/delete chats. Tauri feature commands missing. |
 | Streaming character reply | `chat/engine.rs`, `ai/service.rs` | Ported | Core streams deltas through a callback. Event bridge missing. |
 | Prompt assembly | `prompt/character.rs`, `chat/prompts.rs` | Partial | Request-level tests pin key section ordering and config; representative OG golden payload snapshots remain. |
 | Chat summary/title generation | `chat/engine.rs`, `chat/prompts.rs` | Ported | Summary and title prompts exist. |
@@ -208,7 +208,7 @@ The current repo has no React app yet. These OG UI surfaces are required unless 
 | Cursor pagination tests | Partial | Existing tests cover keyset behavior; verify all database-backed UI lists use the cursor contract. |
 | Prompt/config golden tests | Partial | Request-level config assertions cover chat, summary/state updater, builders, extraction, images, world intro/turn/diff/full update, and `/gm`; `tests/prompt_snapshots.rs` pins representative full rendered prompts with SHA-256 snapshots and anchors. Broaden with request-object snapshots as bridge/UI work exposes more DTO paths. |
 | Data/service-flow fixture tests | Partial | Data fixture covers representative adapted records through serde and store persistence; core flow tests cover representative behavior. Add broader OG-derived success/failure/recovery fixtures. |
-| Tauri command tests | Missing | Blocked until Tauri bridge exists. |
+| Tauri command tests | Partial | `soulfire-app` has state-boundary tests for locked/unlocked store state. Add command invocation tests as feature commands/events land. |
 | React smoke/visual tests | Missing | Blocked until React app exists. |
 | Manual smoke checklist | Missing | Add alongside first vertical slice. |
 
@@ -223,10 +223,10 @@ Work in this order unless the roadmap changes:
 2. **Phase 3 data proof:** broaden OG-to-local model mapping fixtures beyond the current
    representative Character, Chat, ChatMessage, WorldBlueprint, Adventure, AdventureMessage,
    GmProposal, builder-session, metric, settings, profile, and draft records.
-3. **Phase 4 bridge scaffold:** create the Tauri app crate, typed command DTO modules, app state,
-   command permissions, and the event payload vocabulary that replaces OG websocket messages.
-4. **Phase 4 vertical commands:** expose setup/unlock/settings, one character chat flow, and one
-   world adventure flow through commands/events.
+3. **Phase 4 bridge scaffold:** add typed event payload vocabulary and command permissions for
+   upcoming long-running/streaming feature commands.
+4. **Phase 4 vertical commands:** setup/unlock/settings/profile commands exist; next expose one
+   character chat flow and one world adventure flow through commands/events.
 5. **Phase 5 React shell:** scaffold Vite/React/Tailwind/Bun with OG tokens, custom controls, shell
    navigation, setup/unlock, and the two vertical-slice screens.
 6. **Phase 5 fidelity expansion:** port the remaining editors, builders, image framing, prompt viewer,
