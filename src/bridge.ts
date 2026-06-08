@@ -44,11 +44,22 @@ export type CredentialStatus = {
 };
 
 export type AppSettings = {
+  version?: number;
   color_theme: string;
   content_toggles: {
     adult_content: boolean;
   };
 };
+
+export const COLOR_THEMES = [
+  { value: "purple", label: "Purple", color: "#8b5cf6" },
+  { value: "blue", label: "Blue", color: "#3b82f6" },
+  { value: "green", label: "Green", color: "#22c55e" },
+  { value: "red", label: "Red", color: "#ef4444" },
+  { value: "orange", label: "Orange", color: "#f97316" },
+  { value: "teal", label: "Teal", color: "#14b8a6" },
+  { value: "grey", label: "Grey", color: "#6b7280" },
+] as const;
 
 export const DEFAULT_STATUS: StoreStatus = {
   initialized: false,

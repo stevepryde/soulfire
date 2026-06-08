@@ -17,6 +17,7 @@ import { FormEvent, useEffect, useState } from "react";
 import {
   AdventureSummary,
   AppSettings,
+  COLOR_THEMES,
   CharacterSummary,
   CredentialStatus,
   DEFAULT_DATA_DIR,
@@ -367,6 +368,35 @@ export function SettingsPanel({ status }: { status: StoreStatus }) {
     }
   }
 
+  async function saveSettings(nextSettings: AppSettings) {
+    setBusy(true);
+    setError(null);
+    try {
+      const next = await command<AppSettings>("save_app_settings", { settings: nextSettings });
+      setSettings(next);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function setColorTheme(colorTheme: string) {
+    if (!settings || settings.color_theme === colorTheme) return;
+    void saveSettings({ ...settings, color_theme: colorTheme });
+  }
+
+  function setAdultContent(adultContent: boolean) {
+    if (!settings) return;
+    void saveSettings({
+      ...settings,
+      content_toggles: {
+        ...settings.content_toggles,
+        adult_content: adultContent,
+      },
+    });
+  }
+
   useEffect(() => {
     void refresh();
   }, []);
@@ -410,6 +440,36 @@ export function SettingsPanel({ status }: { status: StoreStatus }) {
           <dd>{settings?.content_toggles.adult_content ? "Enabled" : "Disabled"}</dd>
         </div>
       </dl>
+      <section className="settings-card">
+        <div className="list-title">
+          <Sparkles size={18} />
+          <h3>Appearance</h3>
+        </div>
+        <div className="swatch-row" aria-label="Accent color">
+          {COLOR_THEMES.map((theme) => (
+            <button
+              className={settings?.color_theme === theme.value ? "swatch-button active" : "swatch-button"}
+              key={theme.value}
+              type="button"
+              onClick={() => setColorTheme(theme.value)}
+              disabled={busy || !settings}
+              title={theme.label}
+              aria-label={theme.label}
+            >
+              <span style={{ background: theme.color }} />
+            </button>
+          ))}
+        </div>
+        <label className="toggle-row">
+          <input
+            checked={settings?.content_toggles.adult_content ?? false}
+            onChange={(event) => setAdultContent(event.target.checked)}
+            type="checkbox"
+            disabled={busy || !settings}
+          />
+          <span>Adult Content</span>
+        </label>
+      </section>
       <section className="settings-card">
         <div className="list-title">
           <ShieldCheck size={18} />
