@@ -90,6 +90,7 @@ beforeEach(() => {
           name: "Steve",
           nickname: "SP",
           primary_language: "english",
+          default_ai_model: "gpt-5.1",
         };
       case "get_app_settings":
         return {
@@ -138,6 +139,7 @@ describe("App shell smoke", () => {
     expect(await screen.findByRole("heading", { name: "Settings" })).toBeTruthy();
     expect(await screen.findByText("App Profile")).toBeTruthy();
     expect(screen.getByRole("button", { name: "English" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "GPT-5.1" })).toBeTruthy();
     expect(await screen.findByText(/sk-\.\.\.1234/)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Lock Store" })).toBeTruthy();
   });

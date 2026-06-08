@@ -82,6 +82,7 @@ export type AppProfile = {
   name?: string | null;
   nickname?: string | null;
   primary_language: string;
+  default_ai_model?: string | null;
 };
 
 export type PlayerProfile = {
@@ -142,6 +143,13 @@ export const LANGUAGES = [
   { value: "japanese", label: "Japanese" },
   { value: "brazilian portuguese", label: "Brazilian Portuguese" },
   { value: "portuguese", label: "Portuguese" },
+] as const;
+
+export const AI_MODELS = [
+  { value: "gpt-5.1", label: "GPT-5.1" },
+  { value: "gpt-5.4", label: "GPT-5.4" },
+  { value: "gpt-5.4-mini", label: "GPT-5.4 Mini" },
+  { value: "gpt-5.4-nano", label: "GPT-5.4 Nano" },
 ] as const;
 
 export const DEFAULT_STATUS: StoreStatus = {

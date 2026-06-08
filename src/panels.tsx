@@ -20,6 +20,7 @@ import {
   AdventureSummary,
   AppProfile,
   AppSettings,
+  AI_MODELS,
   COLOR_THEMES,
   CharacterDetail,
   CharacterSummary,
@@ -1204,6 +1205,42 @@ export function SettingsPanel({
                   disabled={busy || !appProfile}
                 >
                   {language.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="option-field">
+            <span>Default AI Model</span>
+            <div className="option-grid" aria-label="Default AI model">
+              <button
+                className={!appProfile?.default_ai_model ? "option-button active" : "option-button"}
+                type="button"
+                onClick={() =>
+                  setAppProfile((current) =>
+                    current ? { ...current, default_ai_model: null } : current,
+                  )
+                }
+                disabled={busy || !appProfile}
+              >
+                System Default
+              </button>
+              {AI_MODELS.map((model) => (
+                <button
+                  className={
+                    appProfile?.default_ai_model === model.value
+                      ? "option-button active"
+                      : "option-button"
+                  }
+                  key={model.value}
+                  type="button"
+                  onClick={() =>
+                    setAppProfile((current) =>
+                      current ? { ...current, default_ai_model: model.value } : current,
+                    )
+                  }
+                  disabled={busy || !appProfile}
+                >
+                  {model.label}
                 </button>
               ))}
             </div>
