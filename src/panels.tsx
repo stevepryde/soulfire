@@ -451,6 +451,18 @@ export function WorldsPanel() {
             </p>
           </div>
           <pre>{selectedAdventure.adventure.adventure_state || "No adventure state"}</pre>
+          <div className="message-preview-list">
+            <h4>Messages</h4>
+            {selectedAdventure.messages.length === 0 ? (
+              <p className="muted">No messages yet.</p>
+            ) : null}
+            {selectedAdventure.messages.slice(-8).map((message) => (
+              <article key={message.message_id} className="message-preview">
+                <span>{labelFromSnake(message.message_type)}</span>
+                <p>{message.content}</p>
+              </article>
+            ))}
+          </div>
           <button
             className="secondary-button list-footer-button"
             type="button"

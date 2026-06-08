@@ -23,7 +23,7 @@ Status: current Tauri/React shell checklist. Update this file as new OG parity s
 - The world search field filters blueprints and does not affect active adventures.
 - Load More appears only when the blueprint list has another cursor page.
 - Selecting a blueprint opens a read-only detail panel with its description and world prompt.
-- Selecting an active adventure opens a read-only state panel and can show the next-turn prompt view.
+- Selecting an active adventure opens a read-only state/message panel and can show the next-turn prompt view.
 - Token Stats on an active adventure shows request/input/cached/output totals scoped to that adventure.
 - Delete World and Delete Adventure open in-app confirmation modals; Cancel preserves the item.
 
