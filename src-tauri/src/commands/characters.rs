@@ -30,6 +30,11 @@ pub async fn save_character(
 }
 
 #[tauri::command]
+pub async fn count_characters(state: State<'_, AppState>) -> Result<i64, CommandError> {
+    state.with_store(|store| store.count_characters()).await
+}
+
+#[tauri::command]
 pub async fn list_characters(
     search: Option<String>,
     after_character_id: Option<CharacterId>,

@@ -32,6 +32,11 @@ pub struct AdventureDetail {
 }
 
 #[tauri::command]
+pub async fn count_world_blueprints(state: State<'_, AppState>) -> Result<i64, CommandError> {
+    state.with_store(|store| store.count_blueprints()).await
+}
+
+#[tauri::command]
 pub async fn save_world_blueprint(
     blueprint: WorldBlueprint,
     state: State<'_, AppState>,

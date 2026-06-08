@@ -56,6 +56,8 @@ beforeEach(() => {
           hasMore: false,
           nextCursor: null,
         };
+      case "count_world_blueprints":
+        return 1;
       case "list_characters":
         return {
           items: [
@@ -69,6 +71,8 @@ beforeEach(() => {
           hasMore: false,
           nextCursor: null,
         };
+      case "count_characters":
+        return 1;
       case "get_token_stats":
         return {
           metricCount: 1,
@@ -111,10 +115,12 @@ describe("App shell smoke", () => {
     expect(await screen.findByRole("heading", { name: "Worlds" })).toBeTruthy();
     expect(await screen.findByText("Lantern City")).toBeTruthy();
     expect(screen.getByText("Crystal Vale")).toBeTruthy();
+    expect(screen.getByText("1 total")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Characters" }));
     expect(await screen.findByRole("heading", { name: "Characters" })).toBeTruthy();
     expect(await screen.findByText("Mira Vale")).toBeTruthy();
+    expect(screen.getByText("1 total")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Stats" }));
     expect(await screen.findByRole("heading", { name: "Stats" })).toBeTruthy();

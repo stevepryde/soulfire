@@ -163,6 +163,7 @@ export function WorldsPanel() {
   const [selectedAdventure, setSelectedAdventure] = useState<AdventureDetail | null>(null);
   const [adventurePromptView, setAdventurePromptView] = useState<PromptView | null>(null);
   const [blueprints, setBlueprints] = useState<WorldBlueprintSummary[]>([]);
+  const [blueprintCount, setBlueprintCount] = useState<number | null>(null);
   const [selectedWorld, setSelectedWorld] = useState<WorldBlueprintDetail | null>(null);
   const [blueprintCursor, setBlueprintCursor] = useState<string | null>(null);
   const [blueprintsHaveMore, setBlueprintsHaveMore] = useState(false);
@@ -175,16 +176,18 @@ export function WorldsPanel() {
     setLoading(true);
     setError(null);
     try {
-      const [active, worlds] = await Promise.all([
+      const [active, worlds, totalBlueprints] = await Promise.all([
         command<AdventureSummary[]>("list_in_progress_adventures", { limit: 6 }),
         command<ListPage<WorldBlueprintSummary>>("list_world_blueprints", {
           search: nextSearch || null,
           afterBlueprintId: null,
           limit: 6,
         }),
+        command<number>("count_world_blueprints"),
       ]);
       setAdventures(active);
       setBlueprints(worlds.items);
+      setBlueprintCount(totalBlueprints);
       setBlueprintCursor(worlds.nextCursor);
       setBlueprintsHaveMore(worlds.hasMore);
     } catch (err) {
@@ -327,6 +330,9 @@ export function WorldsPanel() {
           <div className="list-title">
             <BookOpen size={18} />
             <h3>World Blueprints</h3>
+            {blueprintCount !== null ? (
+              <span className="count-chip">{formatNumber(blueprintCount)} total</span>
+            ) : null}
           </div>
           {loading ? <p className="muted">Loading worlds...</p> : null}
           {!loading && blueprints.length === 0 ? (
@@ -396,6 +402,7 @@ export function CharactersPanel() {
   const [characters, setCharacters] = useState<CharacterSummary[]>([]);
   const [selectedCharacter, setSelectedCharacter] = useState<CharacterDetail | null>(null);
   const [promptView, setPromptView] = useState<PromptView | null>(null);
+  const [characterCount, setCharacterCount] = useState<number | null>(null);
   const [characterCursor, setCharacterCursor] = useState<string | null>(null);
   const [charactersHaveMore, setCharactersHaveMore] = useState(false);
   const [search, setSearch] = useState("");
@@ -407,12 +414,16 @@ export function CharactersPanel() {
     setLoading(true);
     setError(null);
     try {
-      const page = await command<ListPage<CharacterSummary>>("list_characters", {
-        search: nextSearch || null,
-        afterCharacterId: null,
-        limit: 12,
-      });
+      const [page, totalCharacters] = await Promise.all([
+        command<ListPage<CharacterSummary>>("list_characters", {
+          search: nextSearch || null,
+          afterCharacterId: null,
+          limit: 12,
+        }),
+        command<number>("count_characters"),
+      ]);
       setCharacters(page.items);
+      setCharacterCount(totalCharacters);
       setCharacterCursor(page.nextCursor);
       setCharactersHaveMore(page.hasMore);
     } catch (err) {
@@ -531,6 +542,9 @@ export function CharactersPanel() {
         <div className="list-title">
           <MessageCircle size={18} />
           <h3>Saved Characters</h3>
+          {characterCount !== null ? (
+            <span className="count-chip">{formatNumber(characterCount)} total</span>
+          ) : null}
         </div>
         {loading ? <p className="muted">Loading characters...</p> : null}
         {!loading && characters.length === 0 ? (

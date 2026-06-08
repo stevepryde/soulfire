@@ -2,10 +2,12 @@
 identifier = "allow-content"
 description = "Allows the main Soulfire window to list, load, and delete local characters, worlds, and adventures through typed commands."
 commands.allow = [
+  "count_characters",
   "save_character",
   "list_characters",
   "load_character",
   "delete_character",
+  "count_world_blueprints",
   "save_world_blueprint",
   "list_world_blueprints",
   "load_world_blueprint",
