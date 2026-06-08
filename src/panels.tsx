@@ -420,19 +420,25 @@ export function WorldsPanel() {
           {!loading && adventures.length === 0 ? (
             <p className="muted">No active adventures yet.</p>
           ) : null}
-          <div className="item-list">
+          <div className="world-card-list">
             {adventures.map((adventure) => (
               <button
-                className="data-row data-row-button"
+                className={`world-card world-card-button${selectedAdventure?.adventure.adventure_id === adventure.adventure_id ? " active" : ""}`}
                 key={adventure.adventure_id}
                 type="button"
                 onClick={() => loadAdventureDetail(adventure.adventure_id)}
               >
-                <div>
-                  <h4>{adventure.world_title ?? "Untitled adventure"}</h4>
-                  <p>{adventure.world_description || labelFromSnake(adventure.story_status)}</p>
-                </div>
-                <span>{labelFromSnake(adventure.ready_status)}</span>
+                <span className="world-card-media adventure-card-media" aria-hidden="true">
+                  <PlayCircle size={34} />
+                </span>
+                <span className="world-card-body">
+                  <strong>{adventure.world_title ?? "Untitled adventure"}</strong>
+                  <span>{adventure.world_description || labelFromSnake(adventure.story_status)}</span>
+                </span>
+                <span className="world-card-footer">
+                  <span>{labelFromSnake(adventure.ready_status)}</span>
+                  <ChevronRight size={17} aria-hidden="true" />
+                </span>
               </button>
             ))}
           </div>
@@ -450,19 +456,25 @@ export function WorldsPanel() {
           {!loading && blueprints.length === 0 ? (
             <p className="muted">Your worlds will appear here.</p>
           ) : null}
-          <div className="item-list">
+          <div className="world-card-list">
             {blueprints.map((world) => (
               <button
-                className="data-row data-row-button"
+                className={`world-card world-card-button${selectedWorld?.blueprint_id === world.blueprint_id ? " active" : ""}`}
                 key={world.blueprint_id}
                 type="button"
                 onClick={() => loadWorldDetail(world.blueprint_id)}
               >
-                <div>
-                  <h4>{world.title}</h4>
-                  <p>{world.description || "No description"}</p>
-                </div>
-                <span>{formatDate(world.updated_at)}</span>
+                <span className="world-card-media blueprint-card-media" aria-hidden="true">
+                  <BookOpen size={34} />
+                </span>
+                <span className="world-card-body">
+                  <strong>{world.title}</strong>
+                  <span>{world.description || "No description"}</span>
+                </span>
+                <span className="world-card-footer">
+                  <time>{formatDate(world.updated_at)}</time>
+                  <ChevronRight size={17} aria-hidden="true" />
+                </span>
               </button>
             ))}
           </div>
