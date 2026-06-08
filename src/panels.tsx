@@ -16,7 +16,7 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 import {
   AdventureDetail,
@@ -45,6 +45,8 @@ import {
   labelFromSnake,
 } from "./bridge";
 import { AppLogo, ConfirmDialog, InlineNotice, ToolbarButton } from "./chrome";
+
+const SEARCH_DEBOUNCE_MS = 250;
 
 export function UnlockSurface({
   status,
@@ -183,6 +185,7 @@ export function WorldsPanel() {
   const [deleting, setDeleting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<"world" | "adventure" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const skipWorldSearchRefresh = useRef(true);
 
   async function refresh(nextSearch = search) {
     setLoading(true);
@@ -327,6 +330,18 @@ export function WorldsPanel() {
   useEffect(() => {
     void refresh();
   }, []);
+
+  useEffect(() => {
+    if (skipWorldSearchRefresh.current) {
+      skipWorldSearchRefresh.current = false;
+      return;
+    }
+    if (worldsTab !== "worlds") return;
+    const handle = window.setTimeout(() => {
+      void refresh(search);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(handle);
+  }, [search, worldsTab]);
 
   return (
     <section className="workspace-band">
@@ -577,6 +592,7 @@ export function CharactersPanel() {
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const skipCharacterSearchRefresh = useRef(true);
 
   async function refresh(nextSearch = search) {
     setLoading(true);
@@ -688,6 +704,17 @@ export function CharactersPanel() {
   useEffect(() => {
     void refresh();
   }, []);
+
+  useEffect(() => {
+    if (skipCharacterSearchRefresh.current) {
+      skipCharacterSearchRefresh.current = false;
+      return;
+    }
+    const handle = window.setTimeout(() => {
+      void refresh(search);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(handle);
+  }, [search]);
 
   return (
     <section className="workspace-band">
