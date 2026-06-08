@@ -139,6 +139,11 @@ Bridge rules:
 
 Use a quarantine-and-rebuild approach, not incremental patching.
 
+Current status: phases 0-2 are complete, phase 3 and phase 4 are partial but usable, and phase 5 now
+has a React/Vite/Tailwind/Bun shell scaffold. Do not restart the quarantine work unless a future audit
+finds concrete drift; continue by keeping [`OG_FEATURE_INVENTORY.md`](OG_FEATURE_INVENTORY.md)
+current and advancing the next incomplete parity slice.
+
 Keep the specs, docs, useful tests, theme assets, and any Rust core/storage code that survives audit.
 Treat the current Dioxus UI, partial async edits, and previous Tauri shell as untrusted until proven
 useful. Delete or replace code freely when it is cheaper than explaining every drift.

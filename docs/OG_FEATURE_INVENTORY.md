@@ -50,13 +50,13 @@ Local source areas scanned:
 
 | Roadmap area | Status | Notes |
 | --- | --- | --- |
-| Phase 0: quarantine current state | Done | Dioxus UI was removed from this repo; the workspace currently contains Rust core crates only. |
+| Phase 0: quarantine current state | Done | Dioxus UI was removed from this repo; the workspace now contains the Rust core crates, Tauri app crate, and React/Vite shell. |
 | Phase 1: spec update pass | Done enough for implementation | Specs describe the Tauri v2 + React stack, local-only removals, cursor pagination, and React/Tauri testing expectations. |
 | Phase 2: feature inventory and diff | Done here | This document is the first concrete OG parity matrix. Keep it current as work lands. |
 | Phase 3: Rust core | Partial | A broad Rust core exists, including encrypted SQLite, models, chat, worlds, builders, images, metrics, pagination, request-level config coverage, representative prompt hash snapshots, and OG-to-local data fixtures. Some trust checks remain. |
 | Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, token-stats read/clear commands, image load/generate/upload/clear commands, character prompt-view/save-section commands, character save/list/load/delete, character/world builder state/send/undo commands, NPC extraction commands, chat load/delete/open/send, world save/list/load/delete, adventure list/load/delete/start/turn/GM-proposal decision commands, and the first event DTO vocabulary. Adventure prompt-view commands remain missing. |
-| Phase 5: React UI fidelity port | Missing | No React/Vite/Tailwind app exists in this checkout. OG UI remains reference-only. |
-| Phase 6: desktop/mobile readiness | Missing | No Tauri app to launch/package yet. |
+| Phase 5: React UI fidelity port | Partial | Vite/React/Tailwind/Bun scaffold exists with local setup/unlock, shell navigation, and first placeholder workspace bands. OG UI screens remain reference-only until the fidelity port lands. |
+| Phase 6: desktop/mobile readiness | Partial | Tauri app crate/config, command bridge, permissions, and frontend build path exist. Launch/package readiness still needs end-to-end smoke and packaging checks. |
 | Phase 7: validation | Partial | Core tests exist; OG prompt/config fixture parity, service-flow parity, Tauri command checks, React visual/smoke tests, and manual smoke docs remain. |
 | Phase 8: public readiness | Deferred | Do after the app is functionally real. |
 
@@ -167,23 +167,23 @@ These are intentionally removed, not parity gaps:
 
 ## UI Fidelity Inventory
 
-The current repo has no React app yet. These OG UI surfaces are required unless marked removed:
+The current repo has a React shell only. These OG UI surfaces are required unless marked removed:
 
 | OG UI area | Status | Notes |
 | --- | --- | --- |
-| App shell, route tree, bottom nav/sidebar, titlebar | Missing | Rebuild in React/Tauri, preserving OG structure and local-only nav removals. |
-| First-run/onboarding | Missing | Needs setup/unlock/provider flow plus starter worlds. |
-| Unlock/setup screens | Missing | New local-native surface; must honor security specs. |
-| Worlds home | Missing | Port OG list/card/search/empty/loading/error behavior, minus public/admin tabs. |
+| App shell, route tree, bottom nav/sidebar, titlebar | Partial | React shell, titlebar, desktop sidebar, and mobile bottom nav exist. Route/detail surfaces remain to be wired. |
+| First-run/onboarding | Partial | Setup/unlock scaffold exists. Provider key flow, starter worlds, and first-run content affordances remain. |
+| Unlock/setup screens | Partial | Local-native setup/unlock calls the async Tauri store commands and works in browser preview fallback. Password/security UX still needs full smoke coverage. |
+| Worlds home | Partial shell | Placeholder workspace band exists. Port OG list/card/search/empty/loading/error behavior, minus public/admin tabs. |
 | World play screen | Missing | Port immersive layout, composer, stream status, current adventure affordances, GM proposal cards. |
 | World create/edit | Missing | Port tabs, template affordances, manual editor, image selector/transform, builder entry. |
 | World builder | Missing | Port chat + editable prompt/fields pattern. |
-| Character list | Missing | Port cards, search, empty/loading/error states. |
+| Character list | Partial shell | Placeholder workspace band exists. Port cards, search, empty/loading/error states. |
 | Character create/edit | Missing | Port Profile/Prompt/Initial Message/Settings tabs, image selector/transform, builder entry. |
 | Character builder | Missing | Port chat + prompt tab pairing. |
 | Character chat | Missing | Port bubbles, streaming feel, reactions, draft behavior, status labels. |
 | Prompt viewer/editor | Missing | Port locked/editable section treatment; editable system prompts are deferred unless specs change. |
-| Settings/profile | Missing | Port provider key management, theme/accent, player profile, content toggle, local-only storage actions. |
+| Settings/profile | Partial shell | Store status/schema/runtime surface exists. Port provider key management, theme/accent, player profile, content toggle, local-only storage actions. |
 | Token stats | Partial bridge / missing UI | Tauri exposes aggregate, per-chat, per-adventure, and clear-history token stats commands built from local metrics. React stats screen remains missing. |
 | Modals/toasts/confirmation/error/loading/empty states | Missing | Port visible behaviors and local destructive-action confirmation patterns. |
 | Admin, auth, billing, terms/privacy/landing | Removed | Not part of local app surface. |
@@ -192,7 +192,7 @@ The current repo has no React app yet. These OG UI surfaces are required unless 
 
 | OG source | Status | Notes |
 | --- | --- | --- |
-| `bins/soulfire-ui/input.css` | Missing in React app | Must be copied into React/Tailwind tokens as the fidelity base, not approximated. |
+| `bins/soulfire-ui/input.css` | Partial in React app | React shell has initial Tailwind/CSS tokens. Continue porting OG CSS tokens and component behavior as the fidelity base. |
 | `bins/soulfire-ui/src/components/{layout,buttons,modal,titlebar}.rs` | Missing in React app | Use as behavior/visual references. |
 | `components/character.rs`, `components/world.rs` image renderers | Missing in React app | Port transform math and display precedence. |
 | `hooks/theme.rs` | Adapted in specs / missing UI | Theme/accent model exists in local settings; React implementation pending. |
@@ -209,7 +209,7 @@ The current repo has no React app yet. These OG UI surfaces are required unless 
 | Prompt/config golden tests | Partial | Request-level config assertions cover chat, summary/state updater, builders, extraction, images, world intro/turn/diff/full update, and `/gm`; `tests/prompt_snapshots.rs` pins representative full rendered prompts with SHA-256 snapshots and anchors. Broaden with request-object snapshots as bridge/UI work exposes more DTO paths. |
 | Data/service-flow fixture tests | Partial | Data fixture covers representative adapted records through serde and store persistence; core flow tests cover representative behavior. Add broader OG-derived success/failure/recovery fixtures. |
 | Tauri command/event tests | Partial | `soulfire-app` has async state-boundary tests plus event serialization tests for React-facing names/fields, and core observed-progress tests for chat/adventure echoes. Command registration and permission schemas are generated by the app crate checks; add direct command invocation tests as feature commands/events land. |
-| React smoke/visual tests | Missing | Blocked until React app exists. |
+| React smoke/visual tests | Missing | React app exists; add browser/visual smoke checks with the first data-backed vertical slice. |
 | Manual smoke checklist | Missing | Add alongside first vertical slice. |
 
 ## Next Implementation Queue
@@ -228,8 +228,8 @@ Work in this order unless the roadmap changes:
    adventure list-load-delete/start-turn, image load-generate-upload-clear, character/world builder,
    NPC extraction, character prompt-view, and GM proposal accept/reject commands exist; next expose
    remaining adventure prompt-viewer commands.
-4. **Phase 5 React shell:** scaffold Vite/React/Tailwind/Bun with OG tokens, custom controls, shell
-   navigation, setup/unlock, and the two vertical-slice screens.
+4. **Phase 5 data-backed shell:** replace the placeholder Worlds, Characters, and Settings bands with
+   Tauri-backed list/status/provider-key surfaces while preserving the custom-control rule.
 5. **Phase 5 fidelity expansion:** port the remaining editors, builders, image framing, prompt viewer,
    settings/profile, stats, and smoke/visual checks.
 

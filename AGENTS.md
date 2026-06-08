@@ -91,6 +91,7 @@ of duplicating. [`specs/README.md`](specs/README.md) is the index and ID registr
 - **No cut corners.** Build the full-featured version, not an MVP. If something is under-specified,
   fix the spec — don't ship a stub.
 - **Native/local app.** The approved direction is Tauri v2 + React with Rust owning durable product
-  logic, storage, AI orchestration, prompts, and security-sensitive behavior. The next implementation
-  step is to update the specs for this stack pivot before rebuilding the UI.
+  logic, storage, AI orchestration, prompts, and security-sensitive behavior. Continue from the
+  current Tauri/React baseline and keep specs, tests, bridge permissions, and the OG parity inventory
+  current as each milestone lands.
 - **Dual licensed** `MIT OR Apache-2.0` (`PROD-16`).
