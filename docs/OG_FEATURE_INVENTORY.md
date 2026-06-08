@@ -54,7 +54,7 @@ Local source areas scanned:
 | Phase 1: spec update pass | Done enough for implementation | Specs describe the Tauri v2 + React stack, local-only removals, cursor pagination, and React/Tauri testing expectations. |
 | Phase 2: feature inventory and diff | Done here | This document is the first concrete OG parity matrix. Keep it current as work lands. |
 | Phase 3: Rust core | Partial | A broad Rust core exists, including encrypted SQLite, models, chat, worlds, builders, images, metrics, pagination, request-level config coverage, representative prompt hash snapshots, and OG-to-local data fixtures. Some trust checks remain. |
-| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, the first character chat command/event slice, and the first event DTO vocabulary. World/adventure feature commands remain. |
+| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, the first character chat command/event slice, the first adventure start/turn command/event slice, and the first event DTO vocabulary. Remaining CRUD/list/builder/image commands are still missing. |
 | Phase 5: React UI fidelity port | Missing | No React/Vite/Tailwind app exists in this checkout. OG UI remains reference-only. |
 | Phase 6: desktop/mobile readiness | Missing | No Tauri app to launch/package yet. |
 | Phase 7: validation | Partial | Core tests exist; OG prompt/config fixture parity, service-flow parity, Tauri command checks, React visual/smoke tests, and manual smoke docs remain. |
@@ -72,7 +72,7 @@ These are intentionally removed, not parity gaps:
 | Admin tooling, analytics dashboard, moderation queues, AI eval admin UI | Removed | No service operator/admin surface. Local token stats replace user-facing usage insight. |
 | Public worlds, publication status, review submission, ratings | Removed | No public/shared content surface. Starter content is bundled locally. |
 | Daily/global request limits and free-plan image limits | Removed | Provider/account limits come from the user's own API key; local app does not impose service quotas. |
-| HTTP routes, websocket server, service-worker/PWA/deployment concerns | Adapted | Rebuild as typed Tauri commands and event channels; async setup/unlock/profile/settings/credential commands now exist. |
+| HTTP routes, websocket server, service-worker/PWA/deployment concerns | Adapted | Rebuild as typed Tauri commands and event channels; async setup/unlock/profile/settings/credential, character chat, and adventure start/turn commands now exist. |
 | Mongo repositories and server migrations | Adapted | Rebuild as encrypted SQLite repositories and local forward migrations. |
 | Gemini provider implementation | Deferred/removed for launch | Specs target OpenAI BYOK first while keeping a provider abstraction. |
 | Landing, terms, privacy, subscribe, manage subscription pages | Removed | Public website/account flows are not app surfaces. |
@@ -150,15 +150,15 @@ These are intentionally removed, not parity gaps:
 
 | OG source | Local source | Status | Notes |
 | --- | --- | --- | --- |
-| World blueprint create/read/update/delete/list/count | `model/world.rs`, `store/repo/worlds.rs` | Ported core / missing bridge | Core model and repository exist; Tauri commands missing. |
+| World blueprint create/read/update/delete/list/count | `model/world.rs`, `store/repo/worlds.rs` | Ported core / partial bridge | Core model and repository exist. Tauri can load a blueprint when starting an adventure; explicit blueprint CRUD/list/count commands remain missing. |
 | World builder service | `world/builder.rs` | Ported | Structured full-field replacement, snapshots, chat history, undo, metrics, and request config parity exist. |
-| Adventure list/load/delete | `store/repo/worlds.rs` | Ported core / missing bridge | Core persistence exists; Tauri commands missing. |
-| Adventure start and intro | `world/engine.rs`, `world/prompts.rs` | Ported | Streams intro narration and persists initial state. Needs fixture parity tests. |
-| Player turn narration | `world/engine.rs`, `world/prompts.rs`, `src-tauri/src/events.rs` | Ported core / partial bridge | Streams narration through a callback; bridge event DTOs exist, but command emission is not wired yet. |
+| Adventure list/load/delete | `store/repo/worlds.rs`, `src-tauri/src/commands.rs` | Ported core / partial bridge | Core persistence exists. Tauri can return a newly started adventure and messages; explicit list/load/delete commands remain missing. |
+| Adventure start and intro | `world/engine.rs`, `world/prompts.rs`, `src-tauri/src/commands.rs` | Partial bridge | Streams intro narration and persists initial state. Tauri `start_adventure` creates from a blueprint and emits intro completion/status events. Needs fixture parity tests. |
+| Player turn narration | `world/engine.rs`, `world/prompts.rs`, `src-tauri/src/events.rs`, `src-tauri/src/commands.rs` | Partial bridge | Tauri `take_adventure_turn` emits user action echo, narration chunks, narration completion, ready-status, task-status, and error events around the core streamed turn. |
 | Diff/full state updates | `world/engine.rs`, `world/state_patch.rs`, `world/response.rs` | Ported | Diff fallback to full update exists. Needs OG representative fixture tests. |
 | Story memory, recent events, significant events | `world/memory.rs`, `world/prompts.rs` | Ported | Uses `story_summary` with rolling/recent sections. |
 | Compaction | `world/prompts.rs` | Partial | Prompt exists; verify trigger/cadence and persistence against OG before trusting. |
-| `/gm` answer/proposal flow | `world/input.rs`, `world/engine.rs`, `world/response.rs` | Ported | Classify -> answer/proposal -> accept/reject exists. UI missing. |
+| `/gm` answer/proposal flow | `world/input.rs`, `world/engine.rs`, `world/response.rs`, `src-tauri/src/commands.rs` | Partial bridge | Classify -> answer/proposal -> accept/reject exists. Tauri turn command emits command echo/completion and proposal-ready events; accept/reject bridge and UI remain missing. |
 | Adventure-state validator | `world/state_patch.rs` | Ported but needs validation audit | Patch validator exists; add fixtures for malformed paths and schema-critical failures. |
 | World cover generation/upload/clear | `image/mod.rs`, `store/repo/images.rs` | Adapted | AI generation plus local image bytes exist. |
 | Cover transform editor | none | Missing | React implementation should port OG cover geometry/interaction behavior. |
@@ -208,7 +208,7 @@ The current repo has no React app yet. These OG UI surfaces are required unless 
 | Cursor pagination tests | Partial | Existing tests cover keyset behavior; verify all database-backed UI lists use the cursor contract. |
 | Prompt/config golden tests | Partial | Request-level config assertions cover chat, summary/state updater, builders, extraction, images, world intro/turn/diff/full update, and `/gm`; `tests/prompt_snapshots.rs` pins representative full rendered prompts with SHA-256 snapshots and anchors. Broaden with request-object snapshots as bridge/UI work exposes more DTO paths. |
 | Data/service-flow fixture tests | Partial | Data fixture covers representative adapted records through serde and store persistence; core flow tests cover representative behavior. Add broader OG-derived success/failure/recovery fixtures. |
-| Tauri command/event tests | Partial | `soulfire-app` has async state-boundary tests plus event serialization tests for React-facing names/fields. Add command invocation tests as feature commands/events land. |
+| Tauri command/event tests | Partial | `soulfire-app` has async state-boundary tests plus event serialization tests for React-facing names/fields, and core observed-progress tests for chat/adventure echoes. Add command invocation tests as feature commands/events land. |
 | React smoke/visual tests | Missing | Blocked until React app exists. |
 | Manual smoke checklist | Missing | Add alongside first vertical slice. |
 
@@ -223,8 +223,9 @@ Work in this order unless the roadmap changes:
 2. **Phase 3 data proof:** broaden OG-to-local model mapping fixtures beyond the current
    representative Character, Chat, ChatMessage, WorldBlueprint, Adventure, AdventureMessage,
    GmProposal, builder-session, metric, settings, profile, and draft records.
-3. **Phase 4 vertical commands:** setup/unlock/settings/profile/credential and character chat
-   commands exist; next expose one world adventure flow through commands/events.
+3. **Phase 4 command breadth:** setup/unlock/settings/profile/credential, character chat, and a
+   first adventure start/turn flow exist; next expose remaining list/load/delete, builder,
+   image, prompt-viewer, stats, and GM proposal accept/reject commands.
 4. **Phase 5 React shell:** scaffold Vite/React/Tailwind/Bun with OG tokens, custom controls, shell
    navigation, setup/unlock, and the two vertical-slice screens.
 5. **Phase 5 fidelity expansion:** port the remaining editors, builders, image framing, prompt viewer,

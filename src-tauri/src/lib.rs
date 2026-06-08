@@ -28,6 +28,8 @@ pub fn run() {
             commands::delete_openai_credential,
             commands::open_character_chat,
             commands::send_chat_message,
+            commands::start_adventure,
+            commands::take_adventure_turn,
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Soulfire");

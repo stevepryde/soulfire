@@ -15,7 +15,7 @@ pub mod response;
 pub mod state_patch;
 
 pub use builder::{WorldBuilderEngine, WorldBuilderResult};
-pub use engine::{TurnOutcome, WorldEngine};
+pub use engine::{TurnOutcome, TurnProgress, WorldEngine};
 pub use input::{TurnInput, parse_turn_input};
 pub use memory::{SignificantEvent, SignificantEventUpdates};
 pub use state_patch::{PatchOp, PatchResult, StatePatch, apply_patches};

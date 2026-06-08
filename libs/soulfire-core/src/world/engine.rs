@@ -73,6 +73,17 @@ pub enum TurnOutcome {
     Warning(String),
 }
 
+/// Progress emitted while an adventure turn is running.
+#[derive(Debug, Clone, PartialEq)]
+pub enum TurnProgress {
+    /// The player's in-world action has been persisted and can be rendered
+    /// immediately (`WORLD-5`).
+    UserAction(AdventureMessage),
+    /// The out-of-band `/gm` request has been persisted and can be rendered
+    /// immediately (`WORLD-15`, `WORLD-16`).
+    GmRequest(AdventureMessage),
+}
+
 /// The adventure turn engine.
 #[derive(Clone)]
 pub struct WorldEngine {
@@ -198,11 +209,32 @@ impl WorldEngine {
         raw_input: &str,
         on_delta: F,
     ) -> CoreResult<TurnOutcome> {
+        self.take_turn_observed(adventure_id, raw_input, on_delta, |_| {})
+            .await
+    }
+
+    /// Take a turn while reporting persisted echo messages to an app shell. The
+    /// default [`WorldEngine::take_turn`] path delegates here with no observer.
+    pub async fn take_turn_observed<F, O>(
+        &self,
+        adventure_id: &AdventureId,
+        raw_input: &str,
+        on_delta: F,
+        mut on_progress: O,
+    ) -> CoreResult<TurnOutcome>
+    where
+        F: FnMut(&str),
+        O: FnMut(TurnProgress),
+    {
         match parse_turn_input(raw_input) {
             TurnInput::Action(action) => {
-                self.run_action_turn(adventure_id, &action, on_delta).await
+                self.run_action_turn_observed(adventure_id, &action, on_delta, &mut on_progress)
+                    .await
             }
-            TurnInput::GmRequest(request) => self.run_gm_request(adventure_id, &request).await,
+            TurnInput::GmRequest(request) => {
+                self.run_gm_request_observed(adventure_id, &request, &mut on_progress)
+                    .await
+            }
             TurnInput::GmEmpty => Ok(TurnOutcome::Warning(
                 "Add a request after /gm, e.g. `/gm skip to morning`.".to_string(),
             )),
@@ -210,19 +242,24 @@ impl WorldEngine {
         }
     }
 
-    /// A normal player action turn (`WORLD-5`, `WORLD-6`).
-    async fn run_action_turn<F: FnMut(&str)>(
+    async fn run_action_turn_observed<F, O>(
         &self,
         adventure_id: &AdventureId,
         action: &str,
         on_delta: F,
-    ) -> CoreResult<TurnOutcome> {
+        on_progress: &mut O,
+    ) -> CoreResult<TurnOutcome>
+    where
+        F: FnMut(&str),
+        O: FnMut(TurnProgress),
+    {
         let mut adventure = self.load(adventure_id)?;
         self.claim_lock(&mut adventure, AdventureReadyStatus::UpdatingNarrative)?;
 
         // (a) Persist the player's action immediately.
         let user_msg = self.new_message(adventure_id, AdventureMessageType::UserAction, action);
         self.store.save_adventure_message(&user_msg)?;
+        on_progress(TurnProgress::UserAction(user_msg.clone()));
 
         // (c) Narration, streamed (WORLD-5).
         let model = adventure
@@ -507,11 +544,15 @@ impl WorldEngine {
 
     // ----- /gm flow (WORLD-16, WORLD-17) -----
 
-    async fn run_gm_request(
+    async fn run_gm_request_observed<O>(
         &self,
         adventure_id: &AdventureId,
         request: &str,
-    ) -> CoreResult<TurnOutcome> {
+        on_progress: &mut O,
+    ) -> CoreResult<TurnOutcome>
+    where
+        O: FnMut(TurnProgress),
+    {
         let mut adventure = self.load(adventure_id)?;
         self.claim_lock(&mut adventure, AdventureReadyStatus::UpdatingCommand)?;
 
@@ -521,6 +562,7 @@ impl WorldEngine {
             request,
         );
         self.store.save_adventure_message(&req_msg)?;
+        on_progress(TurnProgress::GmRequest(req_msg.clone()));
 
         let adult = self.store.app_settings()?.content_toggles.adult_content;
 

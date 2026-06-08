@@ -1,1 +1,1 @@
-{"default":{"identifier":"default","description":"Default capability for the main Soulfire window.","local":true,"windows":["main"],"permissions":["core:default","allow-store-lifecycle","allow-profile-settings","allow-credentials","allow-chat"]}}
+{"default":{"identifier":"default","description":"Default capability for the main Soulfire window.","local":true,"windows":["main"],"permissions":["core:default","allow-store-lifecycle","allow-profile-settings","allow-credentials","allow-chat","allow-adventure"]}}

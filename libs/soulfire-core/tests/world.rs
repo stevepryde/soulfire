@@ -20,7 +20,7 @@ use soulfire_core::ai::types::ProviderError;
 use soulfire_core::clock::{Clock, MockClock};
 use soulfire_core::error::CoreError;
 use soulfire_core::store::Store;
-use soulfire_core::world::{TurnOutcome, WorldBuilderEngine, WorldEngine};
+use soulfire_core::world::{TurnOutcome, TurnProgress, WorldBuilderEngine, WorldEngine};
 
 struct Keys;
 impl ApiKeySource for Keys {
@@ -104,12 +104,25 @@ async fn turn_echoes_action_streams_narration_and_applies_diff() {
     ));
 
     let mut streamed = String::new();
+    let mut progress = Vec::new();
     let outcome = h
         .engine
-        .take_turn(&adv.adventure_id, "wade forward", |d| streamed.push_str(d))
+        .take_turn_observed(
+            &adv.adventure_id,
+            "wade forward",
+            |d| streamed.push_str(d),
+            |event| progress.push(event),
+        )
         .await
         .unwrap();
 
+    assert_eq!(progress.len(), 1);
+    match &progress[0] {
+        TurnProgress::UserAction(message) => {
+            assert_eq!(message.content.as_str(), "wade forward");
+        }
+        other => panic!("expected user action progress, got {other:?}"),
+    }
     assert_eq!(streamed, "You wade forward.");
     match outcome {
         TurnOutcome::Narration {

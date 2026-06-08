@@ -1,0 +1,7 @@
+[[permission]]
+identifier = "allow-adventure"
+description = "Allows the main Soulfire window to start adventures and submit adventure turns through the typed command/event bridge."
+commands.allow = [
+  "start_adventure",
+  "take_adventure_turn",
+]
