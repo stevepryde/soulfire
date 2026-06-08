@@ -54,7 +54,7 @@ Local source areas scanned:
 | Phase 1: spec update pass | Done enough for implementation | Specs describe the Tauri v2 + React stack, local-only removals, cursor pagination, and React/Tauri testing expectations. |
 | Phase 2: feature inventory and diff | Done here | This document is the first concrete OG parity matrix. Keep it current as work lands. |
 | Phase 3: Rust core | Partial | A broad Rust core exists, including encrypted SQLite, models, chat, worlds, builders, images, metrics, pagination, request-level config coverage, representative prompt hash snapshots, and OG-to-local data fixtures. Some trust checks remain. |
-| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, token-stats read/clear commands, image load/generate/upload/clear commands, character save/list/load/delete, chat load/delete/open/send, world save/list/load/delete, adventure list/load/delete/start/turn/GM-proposal decision commands, and the first event DTO vocabulary. Remaining builder/prompt commands are still missing. |
+| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, token-stats read/clear commands, image load/generate/upload/clear commands, character prompt-view/save-section commands, character save/list/load/delete, chat load/delete/open/send, world save/list/load/delete, adventure list/load/delete/start/turn/GM-proposal decision commands, and the first event DTO vocabulary. Remaining builder commands and adventure prompt-view commands are still missing. |
 | Phase 5: React UI fidelity port | Missing | No React/Vite/Tailwind app exists in this checkout. OG UI remains reference-only. |
 | Phase 6: desktop/mobile readiness | Missing | No Tauri app to launch/package yet. |
 | Phase 7: validation | Partial | Core tests exist; OG prompt/config fixture parity, service-flow parity, Tauri command checks, React visual/smoke tests, and manual smoke docs remain. |
@@ -119,7 +119,7 @@ These are intentionally removed, not parity gaps:
 | Structured JSON output and fence rescue | `ai/types.rs`, `ai/fence.rs` | Ported | Schema and lenient parse helpers exist. |
 | Missing-key and transient retry behavior | `ai/service.rs` | Adapted | Local key source guards requests; retry is implemented in the service. |
 | Token usage capture | `model/metric.rs`, store metrics, engines | Adapted | Local stats replace OG billing/rate-limit accounting. |
-| Prompt viewer sections | `prompt/*` | Partial | Core section model exists; React prompt viewer/editor UI is missing. |
+| Prompt viewer sections | `prompt/*`, `src-tauri/src/commands/prompts.rs` | Partial bridge | Core character section model exists. Tauri exposes character prompt view with per-section token estimates and editable authored-prompt save; adventure prompt-view commands and React UI remain missing. |
 
 ## Character Chat
 
@@ -225,8 +225,9 @@ Work in this order unless the roadmap changes:
    GmProposal, builder-session, metric, settings, profile, and draft records.
 3. **Phase 4 command breadth:** setup/unlock/settings/profile/credential, stats,
    character save/list-load-delete, chat load-delete/open-send, world save/list-load-delete,
-   adventure list-load-delete/start-turn, image load-generate-upload-clear, and GM proposal
-   accept/reject commands exist; next expose remaining builder and prompt-viewer commands.
+   adventure list-load-delete/start-turn, image load-generate-upload-clear, character prompt-view,
+   and GM proposal accept/reject commands exist; next expose remaining builder and adventure
+   prompt-viewer commands.
 4. **Phase 5 React shell:** scaffold Vite/React/Tailwind/Bun with OG tokens, custom controls, shell
    navigation, setup/unlock, and the two vertical-slice screens.
 5. **Phase 5 fidelity expansion:** port the remaining editors, builders, image framing, prompt viewer,

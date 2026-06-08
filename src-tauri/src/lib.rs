@@ -34,6 +34,8 @@ pub fn run() {
             commands::images::set_world_cover_bytes,
             commands::images::clear_character_portrait,
             commands::images::clear_world_cover,
+            commands::prompts::get_character_prompt_view,
+            commands::prompts::save_character_prompt_section,
             commands::stats::get_token_stats,
             commands::stats::get_chat_token_stats,
             commands::stats::get_adventure_token_stats,

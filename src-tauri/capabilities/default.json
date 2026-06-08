@@ -9,6 +9,7 @@
     "allow-profile-settings",
     "allow-credentials",
     "allow-images",
+    "allow-prompts",
     "allow-stats",
     "allow-content",
     "allow-chat",
