@@ -3,6 +3,7 @@ use std::sync::Arc;
 use soulfire_core::ai::{AiService, ApiKeySource, OpenAiProvider};
 use soulfire_core::chat::ChatEngine;
 use soulfire_core::clock::SystemClock;
+use soulfire_core::image::ImageEngine;
 use soulfire_core::model::ai_model::AiVendor;
 use soulfire_core::secret::Secret;
 use soulfire_core::store::{AsyncStore, Store};
@@ -30,6 +31,11 @@ pub fn chat_engine(store: &AsyncStore) -> ChatEngine {
 pub fn world_engine(store: &AsyncStore) -> WorldEngine {
     let (store, ai) = ai_runtime(store);
     WorldEngine::new(store, ai, Arc::new(SystemClock))
+}
+
+pub fn image_engine(store: &AsyncStore) -> ImageEngine {
+    let (store, ai) = ai_runtime(store);
+    ImageEngine::new(store, ai, Arc::new(SystemClock))
 }
 
 fn ai_runtime(store: &AsyncStore) -> (Arc<Store>, AiService) {

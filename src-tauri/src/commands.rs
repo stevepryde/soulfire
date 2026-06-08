@@ -3,6 +3,7 @@ pub(crate) mod characters;
 pub(crate) mod chat;
 mod common;
 pub(crate) mod credentials;
+pub(crate) mod images;
 pub(crate) mod lifecycle;
 pub(crate) mod profile;
 pub(crate) mod settings;

@@ -1,0 +1,13 @@
+[[permission]]
+identifier = "allow-images"
+description = "Allows the main Soulfire window to load, generate, upload, and clear local character portraits and world covers."
+commands.allow = [
+  "get_character_portrait_bytes",
+  "get_world_cover_bytes",
+  "generate_character_portrait",
+  "generate_world_cover",
+  "set_character_portrait_bytes",
+  "set_world_cover_bytes",
+  "clear_character_portrait",
+  "clear_world_cover",
+]

@@ -133,6 +133,34 @@ impl ImageEngine {
         Ok(next)
     }
 
+    /// Store a user-uploaded image as a world cover (`IMG-6`).
+    pub fn set_world_cover_bytes(
+        &self,
+        blueprint_id: &WorldBlueprintId,
+        mime: &str,
+        bytes: &[u8],
+    ) -> CoreResult<StoredImageRef> {
+        let mut blueprint = self
+            .store
+            .blueprint(blueprint_id)?
+            .ok_or_else(|| CoreError::NotFound(blueprint_id.to_string()))?;
+        let next = match blueprint.cover {
+            Some(prev) => prev.bumped(),
+            None => StoredImageRef::new(),
+        };
+        self.store.put_image(
+            ImageOwnerKind::World,
+            &blueprint_id.to_string(),
+            mime,
+            next.version,
+            bytes,
+        )?;
+        blueprint.cover = Some(next);
+        blueprint.updated_at = self.clock.now();
+        self.store.save_blueprint(&blueprint)?;
+        Ok(next)
+    }
+
     /// Clear a character's portrait back to its emoji avatar (`IMG-3`, `IMG-8`).
     pub fn clear_character_portrait(&self, character_id: &CharacterId) -> CoreResult<()> {
         let mut character = self

@@ -54,7 +54,7 @@ Local source areas scanned:
 | Phase 1: spec update pass | Done enough for implementation | Specs describe the Tauri v2 + React stack, local-only removals, cursor pagination, and React/Tauri testing expectations. |
 | Phase 2: feature inventory and diff | Done here | This document is the first concrete OG parity matrix. Keep it current as work lands. |
 | Phase 3: Rust core | Partial | A broad Rust core exists, including encrypted SQLite, models, chat, worlds, builders, images, metrics, pagination, request-level config coverage, representative prompt hash snapshots, and OG-to-local data fixtures. Some trust checks remain. |
-| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, token-stats read/clear commands, character save/list/load/delete, chat load/delete/open/send, world save/list/load/delete, adventure list/load/delete/start/turn/GM-proposal decision commands, and the first event DTO vocabulary. Remaining builder/image/prompt commands are still missing. |
+| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, token-stats read/clear commands, image load/generate/upload/clear commands, character save/list/load/delete, chat load/delete/open/send, world save/list/load/delete, adventure list/load/delete/start/turn/GM-proposal decision commands, and the first event DTO vocabulary. Remaining builder/prompt commands are still missing. |
 | Phase 5: React UI fidelity port | Missing | No React/Vite/Tailwind app exists in this checkout. OG UI remains reference-only. |
 | Phase 6: desktop/mobile readiness | Missing | No Tauri app to launch/package yet. |
 | Phase 7: validation | Partial | Core tests exist; OG prompt/config fixture parity, service-flow parity, Tauri command checks, React visual/smoke tests, and manual smoke docs remain. |
@@ -142,9 +142,9 @@ These are intentionally removed, not parity gaps:
 | Character list/search | `store/repo/characters.rs`, `src-tauri/src/commands/characters.rs` | Partial bridge / missing UI | Keyset list exists and Tauri exposes cursor list/load/delete commands. React list UI remains missing. |
 | Character builder service | `character/engine.rs`, `character/prompts.rs` | Ported | Structured full-field replacement, snapshots, history, undo, and request config parity exist. |
 | Character NPC extraction from worlds | `character/engine.rs`, `character/prompts.rs` | Ported | Core extraction path and request config parity exist. |
-| Portrait generation/upload/clear | `image/mod.rs`, `store/repo/images.rs` | Adapted | AI generation plus local image bytes exist; upload is local-only beyond OG. |
+| Portrait generation/upload/clear | `image/mod.rs`, `store/repo/images.rs`, `src-tauri/src/commands/images.rs` | Partial bridge | AI generation plus local image bytes exist; upload is local-only beyond OG. Tauri exposes byte load, generate/regenerate, upload, clear, and image-ready events; React UI remains missing. |
 | Portrait transform editor | none | Missing | React implementation should port OG geometry/interaction behavior. |
-| Finish builder image step | `image/mod.rs` plus builder | Partial | Core image generation exists; combined builder finish command/UI missing. |
+| Finish builder image step | `image/mod.rs` plus builder | Partial | Core image generation and image bridge commands exist; combined builder finish command/UI missing. |
 
 ## Worlds And Adventures
 
@@ -160,7 +160,7 @@ These are intentionally removed, not parity gaps:
 | Compaction | `world/prompts.rs` | Partial | Prompt exists; verify trigger/cadence and persistence against OG before trusting. |
 | `/gm` answer/proposal flow | `world/input.rs`, `world/engine.rs`, `world/response.rs`, `src-tauri/src/commands/adventure.rs` | Partial bridge | Classify -> answer/proposal -> accept/reject exists. Tauri turn command emits command echo/completion and proposal-ready events; accept/reject commands return the decided proposal, updated adventure, and remaining pending proposals. UI remains missing. |
 | Adventure-state validator | `world/state_patch.rs` | Ported but needs validation audit | Patch validator exists; add fixtures for malformed paths and schema-critical failures. |
-| World cover generation/upload/clear | `image/mod.rs`, `store/repo/images.rs` | Adapted | AI generation plus local image bytes exist. |
+| World cover generation/upload/clear | `image/mod.rs`, `store/repo/images.rs`, `src-tauri/src/commands/images.rs` | Partial bridge | AI generation plus local image bytes exist. Tauri exposes byte load, generate/regenerate, upload, clear, and image-ready events; React UI remains missing. |
 | Cover transform editor | none | Missing | React implementation should port OG cover geometry/interaction behavior. |
 | World templates | none yet | Missing | OG `manage/templates.rs` behavior should be ported or explicitly folded into starter content/editor flow. |
 | Public/featured worlds, submit/withdraw review, rating | none | Removed | Obsolete account/community features. |
@@ -225,8 +225,8 @@ Work in this order unless the roadmap changes:
    GmProposal, builder-session, metric, settings, profile, and draft records.
 3. **Phase 4 command breadth:** setup/unlock/settings/profile/credential, stats,
    character save/list-load-delete, chat load-delete/open-send, world save/list-load-delete,
-   adventure list-load-delete/start-turn, and GM proposal accept/reject commands exist; next expose
-   remaining builder, image, and prompt-viewer commands.
+   adventure list-load-delete/start-turn, image load-generate-upload-clear, and GM proposal
+   accept/reject commands exist; next expose remaining builder and prompt-viewer commands.
 4. **Phase 5 React shell:** scaffold Vite/React/Tailwind/Bun with OG tokens, custom controls, shell
    navigation, setup/unlock, and the two vertical-slice screens.
 5. **Phase 5 fidelity expansion:** port the remaining editors, builders, image framing, prompt viewer,

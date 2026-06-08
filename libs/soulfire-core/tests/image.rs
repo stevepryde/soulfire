@@ -187,6 +187,19 @@ async fn world_cover_request_uses_blueprint_prompt_and_default_model() {
         .unwrap()
         .unwrap();
     assert_eq!(stored.version, 1);
+
+    let uploaded = engine
+        .set_world_cover_bytes(&bp.blueprint_id, "image/png", b"PNGDATA-UPLOADED")
+        .unwrap();
+    assert_eq!(uploaded.version, 2);
+    assert_eq!(
+        store
+            .image(ImageOwnerKind::World, &bp.blueprint_id.to_string())
+            .unwrap()
+            .unwrap()
+            .bytes,
+        b"PNGDATA-UPLOADED"
+    );
 }
 
 #[tokio::test]

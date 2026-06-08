@@ -201,6 +201,12 @@
           "markdownDescription": "Allows the main Soulfire window to check, save, and clear the local OpenAI API key without exposing the raw stored secret."
         },
         {
+          "description": "Allows the main Soulfire window to load, generate, upload, and clear local character portraits and world covers.",
+          "type": "string",
+          "const": "allow-images",
+          "markdownDescription": "Allows the main Soulfire window to load, generate, upload, and clear local character portraits and world covers."
+        },
+        {
           "description": "Allows the main Soulfire window to read and update the local singleton app profile, player profile, and app settings.",
           "type": "string",
           "const": "allow-profile-settings",
