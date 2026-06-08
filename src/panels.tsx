@@ -25,6 +25,7 @@ import {
   DEFAULT_DATA_DIR,
   ListPage,
   PlayerProfile,
+  PromptView,
   StoreStatus,
   TokenStatsReport,
   TokenTotals,
@@ -333,6 +334,7 @@ export function WorldsPanel() {
 export function CharactersPanel() {
   const [characters, setCharacters] = useState<CharacterSummary[]>([]);
   const [selectedCharacter, setSelectedCharacter] = useState<CharacterDetail | null>(null);
+  const [promptView, setPromptView] = useState<PromptView | null>(null);
   const [characterCursor, setCharacterCursor] = useState<string | null>(null);
   const [charactersHaveMore, setCharactersHaveMore] = useState(false);
   const [search, setSearch] = useState("");
@@ -384,6 +386,19 @@ export function CharactersPanel() {
     setError(null);
     try {
       setSelectedCharacter(await command<CharacterDetail>("load_character", { characterId }));
+      setPromptView(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDetailLoading(false);
+    }
+  }
+
+  async function loadCharacterPromptView(characterId: string) {
+    setDetailLoading(true);
+    setError(null);
+    try {
+      setPromptView(await command<PromptView>("get_character_prompt_view", { characterId }));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -469,6 +484,33 @@ export function CharactersPanel() {
             <p>{selectedCharacter.subtitle || selectedCharacter.description || "No subtitle"}</p>
           </div>
           <pre>{selectedCharacter.prompt || "No character prompt"}</pre>
+          <button
+            className="secondary-button list-footer-button"
+            type="button"
+            onClick={() => loadCharacterPromptView(selectedCharacter.character_id)}
+            disabled={detailLoading}
+          >
+            Prompt View
+          </button>
+          {promptView ? (
+            <div className="prompt-view">
+              <div className="prompt-total">
+                <strong>{formatNumber(promptView.tokenEstimate)}</strong>
+                <span>estimated tokens</span>
+              </div>
+              {promptView.sections.map((section) => (
+                <article className="prompt-section" key={`${section.source}-${section.header}`}>
+                  <header>
+                    <h4>{section.header}</h4>
+                    <span>{section.locked ? "Locked" : "Editable"}</span>
+                  </header>
+                  <p>{labelFromSnake(section.source)}</p>
+                  <pre>{section.body}</pre>
+                  <small>{formatNumber(section.tokenEstimate)} tokens</small>
+                </article>
+              ))}
+            </div>
+          ) : null}
         </section>
       ) : detailLoading ? (
         <p className="muted">Loading character...</p>

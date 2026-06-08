@@ -84,6 +84,20 @@ export type TokenStatsReport = {
   byMonth: Array<{ period: string; totals: TokenTotals }>;
 };
 
+export type PromptSection = {
+  header: string;
+  body: string;
+  locked: boolean;
+  source: string;
+  tokenEstimate: number;
+};
+
+export type PromptView = {
+  sections: PromptSection[];
+  fullPrompt: string;
+  tokenEstimate: number;
+};
+
 export const COLOR_THEMES = [
   { value: "purple", label: "Purple", color: "#8b5cf6" },
   { value: "blue", label: "Blue", color: "#3b82f6" },

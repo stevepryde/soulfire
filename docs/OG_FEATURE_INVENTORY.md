@@ -182,7 +182,7 @@ The current repo has a React shell only. These OG UI surfaces are required unles
 | Character create/edit | Missing | Port Profile/Prompt/Initial Message/Settings tabs, image selector/transform, builder entry. |
 | Character builder | Missing | Port chat + prompt tab pairing. |
 | Character chat | Missing | Port bubbles, streaming feel, reactions, draft behavior, status labels. |
-| Prompt viewer/editor | Partial bridge / missing UI | Character and adventure prompt-view commands exist. Port locked/editable section treatment; editable system prompts are deferred unless specs change. |
+| Prompt viewer/editor | Partial data-backed shell | Character and adventure prompt-view commands exist. React shows character prompt sections with locked/editable labels and token estimates from the selected-character detail panel. Adventure prompt UI and editable-section save flow remain. |
 | Settings/profile | Partial data-backed shell | Store status/schema/runtime, OpenAI credential status/save/delete, accent swatches, adult-content toggle editing, and player profile editing exist. Port local-only storage actions and remaining OG settings affordances. |
 | Token stats | Partial data-backed shell | Tauri exposes aggregate, per-chat, per-adventure, and clear-history token stats commands built from local metrics. React exposes aggregate totals, model/operation breakdowns, and in-app clear-history confirmation; scoped chat/adventure stats remain. |
 | Modals/toasts/confirmation/error/loading/empty states | Partial | Loading/error/empty states exist on shell panels, and token-history clearing uses an in-app confirmation modal. Port remaining OG modal/toast patterns. |
