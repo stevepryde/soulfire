@@ -5,11 +5,13 @@
 use std::str::FromStr;
 use std::sync::Arc;
 
-use lib_soulfire::ai_model::AiVendor;
-use lib_soulfire::character::{Character, InitialMessage};
-use lib_soulfire::chat::AI_REACTOR;
-use lib_soulfire::strings::{CharacterContext, CharacterName, CharacterPrompt, InitialMessageText};
-use sp_core::secret::Secret;
+use soulfire_core::model::ai_model::AiVendor;
+use soulfire_core::model::character::{Character, InitialMessage};
+use soulfire_core::model::chat::AI_REACTOR;
+use soulfire_core::model::strings::{
+    CharacterContext, CharacterName, CharacterPrompt, InitialMessageText,
+};
+use soulfire_core::secret::Secret;
 
 use soulfire_core::ai::fake::{RecordingProvider, Scripted};
 use soulfire_core::ai::provider::ApiKeySource;
@@ -177,7 +179,9 @@ async fn summary_regenerates_and_failure_preserves_prior() {
     let c = character(InitialMessage::Message(InitialMessageText::coerce("Hi.")));
     h.store.save_character(&c).unwrap();
     let mut chat = h.engine.open_chat(&c.character_id).await.unwrap();
-    chat.chat_summary = Some(lib_soulfire::strings::StorySummary::coerce("Old summary."));
+    chat.chat_summary = Some(soulfire_core::model::strings::StorySummary::coerce(
+        "Old summary.",
+    ));
     chat.messages_since_summary = 20;
     h.store.save_chat(&chat).unwrap();
 

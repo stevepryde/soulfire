@@ -37,9 +37,9 @@ impl From<jiff::Error> for DateTimeError {
     serde_with::SerializeDisplay,
     serde_with::DeserializeFromStr,
 )]
-pub struct SpDateTime(Timestamp);
+pub struct SfDateTime(Timestamp);
 
-impl SpDateTime {
+impl SfDateTime {
     pub fn now() -> Self {
         // Truncate to millisecond resolution so the in-memory value matches the
         // serialized contract form (`…000Z`, millis); otherwise a value from
@@ -105,12 +105,12 @@ impl SpDateTime {
 
     /// Whole seconds elapsed from `earlier` to `self` (negative if `self` is
     /// before `earlier`). Useful for timeout/stale-lock checks.
-    pub fn seconds_since(&self, earlier: SpDateTime) -> i64 {
+    pub fn seconds_since(&self, earlier: SfDateTime) -> i64 {
         self.timestamp() - earlier.timestamp()
     }
 
     /// Whole milliseconds elapsed from `earlier` to `self`.
-    pub fn millis_since(&self, earlier: SpDateTime) -> i64 {
+    pub fn millis_since(&self, earlier: SfDateTime) -> i64 {
         self.0.as_millisecond() - earlier.0.as_millisecond()
     }
 
@@ -126,19 +126,19 @@ impl SpDateTime {
         Ok(Self(zoned.timestamp()))
     }
 
-    /// Convert to [`SpDate`] (date only, in the system local timezone).
-    pub fn to_date(&self) -> SpDate {
-        SpDate(self.0.to_zoned(TimeZone::system()).date())
+    /// Convert to [`SfDate`] (date only, in the system local timezone).
+    pub fn to_date(&self) -> SfDate {
+        SfDate(self.0.to_zoned(TimeZone::system()).date())
     }
 }
 
-impl Default for SpDateTime {
+impl Default for SfDateTime {
     fn default() -> Self {
         Self::now()
     }
 }
 
-impl Display for SpDateTime {
+impl Display for SfDateTime {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         // Deterministic RFC 3339 with always-3 fractional digits and `Z`, so the
         // serialized form is a stable contract value regardless of subsecond
@@ -160,7 +160,7 @@ impl Display for SpDateTime {
     }
 }
 
-impl FromStr for SpDateTime {
+impl FromStr for SfDateTime {
     type Err = DateTimeError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -168,7 +168,7 @@ impl FromStr for SpDateTime {
     }
 }
 
-impl Add<SignedDuration> for SpDateTime {
+impl Add<SignedDuration> for SfDateTime {
     type Output = Self;
 
     fn add(self, rhs: SignedDuration) -> Self::Output {
@@ -176,13 +176,13 @@ impl Add<SignedDuration> for SpDateTime {
     }
 }
 
-impl AddAssign<SignedDuration> for SpDateTime {
+impl AddAssign<SignedDuration> for SfDateTime {
     fn add_assign(&mut self, rhs: SignedDuration) {
         self.0 = self.0 + rhs;
     }
 }
 
-impl Sub<SignedDuration> for SpDateTime {
+impl Sub<SignedDuration> for SfDateTime {
     type Output = Self;
 
     fn sub(self, rhs: SignedDuration) -> Self::Output {
@@ -190,13 +190,13 @@ impl Sub<SignedDuration> for SpDateTime {
     }
 }
 
-impl SubAssign<SignedDuration> for SpDateTime {
+impl SubAssign<SignedDuration> for SfDateTime {
     fn sub_assign(&mut self, rhs: SignedDuration) {
         self.0 = self.0 - rhs;
     }
 }
 
-// ===== SpDate - Date without time =====
+// ===== SfDate - Date without time =====
 
 /// A calendar date with no time-of-day, backed by [`jiff::civil::Date`].
 #[derive(
@@ -211,9 +211,9 @@ impl SubAssign<SignedDuration> for SpDateTime {
     serde_with::SerializeDisplay,
     serde_with::DeserializeFromStr,
 )]
-pub struct SpDate(civil::Date);
+pub struct SfDate(civil::Date);
 
-impl SpDate {
+impl SfDate {
     /// Get today's date in the system local timezone.
     pub fn today() -> Self {
         Self(Timestamp::now().to_zoned(TimeZone::system()).date())
@@ -224,12 +224,12 @@ impl SpDate {
         Self(civil::Date::new(year as i16, month as i8, day as i8).expect("valid calendar date"))
     }
 
-    /// Convert to [`SpDateTime`] at midnight in the system local timezone.
-    pub fn to_datetime(&self) -> SpDateTime {
+    /// Convert to [`SfDateTime`] at midnight in the system local timezone.
+    pub fn to_datetime(&self) -> SfDateTime {
         match self.0.to_zoned(TimeZone::system()) {
-            Ok(zoned) => SpDateTime(zoned.timestamp()),
+            Ok(zoned) => SfDateTime(zoned.timestamp()),
             // Fallback: treat as midnight UTC.
-            Err(_) => SpDateTime(
+            Err(_) => SfDateTime(
                 self.0
                     .to_zoned(TimeZone::UTC)
                     .expect("midnight UTC is always valid")
@@ -259,7 +259,7 @@ impl SpDate {
     }
 
     /// Calculate days between this date and another.
-    pub fn days_until(&self, other: SpDate) -> i64 {
+    pub fn days_until(&self, other: SfDate) -> i64 {
         self.0
             .until(other.0)
             .map(|span| span.get_days() as i64)
@@ -282,13 +282,13 @@ impl SpDate {
     }
 }
 
-impl Default for SpDate {
+impl Default for SfDate {
     fn default() -> Self {
         Self::today()
     }
 }
 
-impl Display for SpDate {
+impl Display for SfDate {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -300,7 +300,7 @@ impl Display for SpDate {
     }
 }
 
-impl FromStr for SpDate {
+impl FromStr for SfDate {
     type Err = DateTimeError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -308,14 +308,14 @@ impl FromStr for SpDate {
     }
 }
 
-impl From<SpDateTime> for SpDate {
-    fn from(dt: SpDateTime) -> Self {
+impl From<SfDateTime> for SfDate {
+    fn from(dt: SfDateTime) -> Self {
         dt.to_date()
     }
 }
 
-impl From<SpDate> for SpDateTime {
-    fn from(date: SpDate) -> Self {
+impl From<SfDate> for SfDateTime {
+    fn from(date: SfDate) -> Self {
         date.to_datetime()
     }
 }
@@ -326,14 +326,14 @@ mod tests {
 
     #[test]
     fn test_default() {
-        let default_datetime = SpDateTime::default();
-        assert_eq!(default_datetime.timestamp(), SpDateTime::now().timestamp());
+        let default_datetime = SfDateTime::default();
+        assert_eq!(default_datetime.timestamp(), SfDateTime::now().timestamp());
     }
 
     #[test]
     fn test_from_str() {
         let datetime_str = "2022-01-01T00:00:00.000Z";
-        let datetime = SpDateTime::from_str(datetime_str).unwrap();
+        let datetime = SfDateTime::from_str(datetime_str).unwrap();
         assert_eq!(datetime.to_string(), datetime_str);
     }
 
@@ -341,13 +341,13 @@ mod tests {
     fn test_from_str_without_millis_roundtrips_to_contract_format() {
         // RFC 3339 input without fractional seconds still serializes back with
         // the fixed `.000Z` contract form.
-        let datetime = SpDateTime::from_str("2022-01-01T00:00:00Z").unwrap();
+        let datetime = SfDateTime::from_str("2022-01-01T00:00:00Z").unwrap();
         assert_eq!(datetime.to_string(), "2022-01-01T00:00:00.000Z");
     }
 
     #[test]
     fn test_add_duration() {
-        let datetime = SpDateTime::from_str("2022-01-01T00:00:00Z").unwrap();
+        let datetime = SfDateTime::from_str("2022-01-01T00:00:00Z").unwrap();
         let duration = SignedDuration::from_hours(24);
         let new_datetime = datetime + duration;
         assert_eq!(
@@ -358,11 +358,11 @@ mod tests {
 
     #[test]
     fn test_add_assign_duration() {
-        let mut datetime = SpDateTime::from_str("2022-01-01T00:00:00Z").unwrap();
+        let mut datetime = SfDateTime::from_str("2022-01-01T00:00:00Z").unwrap();
         datetime += SignedDuration::from_hours(24);
         assert_eq!(
             datetime.timestamp(),
-            SpDateTime::from_str("2022-01-02T00:00:00Z")
+            SfDateTime::from_str("2022-01-02T00:00:00Z")
                 .unwrap()
                 .timestamp()
         );
@@ -370,7 +370,7 @@ mod tests {
 
     #[test]
     fn test_sub_duration() {
-        let datetime = SpDateTime::from_str("2022-01-02T00:00:00Z").unwrap();
+        let datetime = SfDateTime::from_str("2022-01-02T00:00:00Z").unwrap();
         let duration = SignedDuration::from_hours(24);
         let new_datetime = datetime - duration;
         assert_eq!(
@@ -381,11 +381,11 @@ mod tests {
 
     #[test]
     fn test_sub_assign_duration() {
-        let mut datetime = SpDateTime::from_str("2022-01-02T00:00:00Z").unwrap();
+        let mut datetime = SfDateTime::from_str("2022-01-02T00:00:00Z").unwrap();
         datetime -= SignedDuration::from_hours(24);
         assert_eq!(
             datetime.timestamp(),
-            SpDateTime::from_str("2022-01-01T00:00:00Z")
+            SfDateTime::from_str("2022-01-01T00:00:00Z")
                 .unwrap()
                 .timestamp()
         );
@@ -394,67 +394,67 @@ mod tests {
     #[test]
     fn now_survives_serialize_parse_round_trip() {
         // now() is millisecond-resolution so it equals its persisted form.
-        let t = SpDateTime::now();
+        let t = SfDateTime::now();
         let json = serde_json::to_string(&t).unwrap();
-        let back: SpDateTime = serde_json::from_str(&json).unwrap();
+        let back: SfDateTime = serde_json::from_str(&json).unwrap();
         assert_eq!(t, back);
     }
 
     #[test]
     fn test_serde_roundtrip_is_contract_format() {
-        let datetime = SpDateTime::from_str("2022-01-01T00:00:00.000Z").unwrap();
+        let datetime = SfDateTime::from_str("2022-01-01T00:00:00.000Z").unwrap();
         let json = serde_json::to_string(&datetime).unwrap();
         assert_eq!(json, "\"2022-01-01T00:00:00.000Z\"");
-        let parsed: SpDateTime = serde_json::from_str(&json).unwrap();
+        let parsed: SfDateTime = serde_json::from_str(&json).unwrap();
         assert_eq!(parsed, datetime);
     }
 
-    // SpDate tests
+    // SfDate tests
     #[test]
-    fn test_spdate_from_str() {
-        let date = SpDate::from_str("2022-01-15").unwrap();
+    fn test_sfdate_from_str() {
+        let date = SfDate::from_str("2022-01-15").unwrap();
         assert_eq!(date.to_string(), "2022-01-15");
     }
 
     #[test]
-    fn test_spdate_add_days() {
-        let date = SpDate::from_ymd(2022, 1, 15);
+    fn test_sfdate_add_days() {
+        let date = SfDate::from_ymd(2022, 1, 15);
         let new_date = date.add_days(10);
         assert_eq!(new_date.to_string(), "2022-01-25");
     }
 
     #[test]
-    fn test_spdate_sub_days() {
-        let date = SpDate::from_ymd(2022, 1, 15);
+    fn test_sfdate_sub_days() {
+        let date = SfDate::from_ymd(2022, 1, 15);
         let new_date = date.sub_days(5);
         assert_eq!(new_date.to_string(), "2022-01-10");
     }
 
     #[test]
-    fn test_spdate_days_until() {
-        let date1 = SpDate::from_ymd(2022, 1, 1);
-        let date2 = SpDate::from_ymd(2022, 1, 11);
+    fn test_sfdate_days_until() {
+        let date1 = SfDate::from_ymd(2022, 1, 1);
+        let date2 = SfDate::from_ymd(2022, 1, 11);
         assert_eq!(date1.days_until(date2), 10);
     }
 
     #[test]
-    fn test_spdate_to_datetime() {
-        let date = SpDate::from_ymd(2022, 1, 15);
+    fn test_sfdate_to_datetime() {
+        let date = SfDate::from_ymd(2022, 1, 15);
         let datetime = date.to_datetime();
         assert_eq!(datetime.format_local("%Y-%m-%d"), "2022-01-15");
     }
 
     #[test]
     fn test_datetime_to_date() {
-        let datetime = SpDateTime::parse_date("2022-01-15").unwrap();
+        let datetime = SfDateTime::parse_date("2022-01-15").unwrap();
         let date = datetime.to_date();
         assert_eq!(date.to_string(), "2022-01-15");
     }
 
     #[test]
-    fn test_spdate_ordering() {
-        let date1 = SpDate::from_ymd(2022, 1, 1);
-        let date2 = SpDate::from_ymd(2022, 1, 15);
+    fn test_sfdate_ordering() {
+        let date1 = SfDate::from_ymd(2022, 1, 1);
+        let date2 = SfDate::from_ymd(2022, 1, 15);
         assert!(date1 < date2);
         assert!(date2 > date1);
     }

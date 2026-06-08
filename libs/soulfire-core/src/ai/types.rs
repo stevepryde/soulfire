@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use lib_soulfire::ai_model::AiModel;
+use crate::model::ai_model::AiModel;
 
 /// A role-tagged message role (`AI-1`). Roles are developer/system, user, and
 /// model/assistant.

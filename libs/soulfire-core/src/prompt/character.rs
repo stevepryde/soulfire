@@ -1,7 +1,7 @@
 //! Character-chat prompt assembly (`PROMPT-3`, `PROMPT-4`, `PROMPT-6`).
 
-use lib_soulfire::chat::ALLOWED_EMOJIS;
-use lib_soulfire::settings::ContentToggles;
+use crate::model::chat::ALLOWED_EMOJIS;
+use crate::model::settings::ContentToggles;
 
 use super::section::{AssembledPrompt, PromptSection, SectionSource};
 use super::text;

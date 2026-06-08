@@ -4,9 +4,9 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::ai_model::AiModel;
-use crate::images::StoredImageRef;
-use crate::strings::{DisplayName, PlayerAttributes, PlayerName, PromptExtension};
+use super::ai_model::AiModel;
+use super::images::StoredImageRef;
+use super::strings::{DisplayName, PlayerAttributes, PlayerName, PromptExtension};
 
 /// The user's preferred language (`DATA-16`). Ported from Soulfire-OG.
 #[derive(

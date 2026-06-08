@@ -5,10 +5,12 @@
 use std::str::FromStr;
 use std::sync::Arc;
 
-use lib_soulfire::ai_model::AiVendor;
-use lib_soulfire::strings::{WorldPrompt, WorldTitle};
-use lib_soulfire::world::{AdventureMessageType, GmProposalStatus, StoryStatus, WorldBlueprint};
-use sp_core::secret::Secret;
+use soulfire_core::model::ai_model::AiVendor;
+use soulfire_core::model::strings::{WorldPrompt, WorldTitle};
+use soulfire_core::model::world::{
+    AdventureMessageType, GmProposalStatus, StoryStatus, WorldBlueprint,
+};
+use soulfire_core::secret::Secret;
 
 use soulfire_core::ai::fake::{RecordingProvider, Scripted};
 use soulfire_core::ai::provider::ApiKeySource;
@@ -57,7 +59,7 @@ fn blueprint() -> WorldBlueprint {
         .build()
 }
 
-async fn start(h: &H) -> lib_soulfire::world::Adventure {
+async fn start(h: &H) -> soulfire_core::model::world::Adventure {
     h.provider.push(Scripted::text(
         "You awaken in the dark depths of Verath.",
         80,
@@ -137,7 +139,7 @@ async fn turn_echoes_action_streams_narration_and_applies_diff() {
     );
     assert_eq!(
         reloaded.ready_status,
-        lib_soulfire::world::AdventureReadyStatus::Ready
+        soulfire_core::model::world::AdventureReadyStatus::Ready
     );
     assert_eq!(reloaded.diff_action_count, 1);
 }
@@ -179,7 +181,7 @@ async fn state_update_failure_keeps_narration_and_state_unchanged() {
     assert_eq!(reloaded.adventure_state.to_string(), state_before);
     assert_eq!(
         reloaded.ready_status,
-        lib_soulfire::world::AdventureReadyStatus::Ready
+        soulfire_core::model::world::AdventureReadyStatus::Ready
     );
     let msgs = h.store.adventure_messages(&adv.adventure_id).unwrap();
     assert_eq!(msgs.last().unwrap().content.as_str(), "Something happens.");
@@ -191,7 +193,7 @@ async fn lock_refuses_concurrent_turn_then_self_heals() {
     let h = harness();
     let mut adv = start(&h).await;
     // Manually mark a turn in progress.
-    adv.ready_status = lib_soulfire::world::AdventureReadyStatus::UpdatingNarrative;
+    adv.ready_status = soulfire_core::model::world::AdventureReadyStatus::UpdatingNarrative;
     adv.ready_status_updated_at = Some(h.clock.now());
     h.store.save_adventure(&adv).unwrap();
 

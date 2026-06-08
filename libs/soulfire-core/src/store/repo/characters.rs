@@ -1,8 +1,8 @@
 //! Character persistence, the character-builder session, and character cascade
 //! deletes (`DATA-1`, `DATA-14`, `DATA-22`).
 
-use lib_soulfire::character::{Character, CharacterBuilderSession};
-use lib_soulfire::ids::{CharacterId, ChatId};
+use crate::model::character::{Character, CharacterBuilderSession};
+use crate::model::ids::{CharacterId, ChatId};
 use rusqlite::{OptionalExtension, params};
 
 use crate::error::CoreResult;

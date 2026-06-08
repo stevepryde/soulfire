@@ -4,11 +4,11 @@ use std::sync::Arc;
 
 use serde::Deserialize;
 
-use lib_soulfire::ai_model::AiModel;
-use lib_soulfire::ids::{WorldBlueprintId, WorldBuilderMessageId, WorldBuilderSnapshotId};
-use lib_soulfire::metric::{MetricLabel, UsageMetric};
-use lib_soulfire::strings::{WorldDescription, WorldPrompt, WorldTitle};
-use lib_soulfire::world::{
+use crate::model::ai_model::AiModel;
+use crate::model::ids::{WorldBlueprintId, WorldBuilderMessageId, WorldBuilderSnapshotId};
+use crate::model::metric::{MetricLabel, UsageMetric};
+use crate::model::strings::{WorldDescription, WorldPrompt, WorldTitle};
+use crate::model::world::{
     WorldBlueprint, WorldBuilderMessage, WorldBuilderRole, WorldBuilderSession,
     WorldBuilderSnapshot,
 };

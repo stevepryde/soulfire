@@ -3,10 +3,10 @@
 
 use serde::{Deserialize, Serialize};
 
-use sp_core::datetime::SpDateTime;
+use crate::datetime::SfDateTime;
 
-use crate::ids::{AdventureId, ChatId, DraftId};
-use crate::strings::DraftContent;
+use super::ids::{AdventureId, ChatId, DraftId};
+use super::strings::DraftContent;
 
 /// What a draft belongs to (`DATA-26`). At most one draft exists per scope.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -37,10 +37,10 @@ pub struct Draft {
     pub version: u32,
     #[builder(default)]
     #[serde(default)]
-    pub created_at: SpDateTime,
+    pub created_at: SfDateTime,
     #[builder(default)]
     #[serde(default)]
-    pub updated_at: SpDateTime,
+    pub updated_at: SfDateTime,
     #[serde(flatten)]
     pub scope: DraftScope,
     #[builder(default)]

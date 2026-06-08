@@ -4,9 +4,9 @@
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use sp_core::datetime::SpDateTime;
+use crate::datetime::SfDateTime;
 
-use crate::ids::WorldBlueprintId;
+use super::ids::WorldBlueprintId;
 
 /// One entry in the starter-worlds ledger, keyed by a stable starter seed id
 /// (`DATA-24`, `ONB-5`). Records which blueprint was created for that starter and
@@ -16,7 +16,7 @@ pub struct StarterSeedRecord {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub blueprint_id: Option<WorldBlueprintId>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub seeded_at: Option<SpDateTime>,
+    pub seeded_at: Option<SfDateTime>,
     /// True once the user has deleted the blueprint that was seeded for this
     /// starter; a deleted starter is never re-created (`ONB-5`).
     #[serde(default)]
@@ -92,7 +92,7 @@ mod tests {
             "beneath_verath".to_string(),
             StarterSeedRecord {
                 blueprint_id: Some(WorldBlueprintId::new()),
-                seeded_at: Some(SpDateTime::now()),
+                seeded_at: Some(SfDateTime::now()),
                 deleted: true,
             },
         );

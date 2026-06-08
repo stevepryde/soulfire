@@ -5,6 +5,9 @@ A single-user, local, BYOK desktop/mobile app being ported to Tauri v2 + React w
 See [`docs/OG_PARITY_ROADMAP.md`](docs/OG_PARITY_ROADMAP.md) for the current roadmap,
 [`specs/`](specs/) for the design source of truth, and [`AGENTS.md`](AGENTS.md) for how it's built.
 
+The current Rust workspace is intentionally small: `soulfire-core` contains the product/domain core,
+and `ai-client` remains as a provider transport adapter.
+
 ## License
 
 Licensed under either of

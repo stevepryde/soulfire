@@ -9,6 +9,7 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use futures::stream;
 
+use crate::model::ai_model::{AiModel, AiVendor};
 use ai_client::error::AiError;
 use ai_client::openai::create_response::{
     OpenAIResponseContentPart, OpenAIResponseOutputItem, OpenAIResponseUsage,
@@ -17,7 +18,6 @@ use ai_client::openai::create_response::{
     OpenAIResponsesTextConfig, OpenAIResponsesTextFormat, OpenAIResponsesTool,
 };
 use ai_client::openai::{OpenAIClient, OpenAIJsonSchema, OpenAIModel, OpenAIReasoningEffort};
-use lib_soulfire::ai_model::{AiModel, AiVendor};
 
 use super::provider::{AiProvider, ApiKeySource, EventStream};
 use super::types::{

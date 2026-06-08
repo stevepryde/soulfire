@@ -3,15 +3,15 @@
 
 use serde::{Deserialize, Serialize};
 
-use sp_core::datetime::SpDateTime;
+use crate::datetime::SfDateTime;
 
-use crate::ai_model::AiModel;
-use crate::ids::{
+use super::ai_model::AiModel;
+use super::ids::{
     AdventureId, AdventureMessageId, GmProposalId, WorldBlueprintId, WorldBuilderMessageId,
     WorldBuilderSnapshotId,
 };
-use crate::images::{ImageTransform, StoredImageRef, WorldImage};
-use crate::strings::{
+use super::images::{ImageTransform, StoredImageRef, WorldImage};
+use super::strings::{
     AdventureState, MessageContent, PlayerAttributes, PlayerName, RecentSummary, SignificantEvents,
     StorySummary, WorldDescription, WorldPrompt, WorldTitle,
 };
@@ -113,10 +113,10 @@ pub struct WorldBlueprint {
     pub version: u32,
     #[builder(default)]
     #[serde(default)]
-    pub created_at: SpDateTime,
+    pub created_at: SfDateTime,
     #[builder(default)]
     #[serde(default)]
-    pub updated_at: SpDateTime,
+    pub updated_at: SfDateTime,
     pub title: WorldTitle,
     /// Shown to the player; not sent to the AI (`DATA-8`).
     #[builder(default)]
@@ -149,10 +149,10 @@ pub struct Adventure {
     pub version: u32,
     #[builder(default)]
     #[serde(default)]
-    pub created_at: SpDateTime,
+    pub created_at: SfDateTime,
     #[builder(default)]
     #[serde(default)]
-    pub updated_at: SpDateTime,
+    pub updated_at: SfDateTime,
     pub blueprint_id: WorldBlueprintId,
 
     // Denormalized world snapshot for display (DATA-10).
@@ -208,7 +208,7 @@ pub struct Adventure {
     #[serde(default)]
     pub ready_status: AdventureReadyStatus,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub ready_status_updated_at: Option<SpDateTime>,
+    pub ready_status_updated_at: Option<SfDateTime>,
     #[builder(default)]
     #[serde(default)]
     pub diff_action_count: u32,
@@ -230,7 +230,7 @@ pub struct AdventureMessage {
     pub adventure_id: AdventureId,
     #[builder(default)]
     #[serde(default)]
-    pub created_at: SpDateTime,
+    pub created_at: SfDateTime,
     pub message_type: AdventureMessageType,
     pub content: MessageContent,
 }
@@ -294,7 +294,7 @@ pub struct GmProposal {
     pub response_message_id: AdventureMessageId,
     #[builder(default)]
     #[serde(default)]
-    pub created_at: SpDateTime,
+    pub created_at: SfDateTime,
 
     /// Proposed replacement adventure-state, if the proposal changes it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -340,7 +340,7 @@ pub struct WorldBuilderMessage {
     pub role: WorldBuilderRole,
     pub content: String,
     #[serde(default)]
-    pub created_at: SpDateTime,
+    pub created_at: SfDateTime,
 }
 
 /// A captured snapshot of editable blueprint fields backing builder undo
@@ -353,7 +353,7 @@ pub struct WorldBuilderSnapshot {
     pub description: WorldDescription,
     pub world_prompt: WorldPrompt,
     #[serde(default)]
-    pub captured_at: SpDateTime,
+    pub captured_at: SfDateTime,
 }
 
 /// A world-builder session keyed to one blueprint (`DATA-15`).
@@ -443,7 +443,7 @@ mod tests {
             title: WorldTitle::from_str("T").unwrap(),
             description: WorldDescription::default(),
             world_prompt: WorldPrompt::coerce(p),
-            captured_at: SpDateTime::now(),
+            captured_at: SfDateTime::now(),
         };
         for i in 0..12 {
             s.push_snapshot(mk(&format!("p{i}")));

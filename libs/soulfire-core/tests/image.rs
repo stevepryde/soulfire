@@ -4,10 +4,10 @@
 use std::str::FromStr;
 use std::sync::Arc;
 
-use lib_soulfire::ai_model::AiVendor;
-use lib_soulfire::character::{Character, InitialMessage};
-use lib_soulfire::strings::{CharacterName, InitialMessageText};
-use sp_core::secret::Secret;
+use soulfire_core::model::ai_model::AiVendor;
+use soulfire_core::model::character::{Character, InitialMessage};
+use soulfire_core::model::strings::{CharacterName, InitialMessageText};
+use soulfire_core::secret::Secret;
 
 use soulfire_core::ai::fake::{RecordingProvider, Scripted};
 use soulfire_core::ai::provider::ApiKeySource;

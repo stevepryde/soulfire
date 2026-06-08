@@ -7,8 +7,8 @@
 
 use indexmap::IndexMap;
 
-use lib_soulfire::ai_model::AiModel;
-use lib_soulfire::metric::{MetricLabel, UsageMetric};
+use crate::model::ai_model::AiModel;
+use crate::model::metric::{MetricLabel, UsageMetric};
 
 /// Aggregate token totals over a set of usage entries (`STAT-4`).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -102,7 +102,7 @@ impl StatsReport {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use lib_soulfire::ids::ChatId;
+    use crate::model::ids::ChatId;
 
     fn metric(
         label: MetricLabel,

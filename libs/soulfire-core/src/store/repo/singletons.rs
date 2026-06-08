@@ -1,11 +1,11 @@
 //! Singleton rows (`DATA-16`..`DATA-18`, `DATA-24`, `DATA-25`) and provider
 //! credentials (`DATA-19`).
 
-use lib_soulfire::ai_model::AiVendor;
-use lib_soulfire::credentials::ProviderCredential;
-use lib_soulfire::install::InstallState;
-use lib_soulfire::profile::{AppProfile, PlayerProfile};
-use lib_soulfire::settings::AppSettings;
+use crate::model::ai_model::AiVendor;
+use crate::model::credentials::ProviderCredential;
+use crate::model::install::InstallState;
+use crate::model::profile::{AppProfile, PlayerProfile};
+use crate::model::settings::AppSettings;
 use rusqlite::params;
 
 use crate::error::CoreResult;

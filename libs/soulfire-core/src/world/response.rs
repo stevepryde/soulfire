@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use serde_json::Value;
 
-use lib_soulfire::world::StoryStatus;
+use crate::model::world::StoryStatus;
 
 use crate::ai::fence::rescue_json_block;
 

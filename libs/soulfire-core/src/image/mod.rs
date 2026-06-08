@@ -9,10 +9,10 @@
 
 use std::sync::Arc;
 
-use lib_soulfire::ai_model::AiModel;
-use lib_soulfire::ids::{CharacterId, WorldBlueprintId};
-use lib_soulfire::images::StoredImageRef;
-use lib_soulfire::metric::{MetricLabel, UsageMetric};
+use crate::model::ai_model::AiModel;
+use crate::model::ids::{CharacterId, WorldBlueprintId};
+use crate::model::images::StoredImageRef;
+use crate::model::metric::{MetricLabel, UsageMetric};
 
 use crate::ai::registry::resolve_model;
 use crate::ai::service::AiService;

@@ -2,10 +2,10 @@
 
 use serde::{Deserialize, Serialize};
 
-use sp_core::datetime::SpDateTime;
+use crate::datetime::SfDateTime;
 
-use crate::ai_model::AiModel;
-use crate::ids::{AdventureId, CharacterId, ChatId, MetricId, WorldBlueprintId};
+use super::ai_model::AiModel;
+use super::ids::{AdventureId, CharacterId, ChatId, MetricId, WorldBlueprintId};
 
 /// What a metered AI request was for (`DATA-20a`). The operation kind a usage
 /// entry is grouped by in the by-operation breakdown (`STAT-4`).
@@ -57,7 +57,7 @@ pub struct UsageMetric {
     pub metric_id: MetricId,
     #[builder(default)]
     #[serde(default)]
-    pub created_at: SpDateTime,
+    pub created_at: SfDateTime,
     pub label: MetricLabel,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]

@@ -7,8 +7,8 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use futures::stream::BoxStream;
 
-use lib_soulfire::ai_model::AiVendor;
-use sp_core::secret::Secret;
+use crate::model::ai_model::AiVendor;
+use crate::secret::Secret;
 
 use super::types::{
     GenerationRequest, GenerationResponse, ImageRequest, ImageResponse, ProviderError, StreamEvent,

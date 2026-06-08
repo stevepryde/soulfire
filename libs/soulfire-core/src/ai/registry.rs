@@ -1,6 +1,6 @@
 //! Model-selection precedence (`AI-9`) and token estimation (`AI-16`).
 
-use lib_soulfire::ai_model::AiModel;
+use crate::model::ai_model::AiModel;
 
 /// Resolve the model for an operation by precedence (`AI-9`): the entity's stored
 /// model if set, else the app profile's default, else the registry task default.

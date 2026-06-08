@@ -5,17 +5,21 @@
 use std::collections::HashSet;
 use std::str::FromStr;
 
-use sp_core::datetime::SpDateTime;
+use soulfire_core::datetime::SfDateTime;
 
-use lib_soulfire::ai_model::AiVendor;
-use lib_soulfire::character::{Character, InitialMessage};
-use lib_soulfire::chat::{Chat, ChatMessage, Sender};
-use lib_soulfire::credentials::ProviderCredential;
-use lib_soulfire::draft::{Draft, DraftScope};
-use lib_soulfire::ids::CharacterId;
-use lib_soulfire::strings::{CharacterName, DraftContent, InitialMessageText, MessageString};
-use lib_soulfire::strings::{MessageContent, WorldPrompt, WorldTitle};
-use lib_soulfire::world::{Adventure, AdventureMessage, AdventureMessageType, WorldBlueprint};
+use soulfire_core::model::ai_model::AiVendor;
+use soulfire_core::model::character::{Character, InitialMessage};
+use soulfire_core::model::chat::{Chat, ChatMessage, Sender};
+use soulfire_core::model::credentials::ProviderCredential;
+use soulfire_core::model::draft::{Draft, DraftScope};
+use soulfire_core::model::ids::CharacterId;
+use soulfire_core::model::strings::{
+    CharacterName, DraftContent, InitialMessageText, MessageString,
+};
+use soulfire_core::model::strings::{MessageContent, WorldPrompt, WorldTitle};
+use soulfire_core::model::world::{
+    Adventure, AdventureMessage, AdventureMessageType, WorldBlueprint,
+};
 
 use soulfire_core::store::Store;
 
@@ -54,7 +58,7 @@ fn character_round_trips_with_fields_intact() {
     // AC-DATA-a (partial): a character round-trips through save/load.
     let (_dir, store) = temp_store();
     let mut c = sample_character("Lyra");
-    c.prompt = lib_soulfire::strings::CharacterPrompt::coerce("You are Lyra, a guide.");
+    c.prompt = soulfire_core::model::strings::CharacterPrompt::coerce("You are Lyra, a guide.");
     c.creativity.temperature = 0.7;
     store.save_character(&c).unwrap();
     let loaded = store.character(&c.character_id).unwrap().unwrap();
@@ -272,7 +276,7 @@ fn keyset_paging_characters_matches_full_order_no_dupes_or_gaps() {
     // null-`last_chatted_at` group boundary and ties on both sort keys, which the
     // keyset predicate has to handle precisely.
     let (_dir, store) = temp_store();
-    let base = SpDateTime::from_timestamp(1_700_000_000).unwrap();
+    let base = SfDateTime::from_timestamp(1_700_000_000).unwrap();
     for i in 0..25i64 {
         let mut c = sample_character(&format!("C{i:02}"));
         c.created_at = base.add_seconds(i);
@@ -343,7 +347,7 @@ fn keyset_paging_worlds_and_adventures_match_full_order() {
     // unique tiebreaker; small-page traversal must equal the unpaged order, with
     // deliberate updated_at ties exercising the tiebreaker.
     let (_dir, store) = temp_store();
-    let base = SpDateTime::from_timestamp(1_700_000_000).unwrap();
+    let base = SfDateTime::from_timestamp(1_700_000_000).unwrap();
 
     let mut bp_ids = Vec::new();
     for i in 0..15i64 {

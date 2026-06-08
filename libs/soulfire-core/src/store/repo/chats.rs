@@ -1,7 +1,7 @@
 //! Chat and chat-message persistence (`DATA-5`, `DATA-6`, `DATA-22`).
 
-use lib_soulfire::chat::{Chat, ChatMessage};
-use lib_soulfire::ids::{ChatId, MessageId};
+use crate::model::chat::{Chat, ChatMessage};
+use crate::model::ids::{ChatId, MessageId};
 use rusqlite::params;
 
 use crate::error::CoreResult;

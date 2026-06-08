@@ -106,6 +106,16 @@ Rust core responsibilities:
 - token metrics
 - import/export if added later
 
+Rust crate layout:
+
+- keep product/domain logic consolidated in `soulfire-core`
+- keep domain models under `soulfire_core::model`
+- do not retain `sp-*` crates or personal-prefix crate names
+- keep `ai-client` separate only while it remains a clean provider transport adapter; fold it into
+  `soulfire-core` later if the boundary creates double handling
+- do not keep a Rust markdown UI crate for the React app; use a mature React markdown renderer when
+  markdown rendering is rebuilt
+
 React responsibilities:
 
 - app shell and navigation
@@ -187,7 +197,7 @@ Build a feature matrix from `~/projects/app-world/soulfire`.
 
 Inventory these areas:
 
-- `lib-soulfire` shared models, enums, validation, IDs, and serialized record shapes, explicitly
+- Soulfire-OG shared models, enums, validation, IDs, and serialized record shapes, explicitly
   separating current feature fields from obsolete account/server/product fields.
 - `soulfire-api` chat services, adventure services, builders, images, metrics, AI provider calls,
   state validators, memory helpers, and websocket/status behavior.
@@ -221,8 +231,10 @@ Build or salvage the Rust core before treating the UI as real.
    stable sort keys plus deterministic tie-breakers, never offset pagination.
 5. Port prompt assembly, AI call configuration, chat, worlds, builders, image handling, metrics, and
    import/export seams into Rust.
-6. Add golden prompt/config tests and service-flow fixture tests before broad UI work.
-7. Re-check encrypted-at-rest behavior and key handling before trusting existing storage code.
+6. Consolidate former helper/domain crates into `soulfire-core` unless a crate boundary has a clear
+   public purpose.
+7. Add golden prompt/config tests and service-flow fixture tests before broad UI work.
+8. Re-check encrypted-at-rest behavior and key handling before trusting existing storage code.
 
 Exit criteria:
 

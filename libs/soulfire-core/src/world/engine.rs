@@ -6,13 +6,13 @@ use std::time::Duration;
 
 use serde_json::Value;
 
-use lib_soulfire::ai_model::AiModel;
-use lib_soulfire::ids::AdventureId;
-use lib_soulfire::metric::{MetricLabel, UsageMetric};
-use lib_soulfire::strings::{
+use crate::model::ai_model::AiModel;
+use crate::model::ids::AdventureId;
+use crate::model::metric::{MetricLabel, UsageMetric};
+use crate::model::strings::{
     AdventureState, MessageContent, RecentSummary, SignificantEvents, StorySummary, WorldPrompt,
 };
-use lib_soulfire::world::{
+use crate::model::world::{
     Adventure, AdventureMessage, AdventureMessageType, AdventureReadyStatus, GmChangeTarget,
     GmDiffEntry, GmProposal, GmProposalStatus, StoryStatus, WorldBlueprint,
 };
@@ -652,7 +652,7 @@ impl WorldEngine {
     /// adventure's private blueprint copy only — never the source blueprint.
     pub async fn accept_proposal(
         &self,
-        proposal_id: &lib_soulfire::ids::GmProposalId,
+        proposal_id: &crate::model::ids::GmProposalId,
     ) -> CoreResult<()> {
         let mut proposal = self
             .store
@@ -680,7 +680,7 @@ impl WorldEngine {
     /// Reject a staged proposal; nothing changes (`WORLD-17`).
     pub async fn reject_proposal(
         &self,
-        proposal_id: &lib_soulfire::ids::GmProposalId,
+        proposal_id: &crate::model::ids::GmProposalId,
     ) -> CoreResult<()> {
         let mut proposal = self
             .store
@@ -787,7 +787,7 @@ impl WorldEngine {
         model: AiModel,
         usage: Usage,
         adventure_id: Option<&AdventureId>,
-        blueprint_id: Option<&lib_soulfire::ids::WorldBlueprintId>,
+        blueprint_id: Option<&crate::model::ids::WorldBlueprintId>,
     ) -> CoreResult<()> {
         let metric = UsageMetric::builder()
             .created_at(self.clock.now())

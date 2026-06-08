@@ -1,11 +1,8 @@
 [workspace]
 resolver = "3"
 members = [
-    "libs/lib-soulfire",
     "libs/soulfire-core",
     "libs/ai-client",
-    "libs/sp-core",
-    "libs/sp-markdown",
 ]
 
 [workspace.package]
@@ -15,14 +12,11 @@ authors = ["Steve Pryde <steve@stevepryde.com>"]
 repository = "https://github.com/stevepryde/soulfire"
 rust-version = "1.96"
 
-# Intra-workspace vendored crates. Source is copied/adapted from the owner's
-# private crates (ai-client, splibs) per specs/12-platform-packaging.md — no
-# git or crates.io dependency on them. Each is filled in as a deliberate slice.
+# Intra-workspace crates. The public app keeps product/domain logic in
+# `soulfire-core`; `ai-client` remains a small provider transport adapter for
+# now.
 [workspace.dependencies]
-lib-soulfire = { path = "libs/lib-soulfire" }
 ai-client = { path = "libs/ai-client" }
-sp-core = { path = "libs/sp-core" }
-sp-markdown = { path = "libs/sp-markdown" }
 soulfire-core = { path = "libs/soulfire-core" }
 
 # Third-party dependencies shared across the Rust core crates.
@@ -38,7 +32,7 @@ tempfile = "3"
 zeroize = "1.8"
 # jiff over chrono: better IANA tzdb handling across desktop + mobile (notably
 # Android's concatenated tzdata) and an actively-developed Temporal-based API.
-# Lives behind sp-core's SpDateTime wrapper, so the choice stays swappable.
+# Lives behind soulfire-core's SfDateTime wrapper, so the choice stays swappable.
 jiff = "0.2"
 futures = "0.3"
 indexmap = "2"

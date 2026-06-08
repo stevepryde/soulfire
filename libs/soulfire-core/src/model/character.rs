@@ -3,14 +3,14 @@
 
 use serde::{Deserialize, Serialize};
 
-use sp_core::datetime::SpDateTime;
+use crate::datetime::SfDateTime;
 
-use crate::ids::{
+use super::ids::{
     AdventureId, CharacterBuilderMessageId, CharacterBuilderSnapshotId, CharacterId,
     WorldBlueprintId,
 };
-use crate::images::{CharacterImage, ImageTransform, StoredImageRef};
-use crate::strings::{
+use super::images::{CharacterImage, ImageTransform, StoredImageRef};
+use super::strings::{
     CharacterContext, CharacterDescription, CharacterName, CharacterPrompt, CharacterSubtitle,
     InitialMessageText,
 };
@@ -127,12 +127,12 @@ pub struct Character {
     pub version: u32,
     #[builder(default)]
     #[serde(default)]
-    pub created_at: SpDateTime,
+    pub created_at: SfDateTime,
     #[builder(default)]
     #[serde(default)]
-    pub updated_at: SpDateTime,
+    pub updated_at: SfDateTime,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub last_chatted_at: Option<SpDateTime>,
+    pub last_chatted_at: Option<SfDateTime>,
 
     // Profile (DATA-1)
     pub name: CharacterName,
@@ -214,7 +214,7 @@ pub struct CharacterBuilderMessage {
     pub role: CharacterBuilderRole,
     pub content: String,
     #[serde(default)]
-    pub created_at: SpDateTime,
+    pub created_at: SfDateTime,
 }
 
 /// A captured snapshot of editable character fields backing builder undo
@@ -229,7 +229,7 @@ pub struct CharacterBuilderSnapshot {
     pub prompt: CharacterPrompt,
     pub initial_message: InitialMessage,
     #[serde(default)]
-    pub captured_at: SpDateTime,
+    pub captured_at: SfDateTime,
 }
 
 /// A character-builder session keyed to one character (`DATA-14`).
@@ -291,7 +291,7 @@ mod tests {
             description: CharacterDescription::default(),
             prompt: CharacterPrompt::coerce(prompt),
             initial_message: InitialMessage::default(),
-            captured_at: SpDateTime::now(),
+            captured_at: SfDateTime::now(),
         }
     }
 

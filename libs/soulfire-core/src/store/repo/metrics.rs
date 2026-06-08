@@ -1,8 +1,8 @@
 //! Usage-metric persistence (`DATA-20a`). Aggregation lives in the stats layer
 //! and reads these rows (`STAT`).
 
-use lib_soulfire::ids::{AdventureId, ChatId};
-use lib_soulfire::metric::UsageMetric;
+use crate::model::ids::{AdventureId, ChatId};
+use crate::model::metric::UsageMetric;
 use rusqlite::params;
 
 use crate::error::CoreResult;

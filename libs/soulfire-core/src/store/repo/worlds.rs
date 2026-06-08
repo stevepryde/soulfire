@@ -1,8 +1,8 @@
 //! World blueprint, adventure, adventure-message, GM-proposal, and world-builder
 //! persistence with cascade deletes (`DATA-8`..`DATA-15`, `DATA-22`).
 
-use lib_soulfire::ids::{AdventureId, GmProposalId, WorldBlueprintId};
-use lib_soulfire::world::{
+use crate::model::ids::{AdventureId, GmProposalId, WorldBlueprintId};
+use crate::model::world::{
     Adventure, AdventureMessage, GmProposal, GmProposalStatus, WorldBlueprint, WorldBuilderSession,
 };
 use rusqlite::params;

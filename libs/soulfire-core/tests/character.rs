@@ -3,13 +3,13 @@
 use std::str::FromStr;
 use std::sync::Arc;
 
-use lib_soulfire::ai_model::AiVendor;
-use lib_soulfire::character::{Character, InitialMessage};
-use lib_soulfire::strings::{
+use soulfire_core::model::ai_model::AiVendor;
+use soulfire_core::model::character::{Character, InitialMessage};
+use soulfire_core::model::strings::{
     CharacterName, CharacterPrompt, InitialMessageText, WorldPrompt, WorldTitle,
 };
-use lib_soulfire::world::{Adventure, WorldBlueprint};
-use sp_core::secret::Secret;
+use soulfire_core::model::world::{Adventure, WorldBlueprint};
+use soulfire_core::secret::Secret;
 
 use soulfire_core::ai::fake::{RecordingProvider, Scripted};
 use soulfire_core::ai::provider::ApiKeySource;
@@ -130,10 +130,10 @@ fn seed_adventure(h: &H) -> Adventure {
     let adv = Adventure::builder()
         .blueprint_id(bp.blueprint_id.clone())
         .world_prompt(bp.world_prompt.clone())
-        .adventure_state(lib_soulfire::strings::AdventureState::coerce(
+        .adventure_state(soulfire_core::model::strings::AdventureState::coerce(
             r#"{"npcs":{"Mara":{"attitude":"wary"}}}"#,
         ))
-        .story_summary(lib_soulfire::strings::StorySummary::coerce(
+        .story_summary(soulfire_core::model::strings::StorySummary::coerce(
             "## Rolling Story\nMara guided the player through the depths.",
         ))
         .build();

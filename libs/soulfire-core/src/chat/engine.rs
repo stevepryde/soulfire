@@ -4,12 +4,12 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use lib_soulfire::ai_model::AiModel;
-use lib_soulfire::character::{Character, InitialMessage};
-use lib_soulfire::chat::{AI_REACTOR, Chat, ChatMessage, Sender};
-use lib_soulfire::ids::{CharacterId, ChatId};
-use lib_soulfire::metric::{MetricLabel, UsageMetric};
-use lib_soulfire::strings::{CharacterContext, ChatTitle, MessageString, StorySummary};
+use crate::model::ai_model::AiModel;
+use crate::model::character::{Character, InitialMessage};
+use crate::model::chat::{AI_REACTOR, Chat, ChatMessage, Sender};
+use crate::model::ids::{CharacterId, ChatId};
+use crate::model::metric::{MetricLabel, UsageMetric};
+use crate::model::strings::{CharacterContext, ChatTitle, MessageString, StorySummary};
 
 use crate::ai::collect_streamed;
 use crate::ai::registry::resolve_model;
@@ -494,7 +494,7 @@ impl ChatEngine {
         character: &Character,
         text: &str,
         tokens: u32,
-        at: sp_core::datetime::SpDateTime,
+        at: crate::datetime::SfDateTime,
     ) -> ChatMessage {
         ChatMessage::builder()
             .chat_id(chat.chat_id.clone())
@@ -540,7 +540,7 @@ struct OwnedPromptInput {
     world_context: Option<String>,
     world_state: Option<String>,
     story_so_far: Option<String>,
-    toggles: lib_soulfire::settings::ContentToggles,
+    toggles: crate::model::settings::ContentToggles,
 }
 
 impl OwnedPromptInput {

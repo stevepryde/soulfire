@@ -5,7 +5,7 @@ use std::{
 };
 
 #[derive(Debug, thiserror::Error)]
-pub enum SpIdError {
+pub enum SfIdError {
     #[error("invalid id")]
     InvalidId,
 }
@@ -14,12 +14,12 @@ pub trait HasPrefix {
     const PREFIX: &'static str;
 }
 
-pub struct SpId<T> {
+pub struct SfId<T> {
     id: uuid::Uuid,
     _phantom: std::marker::PhantomData<T>,
 }
 
-impl<T: HasPrefix> Default for SpId<T> {
+impl<T: HasPrefix> Default for SfId<T> {
     fn default() -> Self {
         Self {
             id: uuid::Uuid::new_v4(),
@@ -28,29 +28,29 @@ impl<T: HasPrefix> Default for SpId<T> {
     }
 }
 
-impl<T: HasPrefix> SpId<T> {
+impl<T: HasPrefix> SfId<T> {
     pub fn new() -> Self {
         Self::default()
     }
 }
 
-impl<T: HasPrefix> FromStr for SpId<T> {
-    type Err = SpIdError;
+impl<T: HasPrefix> FromStr for SfId<T> {
+    type Err = SfIdError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let raw = s
             .strip_prefix(&format!("{}_", T::PREFIX))
-            .ok_or(SpIdError::InvalidId)?;
+            .ok_or(SfIdError::InvalidId)?;
         uuid::Uuid::parse_str(raw)
             .map(|id| Self {
                 id,
                 _phantom: std::marker::PhantomData,
             })
-            .map_err(|_| SpIdError::InvalidId)
+            .map_err(|_| SfIdError::InvalidId)
     }
 }
 
-impl<T: HasPrefix> Display for SpId<T> {
+impl<T: HasPrefix> Display for SfId<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}_{}", T::PREFIX, self.id)
     }
@@ -69,7 +69,7 @@ impl<T: HasPrefix> Display for SpId<T> {
 //     serde_with::DeserializeFromStr,
 // )]
 
-impl<T: HasPrefix> Debug for SpId<T> {
+impl<T: HasPrefix> Debug for SfId<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -81,48 +81,48 @@ impl<T: HasPrefix> Debug for SpId<T> {
     }
 }
 
-impl<T> Clone for SpId<T> {
+impl<T> Clone for SfId<T> {
     fn clone(&self) -> Self {
         *self
     }
 }
 
-impl<T> Copy for SpId<T> {}
+impl<T> Copy for SfId<T> {}
 
-impl<T> PartialEq for SpId<T> {
+impl<T> PartialEq for SfId<T> {
     fn eq(&self, other: &Self) -> bool {
         self.id.eq(&other.id)
     }
 }
 
-impl<T> Eq for SpId<T> {}
+impl<T> Eq for SfId<T> {}
 
-impl<T: HasPrefix> Hash for SpId<T> {
+impl<T: HasPrefix> Hash for SfId<T> {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         format!("{}_", T::PREFIX).hash(state);
         self.id.hash(state);
     }
 }
 
-impl<T: HasPrefix> PartialOrd for SpId<T> {
+impl<T: HasPrefix> PartialOrd for SfId<T> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<T: HasPrefix> Ord for SpId<T> {
+impl<T: HasPrefix> Ord for SfId<T> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.to_string().cmp(&other.to_string())
     }
 }
 
-impl<T: HasPrefix> serde::Serialize for SpId<T> {
+impl<T: HasPrefix> serde::Serialize for SfId<T> {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         self.to_string().serialize(serializer)
     }
 }
 
-impl<'de, T: HasPrefix> serde::Deserialize<'de> for SpId<T> {
+impl<'de, T: HasPrefix> serde::Deserialize<'de> for SfId<T> {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let s = String::deserialize(deserializer)?;
         s.parse().map_err(serde::de::Error::custom)
@@ -134,10 +134,10 @@ macro_rules! id_type {
     ($name:ident, $prefix:literal) => {
         $crate::paste::paste! {
             pub struct [<$name Spec>];
-            impl $crate::spid::HasPrefix for [<$name Spec>] {
+            impl $crate::sfid::HasPrefix for [<$name Spec>] {
                 const PREFIX: &'static str = $prefix;
             }
-            pub type $name = $crate::spid::SpId<[<$name Spec>]>;
+            pub type $name = $crate::sfid::SfId<[<$name Spec>]>;
         }
     };
 }
@@ -150,10 +150,10 @@ mod tests {
     impl HasPrefix for TestPrefix {
         const PREFIX: &'static str = "test";
     }
-    type MyId = SpId<TestPrefix>;
+    type MyId = SfId<TestPrefix>;
 
     #[test]
-    fn test_spid_roundtrip() {
+    fn test_sfid_roundtrip() {
         let id = MyId::default();
         let id_str = id.to_string();
         let id_parsed = id_str.parse::<MyId>().unwrap();
@@ -161,7 +161,7 @@ mod tests {
     }
 
     #[test]
-    fn test_spid_serde() {
+    fn test_sfid_serde() {
         let id = MyId::default();
         let id_str = serde_json::to_string(&id).unwrap();
         let id_parsed = serde_json::from_str(&id_str).unwrap();
@@ -169,12 +169,12 @@ mod tests {
     }
 
     #[test]
-    fn test_spid_different_prefix() {
+    fn test_sfid_different_prefix() {
         struct OtherPrefix;
         impl HasPrefix for OtherPrefix {
             const PREFIX: &'static str = "other";
         }
-        type OtherId = SpId<OtherPrefix>;
+        type OtherId = SfId<OtherPrefix>;
 
         let id = OtherId::default();
         let id_str = id.to_string();
@@ -182,14 +182,14 @@ mod tests {
     }
 
     #[test]
-    fn test_spid_invalid_parse() {
+    fn test_sfid_invalid_parse() {
         let invalid_id_str = "invalid";
         let parsed = invalid_id_str.parse::<MyId>();
         assert!(parsed.is_err());
     }
 
     #[test]
-    fn test_spid_invalid_serde() {
+    fn test_sfid_invalid_serde() {
         let invalid_id_str = "\"invalid\"";
         let parsed: Result<MyId, _> = serde_json::from_str(invalid_id_str);
         assert!(parsed.is_err());

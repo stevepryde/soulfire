@@ -1,14 +1,14 @@
 //! Provider API-key credentials (`DATA-19`, `SEC-9`, `SEC-10`).
 //!
 //! Stored only inside the encrypted store. The key value is wrapped in
-//! [`sp_core::secret::Secret`] so it never appears in `Debug`/log output, and is
+//! [`crate::secret::Secret`] so it never appears in `Debug`/log output, and is
 //! shown only masked through the UI (`SEC-10`).
 
 use serde::{Deserialize, Serialize};
 
-use sp_core::secret::Secret;
+use crate::secret::Secret;
 
-use crate::ai_model::AiVendor;
+use super::ai_model::AiVendor;
 
 /// A stored provider credential: the provider and its secret key value
 /// (`DATA-19`).

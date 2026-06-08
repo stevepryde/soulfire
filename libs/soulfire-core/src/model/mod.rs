@@ -2,10 +2,10 @@
 //!
 //! The persisted entities, typed IDs, bounded strings, and enums that make up
 //! Soulfire's data contract (`specs/01-data-model.md`). Ported from Soulfire-OG's
-//! `lib-soulfire` with the single-user collapse applied: no `user_id`, no
-//! visibility, no account/billing/moderation; profiles and settings are singleton
-//! rows. Field names and formats are kept identical to Soulfire-OG so prompts and
-//! behavior port unchanged (`PROD-7`).
+//! shared model crate with the single-user collapse applied: no `user_id`, no
+//! visibility, no account/billing/moderation; profiles and settings are
+//! singleton rows. Field names and formats are kept identical to Soulfire-OG so
+//! prompts and behavior port unchanged (`PROD-7`).
 
 pub mod ai_model;
 pub mod character;

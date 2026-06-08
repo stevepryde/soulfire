@@ -7,7 +7,7 @@ use std::future::Future;
 use std::sync::Arc;
 use std::time::Duration;
 
-use lib_soulfire::ai_model::AiModel;
+use crate::model::ai_model::AiModel;
 
 use super::provider::{AiProvider, ApiKeySource, EventStream};
 use super::types::{
@@ -113,8 +113,8 @@ mod tests {
     use crate::ai::fake::{RecordingProvider, Scripted};
     use crate::ai::provider::collect_streamed;
     use crate::ai::types::{GenerationConfig, PromptMessage};
-    use lib_soulfire::ai_model::AiVendor;
-    use sp_core::secret::Secret;
+    use crate::model::ai_model::AiVendor;
+    use crate::secret::Secret;
 
     /// A simple key source for tests.
     struct Keys(Option<String>);

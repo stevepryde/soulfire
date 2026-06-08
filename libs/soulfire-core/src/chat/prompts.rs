@@ -1,7 +1,7 @@
 //! Chat background-pass prompts (`CHAT-3`, `CHAT-10`, `CHAT-12`), carried
 //! verbatim from Soulfire-OG (`PROD-7`).
 
-use lib_soulfire::chat::{ChatMessage, Sender};
+use crate::model::chat::{ChatMessage, Sender};
 
 /// Render messages as `"Name: text"` lines for summary/state prompts.
 pub fn conversation_text(

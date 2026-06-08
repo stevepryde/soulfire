@@ -1,6 +1,6 @@
 //! Prompt-history construction (`CHAT-5`, `CHAT-9`).
 
-use lib_soulfire::chat::{AI_REACTOR, ChatMessage, PLAYER_REACTOR, Sender};
+use crate::model::chat::{AI_REACTOR, ChatMessage, PLAYER_REACTOR, Sender};
 
 use crate::ai::types::{PromptMessage, Role};
 
@@ -45,16 +45,16 @@ fn with_reactions(message: &ChatMessage) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use lib_soulfire::chat::Reactions;
-    use lib_soulfire::ids::{ChatId, MessageId};
-    use lib_soulfire::strings::MessageString;
+    use crate::model::chat::Reactions;
+    use crate::model::ids::{ChatId, MessageId};
+    use crate::model::strings::MessageString;
 
     fn msg(sender: Sender, text: &str, reactions: Reactions) -> ChatMessage {
         ChatMessage {
             message_id: MessageId::new(),
             version: 1,
             chat_id: ChatId::new(),
-            created_at: sp_core::datetime::SpDateTime::now(),
+            created_at: crate::datetime::SfDateTime::now(),
             sender,
             message: MessageString::coerce(text),
             token_count: 0,
@@ -68,7 +68,7 @@ mod tests {
             msg(Sender::Player, "hello", Reactions::new()),
             msg(
                 Sender::Character {
-                    character_id: lib_soulfire::ids::CharacterId::new(),
+                    character_id: crate::model::ids::CharacterId::new(),
                     image: None,
                 },
                 "hi there",

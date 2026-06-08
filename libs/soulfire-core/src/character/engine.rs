@@ -4,17 +4,17 @@ use std::sync::Arc;
 
 use serde::Deserialize;
 
-use lib_soulfire::ai_model::AiModel;
-use lib_soulfire::character::{
+use crate::model::ai_model::AiModel;
+use crate::model::character::{
     Character, CharacterBuilderMessage, CharacterBuilderRole, CharacterBuilderSession,
     CharacterBuilderSnapshot, InitialMessage,
 };
-use lib_soulfire::ids::{
+use crate::model::ids::{
     AdventureId, CharacterBuilderMessageId, CharacterBuilderSnapshotId, CharacterId,
 };
-use lib_soulfire::metric::MetricLabel;
-use lib_soulfire::metric::UsageMetric;
-use lib_soulfire::strings::{
+use crate::model::metric::MetricLabel;
+use crate::model::metric::UsageMetric;
+use crate::model::strings::{
     CharacterContext, CharacterDescription, CharacterName, CharacterPrompt, CharacterSubtitle,
     ChatTitle, InitialMessageText,
 };

@@ -3,12 +3,12 @@
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use sp_core::datetime::SpDateTime;
+use crate::datetime::SfDateTime;
 
-use crate::ai_model::AiModel;
-use crate::ids::{CharacterId, ChatId, MessageId};
-use crate::images::CharacterImage;
-use crate::strings::{ChatTitle, MessageString, StorySummary};
+use super::ai_model::AiModel;
+use super::ids::{CharacterId, ChatId, MessageId};
+use super::images::CharacterImage;
+use super::strings::{ChatTitle, MessageString, StorySummary};
 
 /// The emoji set permitted for reactions (`DATA-6`). Any reactor emoji outside
 /// this set is dropped on save.
@@ -112,7 +112,7 @@ pub struct ChatMessage {
     pub chat_id: ChatId,
     #[builder(default)]
     #[serde(default)]
-    pub created_at: SpDateTime,
+    pub created_at: SfDateTime,
     pub sender: Sender,
     pub message: MessageString,
     /// Token usage recorded for this message (`DATA-6`).
@@ -134,10 +134,10 @@ pub struct Chat {
     pub version: u32,
     #[builder(default)]
     #[serde(default)]
-    pub started_at: SpDateTime,
+    pub started_at: SfDateTime,
     #[builder(default)]
     #[serde(default)]
-    pub updated_at: SpDateTime,
+    pub updated_at: SfDateTime,
     #[builder(default)]
     #[serde(default)]
     pub title: ChatTitle,

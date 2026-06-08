@@ -4,7 +4,7 @@
 //! needed for indexed queries plus a `data` JSON column holding the full
 //! serialized record, so records port with full fidelity and evolve via their
 //! per-record `version` (`DATA`, `PKG-4`). Timestamps are stored as the
-//! RFC 3339 string form of `SpDateTime`, which sorts chronologically.
+//! RFC 3339 string form of `SfDateTime`, which sorts chronologically.
 
 use rusqlite::Connection;
 

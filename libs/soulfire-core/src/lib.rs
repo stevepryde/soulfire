@@ -13,14 +13,21 @@ pub mod ai;
 pub mod character;
 pub mod chat;
 pub mod clock;
+pub mod datetime;
 pub mod error;
 pub mod image;
 pub mod keychain;
+pub mod model;
 pub mod prompt;
+pub mod secret;
 pub mod seed;
+pub mod sfid;
 pub mod stats;
 pub mod store;
 pub mod world;
+
+// Re-export paste so the `id_type!` macro can resolve `$crate::paste`.
+pub use paste;
 
 pub use clock::{Clock, MockClock, SystemClock};
 pub use error::{CoreError, CoreResult};

@@ -6,12 +6,12 @@
 
 use std::sync::Mutex;
 
-use sp_core::datetime::SpDateTime;
+use crate::datetime::SfDateTime;
 
 /// A source of the current time. Production wires [`SystemClock`]; tests wire
 /// [`MockClock`].
 pub trait Clock: Send + Sync {
-    fn now(&self) -> SpDateTime;
+    fn now(&self) -> SfDateTime;
 }
 
 /// The real system clock.
@@ -19,8 +19,8 @@ pub trait Clock: Send + Sync {
 pub struct SystemClock;
 
 impl Clock for SystemClock {
-    fn now(&self) -> SpDateTime {
-        SpDateTime::now()
+    fn now(&self) -> SfDateTime {
+        SfDateTime::now()
     }
 }
 
@@ -28,12 +28,12 @@ impl Clock for SystemClock {
 /// when told to (`TEST-3`).
 #[derive(Debug)]
 pub struct MockClock {
-    current: Mutex<SpDateTime>,
+    current: Mutex<SfDateTime>,
 }
 
 impl MockClock {
     /// Create a mock clock at `start`.
-    pub fn new(start: SpDateTime) -> Self {
+    pub fn new(start: SfDateTime) -> Self {
         MockClock {
             current: Mutex::new(start),
         }
@@ -41,7 +41,7 @@ impl MockClock {
 
     /// Create a mock clock at a fixed, reproducible epoch instant.
     pub fn at_epoch() -> Self {
-        MockClock::new(SpDateTime::from_timestamp(1_700_000_000).expect("valid fixed test instant"))
+        MockClock::new(SfDateTime::from_timestamp(1_700_000_000).expect("valid fixed test instant"))
     }
 
     /// Advance the clock by `seconds`.
@@ -57,13 +57,13 @@ impl MockClock {
     }
 
     /// Set the clock to an absolute instant.
-    pub fn set(&self, t: SpDateTime) {
+    pub fn set(&self, t: SfDateTime) {
         *self.current.lock().unwrap() = t;
     }
 }
 
 impl Clock for MockClock {
-    fn now(&self) -> SpDateTime {
+    fn now(&self) -> SfDateTime {
         *self.current.lock().unwrap()
     }
 }

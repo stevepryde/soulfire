@@ -6,7 +6,7 @@ use std::sync::LazyLock;
 
 use regex::Regex;
 
-use lib_soulfire::chat::ALLOWED_EMOJIS;
+use crate::model::chat::ALLOWED_EMOJIS;
 
 /// Matches a whitespace/newline followed by a single-character list marker like
 /// `a)` or `1)`, so it can be turned into a line break (Soulfire-OG `LIST_REGEX`).

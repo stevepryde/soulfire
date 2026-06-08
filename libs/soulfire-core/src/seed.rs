@@ -5,10 +5,10 @@
 //! `seed_id` and the `InstallState` ledger ensure re-seeding never duplicates or
 //! resurrects a deleted starter.
 
-use lib_soulfire::images::{ImageTransform, WorldImage};
-use lib_soulfire::install::StarterSeedRecord;
-use lib_soulfire::strings::{WorldDescription, WorldPrompt, WorldTitle};
-use lib_soulfire::world::WorldBlueprint;
+use crate::model::images::{ImageTransform, WorldImage};
+use crate::model::install::StarterSeedRecord;
+use crate::model::strings::{WorldDescription, WorldPrompt, WorldTitle};
+use crate::model::world::WorldBlueprint;
 
 use crate::clock::Clock;
 use crate::error::CoreResult;

@@ -1,6 +1,6 @@
 //! Composer-draft persistence (`DATA-26`). At most one draft per scope.
 
-use lib_soulfire::draft::{Draft, DraftScope};
+use crate::model::draft::{Draft, DraftScope};
 use rusqlite::params;
 
 use crate::error::CoreResult;
