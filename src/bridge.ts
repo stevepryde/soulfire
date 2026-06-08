@@ -51,6 +51,13 @@ export type AppSettings = {
   };
 };
 
+export type PlayerProfile = {
+  version?: number;
+  player_name: string;
+  player_attributes: string;
+  prompt_extension?: string | null;
+};
+
 export const COLOR_THEMES = [
   { value: "purple", label: "Purple", color: "#8b5cf6" },
   { value: "blue", label: "Blue", color: "#3b82f6" },

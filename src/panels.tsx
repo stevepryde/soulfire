@@ -22,6 +22,7 @@ import {
   CredentialStatus,
   DEFAULT_DATA_DIR,
   ListPage,
+  PlayerProfile,
   StoreStatus,
   WorldBlueprintSummary,
   canInvokeTauri,
@@ -318,6 +319,7 @@ export function CharactersPanel() {
 export function SettingsPanel({ status }: { status: StoreStatus }) {
   const [credential, setCredential] = useState<CredentialStatus | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [apiKey, setApiKey] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -326,12 +328,14 @@ export function SettingsPanel({ status }: { status: StoreStatus }) {
     setBusy(true);
     setError(null);
     try {
-      const [nextCredential, nextSettings] = await Promise.all([
+      const [nextCredential, nextSettings, nextProfile] = await Promise.all([
         command<CredentialStatus>("get_openai_credential_status"),
         command<AppSettings>("get_app_settings"),
+        command<PlayerProfile>("get_player_profile"),
       ]);
       setCredential(nextCredential);
       setSettings(nextSettings);
+      setProfile(nextProfile);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -397,6 +401,21 @@ export function SettingsPanel({ status }: { status: StoreStatus }) {
     });
   }
 
+  async function savePlayerProfile(event: FormEvent) {
+    event.preventDefault();
+    if (!profile) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const next = await command<PlayerProfile>("save_player_profile", { profile });
+      setProfile(next);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   useEffect(() => {
     void refresh();
   }, []);
@@ -440,6 +459,55 @@ export function SettingsPanel({ status }: { status: StoreStatus }) {
           <dd>{settings?.content_toggles.adult_content ? "Enabled" : "Disabled"}</dd>
         </div>
       </dl>
+      <section className="settings-card">
+        <div className="list-title">
+          <UserRound size={18} />
+          <h3>Player Profile</h3>
+        </div>
+        <form className="profile-form" onSubmit={savePlayerProfile}>
+          <label>
+            <span>Name</span>
+            <input
+              value={profile?.player_name ?? ""}
+              onChange={(event) =>
+                setProfile((current) =>
+                  current ? { ...current, player_name: event.target.value } : current,
+                )
+              }
+              disabled={busy || !profile}
+            />
+          </label>
+          <label>
+            <span>Attributes</span>
+            <textarea
+              value={profile?.player_attributes ?? ""}
+              onChange={(event) =>
+                setProfile((current) =>
+                  current ? { ...current, player_attributes: event.target.value } : current,
+                )
+              }
+              disabled={busy || !profile}
+              rows={4}
+            />
+          </label>
+          <label>
+            <span>Prompt Extension</span>
+            <textarea
+              value={profile?.prompt_extension ?? ""}
+              onChange={(event) =>
+                setProfile((current) =>
+                  current ? { ...current, prompt_extension: event.target.value || null } : current,
+                )
+              }
+              disabled={busy || !profile}
+              rows={4}
+            />
+          </label>
+          <button className="primary-button" type="submit" disabled={busy || !profile}>
+            Save
+          </button>
+        </form>
+      </section>
       <section className="settings-card">
         <div className="list-title">
           <Sparkles size={18} />
