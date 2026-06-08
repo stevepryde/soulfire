@@ -48,6 +48,9 @@ pub enum BridgeEvent {
     ChatMessageAiStart {
         chat_id: ChatId,
     },
+    ChatMessageCreated {
+        message: ChatMessage,
+    },
     ChatMessageChunk {
         chat_id: ChatId,
         chunk: String,

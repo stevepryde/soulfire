@@ -18,7 +18,7 @@ use soulfire_core::ai::fake::{RecordingProvider, Scripted};
 use soulfire_core::ai::provider::ApiKeySource;
 use soulfire_core::ai::service::AiService;
 use soulfire_core::ai::types::ProviderError;
-use soulfire_core::chat::ChatEngine;
+use soulfire_core::chat::{ChatEngine, SendProgress};
 use soulfire_core::clock::{Clock, MockClock};
 use soulfire_core::store::Store;
 
@@ -118,12 +118,24 @@ async fn send_streams_reply_finalizes_and_meters() {
     h.provider.push(Scripted::text("A Warm Greeting", 20, 3));
 
     let mut streamed = String::new();
+    let mut progress = Vec::new();
     let outcome = h
         .engine
-        .send_message(&chat.chat_id, "Hello!", |d| streamed.push_str(d))
+        .send_message_observed(
+            &chat.chat_id,
+            "Hello!",
+            |d| streamed.push_str(d),
+            |event| progress.push(event),
+        )
         .await
         .unwrap();
 
+    assert_eq!(progress.len(), 1);
+    match &progress[0] {
+        SendProgress::PlayerMessage(player_message) => {
+            assert_eq!(player_message.message.as_str(), "Hello!");
+        }
+    }
     assert_eq!(streamed, "Hello there, friend.");
     assert_eq!(outcome.reply.message.as_str(), "Hello there, friend.");
     assert_eq!(outcome.reply.token_count, 6);

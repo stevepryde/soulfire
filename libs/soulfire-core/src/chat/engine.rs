@@ -52,6 +52,14 @@ pub struct SendOutcome {
     pub state_update_due: bool,
 }
 
+/// Progress emitted while sending a chat message.
+#[derive(Debug, Clone, PartialEq)]
+pub enum SendProgress {
+    /// The player's message has been persisted and can be rendered immediately
+    /// (`CHAT-4`).
+    PlayerMessage(ChatMessage),
+}
+
 /// Orchestrates character chat over the store, AI service, and clock.
 #[derive(Clone)]
 pub struct ChatEngine {
@@ -126,6 +134,23 @@ impl ChatEngine {
     where
         F: FnMut(&str),
     {
+        self.send_message_observed(chat_id, text, on_delta, |_| {})
+            .await
+    }
+
+    /// Send a player message while reporting progress to an app shell. The
+    /// default [`ChatEngine::send_message`] path delegates here with no observer.
+    pub async fn send_message_observed<F, O>(
+        &self,
+        chat_id: &ChatId,
+        text: &str,
+        on_delta: F,
+        mut on_progress: O,
+    ) -> CoreResult<SendOutcome>
+    where
+        F: FnMut(&str),
+        O: FnMut(SendProgress),
+    {
         let mut chat = self
             .store
             .chat(chat_id)?
@@ -145,6 +170,7 @@ impl ChatEngine {
             .message(MessageString::coerce(text))
             .build();
         self.store.save_chat_message(&player_message)?;
+        on_progress(SendProgress::PlayerMessage(player_message.clone()));
 
         // Resolve and persist the chat model (AI-9).
         let model = resolve_model(

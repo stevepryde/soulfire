@@ -177,6 +177,12 @@
       "description": "Permission identifier",
       "oneOf": [
         {
+          "description": "Allows the main Soulfire window to open character chats and send chat messages through the typed command/event bridge.",
+          "type": "string",
+          "const": "allow-chat",
+          "markdownDescription": "Allows the main Soulfire window to open character chats and send chat messages through the typed command/event bridge."
+        },
+        {
           "description": "Allows the main Soulfire window to check, save, and clear the local OpenAI API key without exposing the raw stored secret.",
           "type": "string",
           "const": "allow-credentials",

@@ -12,6 +12,6 @@ pub mod prompts;
 pub mod sanitise;
 
 pub use coalesce::{Coalescer, Decision};
-pub use engine::{ChatEngine, SendOutcome};
+pub use engine::{ChatEngine, SendOutcome, SendProgress};
 pub use history::to_history_messages;
 pub use sanitise::sanitise_reply;

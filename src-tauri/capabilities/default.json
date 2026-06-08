@@ -7,6 +7,7 @@
     "core:default",
     "allow-store-lifecycle",
     "allow-profile-settings",
-    "allow-credentials"
+    "allow-credentials",
+    "allow-chat"
   ]
 }

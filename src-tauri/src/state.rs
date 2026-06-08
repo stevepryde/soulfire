@@ -23,6 +23,14 @@ impl AppState {
         self.store.lock().unwrap().is_some()
     }
 
+    pub fn store_handle(&self) -> Result<AsyncStore, CommandError> {
+        self.store
+            .lock()
+            .unwrap()
+            .clone()
+            .ok_or(CommandError::Locked)
+    }
+
     pub async fn schema_version(&self) -> Result<Option<u32>, CommandError> {
         let store = self.store.lock().unwrap().clone();
         match store {

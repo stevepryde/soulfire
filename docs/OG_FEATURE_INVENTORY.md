@@ -54,7 +54,7 @@ Local source areas scanned:
 | Phase 1: spec update pass | Done enough for implementation | Specs describe the Tauri v2 + React stack, local-only removals, cursor pagination, and React/Tauri testing expectations. |
 | Phase 2: feature inventory and diff | Done here | This document is the first concrete OG parity matrix. Keep it current as work lands. |
 | Phase 3: Rust core | Partial | A broad Rust core exists, including encrypted SQLite, models, chat, worlds, builders, images, metrics, pagination, request-level config coverage, representative prompt hash snapshots, and OG-to-local data fixtures. Some trust checks remain. |
-| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, and the first event DTO vocabulary. Feature commands and event emission remain. |
+| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, the first character chat command/event slice, and the first event DTO vocabulary. World/adventure feature commands remain. |
 | Phase 5: React UI fidelity port | Missing | No React/Vite/Tailwind app exists in this checkout. OG UI remains reference-only. |
 | Phase 6: desktop/mobile readiness | Missing | No Tauri app to launch/package yet. |
 | Phase 7: validation | Partial | Core tests exist; OG prompt/config fixture parity, service-flow parity, Tauri command checks, React visual/smoke tests, and manual smoke docs remain. |
@@ -125,8 +125,8 @@ These are intentionally removed, not parity gaps:
 
 | OG source | Local source | Status | Notes |
 | --- | --- | --- | --- |
-| Open/load/delete chat routes | `chat/engine.rs`, store chat repos | Ported core / missing bridge | Core can open per-character chat and store/delete chats. Tauri feature commands missing. |
-| Streaming character reply | `chat/engine.rs`, `ai/service.rs`, `src-tauri/src/events.rs` | Ported core / partial bridge | Core streams deltas through a callback; bridge event DTOs exist, but command emission is not wired yet. |
+| Open/load/delete chat routes | `chat/engine.rs`, store chat repos, `src-tauri/src/commands.rs` | Partial bridge | Core can open per-character chat and store/delete chats. Tauri can open/load a character chat; delete command remains missing. |
+| Streaming character reply | `chat/engine.rs`, `ai/service.rs`, `src-tauri/src/events.rs`, `src-tauri/src/commands.rs` | Partial bridge | Tauri `send_chat_message` emits player-message, chunk, completion, reaction, status, and error events around the core streamed reply. Background summary/state-update dispatch remains. |
 | Prompt assembly | `prompt/character.rs`, `chat/prompts.rs` | Partial | Request-level tests pin key section ordering and config; representative OG golden payload snapshots remain. |
 | Chat summary/title generation | `chat/engine.rs`, `chat/prompts.rs` | Ported | Summary and title prompts exist. |
 | Reactions | `model/chat.rs`, `chat/engine.rs` | Ported | Allowed emoji filtering and persistence exist. UI missing. |
@@ -223,8 +223,8 @@ Work in this order unless the roadmap changes:
 2. **Phase 3 data proof:** broaden OG-to-local model mapping fixtures beyond the current
    representative Character, Chat, ChatMessage, WorldBlueprint, Adventure, AdventureMessage,
    GmProposal, builder-session, metric, settings, profile, and draft records.
-3. **Phase 4 vertical commands:** setup/unlock/settings/profile/credential commands exist; next expose one
-   character chat flow and one world adventure flow through commands/events.
+3. **Phase 4 vertical commands:** setup/unlock/settings/profile/credential and character chat
+   commands exist; next expose one world adventure flow through commands/events.
 4. **Phase 5 React shell:** scaffold Vite/React/Tailwind/Bun with OG tokens, custom controls, shell
    navigation, setup/unlock, and the two vertical-slice screens.
 5. **Phase 5 fidelity expansion:** port the remaining editors, builders, image framing, prompt viewer,

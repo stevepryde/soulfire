@@ -1,14 +1,19 @@
 use std::path::PathBuf;
 
 use serde::Serialize;
+use soulfire_core::chat::SendProgress;
 use soulfire_core::model::ai_model::AiVendor;
+use soulfire_core::model::chat::{Chat, ChatMessage};
 use soulfire_core::model::credentials::ProviderCredential;
+use soulfire_core::model::ids::{CharacterId, ChatId};
 use soulfire_core::model::profile::{AppProfile, PlayerProfile};
 use soulfire_core::model::settings::AppSettings;
 use soulfire_core::store::{AsyncStore, Store};
-use tauri::State;
+use tauri::{AppHandle, Runtime, State};
 
 use crate::error::CommandError;
+use crate::events::{BridgeEvent, TaskKind, TaskStatus, emit_bridge_event};
+use crate::services;
 use crate::state::AppState;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -25,6 +30,23 @@ pub struct CredentialStatus {
     pub provider: AiVendor,
     pub configured: bool,
     pub masked: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChatThread {
+    pub chat: Chat,
+    pub messages: Vec<ChatMessage>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChatSendResult {
+    pub chat: Chat,
+    pub player_message: ChatMessage,
+    pub reply: ChatMessage,
+    pub summary_due: bool,
+    pub state_update_due: bool,
 }
 
 fn parse_data_dir(path: String) -> Result<PathBuf, CommandError> {
@@ -56,6 +78,16 @@ fn parse_api_key(api_key: String) -> Result<String, CommandError> {
     Ok(trimmed.to_string())
 }
 
+fn parse_message_text(text: String) -> Result<String, CommandError> {
+    let trimmed = text.trim();
+    if trimmed.is_empty() {
+        return Err(CommandError::InvalidInput(
+            "message is required".to_string(),
+        ));
+    }
+    Ok(trimmed.to_string())
+}
+
 fn credential_status_for(
     provider: AiVendor,
     credential: Option<&ProviderCredential>,
@@ -65,6 +97,35 @@ fn credential_status_for(
         configured: credential.is_some(),
         masked: credential.map(ProviderCredential::masked),
     }
+}
+
+fn emit_event<R: Runtime>(app: &AppHandle<R>, event: BridgeEvent) -> Result<(), CommandError> {
+    emit_bridge_event(app, event)
+        .map_err(|err| CommandError::Core(format!("failed to emit bridge event: {err}")))
+}
+
+fn emit_error<R: Runtime>(
+    app: &AppHandle<R>,
+    task: TaskKind,
+    entity_id: Option<String>,
+    message: String,
+) {
+    let _ = emit_bridge_event(
+        app,
+        BridgeEvent::TaskStatus {
+            task,
+            status: TaskStatus::Failed,
+            entity_id: entity_id.clone(),
+        },
+    );
+    let _ = emit_bridge_event(
+        app,
+        BridgeEvent::Error {
+            task: Some(task),
+            entity_id,
+            message,
+        },
+    );
 }
 
 async fn status_for(path: &PathBuf, state: &AppState) -> Result<StoreStatus, CommandError> {
@@ -230,6 +291,143 @@ pub async fn delete_openai_credential(
             Ok(credential_status_for(AiVendor::OpenAI, None))
         })
         .await
+}
+
+#[tauri::command]
+pub async fn open_character_chat(
+    character_id: CharacterId,
+    state: State<'_, AppState>,
+) -> Result<ChatThread, CommandError> {
+    let store = state.store_handle()?;
+    let engine = services::chat_engine(&store);
+    let chat = engine.open_chat(&character_id).await?;
+    let chat_id = chat.chat_id.clone();
+    let messages = store
+        .run(move |store| store.chat_messages(&chat_id))
+        .await?;
+
+    Ok(ChatThread { chat, messages })
+}
+
+#[tauri::command]
+pub async fn send_chat_message<R: Runtime>(
+    chat_id: ChatId,
+    message: String,
+    app: AppHandle<R>,
+    state: State<'_, AppState>,
+) -> Result<ChatSendResult, CommandError> {
+    let message = parse_message_text(message)?;
+    let entity_id = Some(chat_id.to_string());
+    let store = state.store_handle()?;
+    let engine = services::chat_engine(&store);
+
+    emit_event(
+        &app,
+        BridgeEvent::TaskStatus {
+            task: TaskKind::ChatReply,
+            status: TaskStatus::Started,
+            entity_id: entity_id.clone(),
+        },
+    )?;
+    emit_event(
+        &app,
+        BridgeEvent::ChatMessageAiStart {
+            chat_id: chat_id.clone(),
+        },
+    )?;
+
+    let chunk_app = app.clone();
+    let chunk_chat_id = chat_id.clone();
+    let progress_app = app.clone();
+    let outcome = match engine
+        .send_message_observed(
+            &chat_id,
+            &message,
+            move |delta| {
+                let _ = emit_bridge_event(
+                    &chunk_app,
+                    BridgeEvent::ChatMessageChunk {
+                        chat_id: chunk_chat_id.clone(),
+                        chunk: delta.to_string(),
+                    },
+                );
+            },
+            move |progress| match progress {
+                SendProgress::PlayerMessage(message) => {
+                    let _ = emit_bridge_event(
+                        &progress_app,
+                        BridgeEvent::ChatMessageCreated { message },
+                    );
+                }
+            },
+        )
+        .await
+    {
+        Ok(outcome) => outcome,
+        Err(err) => {
+            let message = err.to_string();
+            emit_error(&app, TaskKind::ChatReply, entity_id, message.clone());
+            return Err(err.into());
+        }
+    };
+
+    emit_event(
+        &app,
+        BridgeEvent::TaskStatus {
+            task: TaskKind::ChatReply,
+            status: TaskStatus::Persisting,
+            entity_id: entity_id.clone(),
+        },
+    )?;
+    emit_event(
+        &app,
+        BridgeEvent::ChatMessageComplete {
+            message: outcome.reply.clone(),
+        },
+    )?;
+
+    let player_message_id = outcome.player_message.message_id.clone();
+    let maybe_reacted_player = store
+        .run(move |store| store.chat_message(&player_message_id))
+        .await?;
+    if let Some(message) = maybe_reacted_player {
+        if message.emoji_reactions != outcome.player_message.emoji_reactions {
+            emit_event(
+                &app,
+                BridgeEvent::ChatMessageReactions {
+                    chat_id: chat_id.clone(),
+                    message_id: message.message_id.clone(),
+                    message,
+                },
+            )?;
+        }
+    }
+
+    let chat_for_load = chat_id.clone();
+    let chat = store
+        .run(move |store| {
+            store
+                .chat(&chat_for_load)?
+                .ok_or_else(|| soulfire_core::CoreError::NotFound(chat_for_load.to_string()))
+        })
+        .await?;
+
+    emit_event(
+        &app,
+        BridgeEvent::TaskStatus {
+            task: TaskKind::ChatReply,
+            status: TaskStatus::Complete,
+            entity_id,
+        },
+    )?;
+
+    Ok(ChatSendResult {
+        chat,
+        player_message: outcome.player_message,
+        reply: outcome.reply,
+        summary_due: outcome.summary_due,
+        state_update_due: outcome.state_update_due,
+    })
 }
 
 #[cfg(test)]

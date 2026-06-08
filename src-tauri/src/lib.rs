@@ -1,6 +1,7 @@
 mod commands;
 mod error;
 mod events;
+mod services;
 mod state;
 
 pub use events::{BRIDGE_EVENT, BridgeEvent, TaskKind, TaskStatus, emit_bridge_event};
@@ -25,6 +26,8 @@ pub fn run() {
             commands::get_openai_credential_status,
             commands::save_openai_credential,
             commands::delete_openai_credential,
+            commands::open_character_chat,
+            commands::send_chat_message,
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Soulfire");
