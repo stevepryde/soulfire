@@ -1,0 +1,313 @@
+{
+  "characters": [
+    {
+      "character_id": "chr_11111111-1111-4111-8111-111111111111",
+      "version": 1,
+      "created_at": "2026-06-08T00:00:00.000Z",
+      "updated_at": "2026-06-08T00:01:00.000Z",
+      "last_chatted_at": "2026-06-08T00:02:00.000Z",
+      "name": "Lyra",
+      "subtitle": "Moonlit guide",
+      "description": "A serene lantern keeper adapted from the OG character profile shape.",
+      "image": "lyra",
+      "portrait": {
+        "version": 3
+      },
+      "image_transform": {
+        "pan_x_percent": 4,
+        "pan_y_percent": -6,
+        "zoom_percent": 118
+      },
+      "prompt": "You are Lyra, a calm guide who remembers the player's choices.",
+      "initial_message": {
+        "Message": "Welcome back, traveler."
+      },
+      "creativity": {
+        "max_tokens": 2000,
+        "temperature": 1.0,
+        "top_p": 0.95,
+        "top_k": 3
+      },
+      "extracted_context": "Lyra was met inside the drowned city of Verath.",
+      "character_state": "Lyra trusts the player and is watching the tides.",
+      "source_blueprint_id": "world_blueprint_33333333-3333-4333-8333-333333333333",
+      "source_adventure_id": "adventure_sheet_44444444-4444-4444-8444-444444444444",
+      "source_npc_name": "Lyra"
+    }
+  ],
+  "chats": [
+    {
+      "chat_id": "chat_22222222-2222-4222-8222-222222222222",
+      "version": 1,
+      "started_at": "2026-06-08T00:02:00.000Z",
+      "updated_at": "2026-06-08T00:05:00.000Z",
+      "title": "Lantern Reunion",
+      "character_id": "chr_11111111-1111-4111-8111-111111111111",
+      "participants": [
+        {
+          "kind": "player"
+        },
+        {
+          "kind": "character",
+          "character_id": "chr_11111111-1111-4111-8111-111111111111",
+          "image": "lyra"
+        }
+      ],
+      "ai_model": "gpt-5.1",
+      "chat_summary": "The player and Lyra agreed to reopen the old bell tower.",
+      "messages_since_summary": 4
+    }
+  ],
+  "chat_messages": [
+    {
+      "message_id": "msg_aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "version": 1,
+      "chat_id": "chat_22222222-2222-4222-8222-222222222222",
+      "created_at": "2026-06-08T00:03:00.000Z",
+      "sender": {
+        "kind": "player"
+      },
+      "message": "I found the lantern key.",
+      "token_count": 0,
+      "emoji_reactions": {
+        "AI": "✨"
+      }
+    },
+    {
+      "message_id": "msg_bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "version": 1,
+      "chat_id": "chat_22222222-2222-4222-8222-222222222222",
+      "created_at": "2026-06-08T00:04:00.000Z",
+      "sender": {
+        "kind": "character",
+        "character_id": "chr_11111111-1111-4111-8111-111111111111",
+        "image": "lyra"
+      },
+      "message": "Then the bell tower may answer us at last.",
+      "token_count": 42,
+      "emoji_reactions": {
+        "player": "👍"
+      }
+    }
+  ],
+  "blueprints": [
+    {
+      "blueprint_id": "world_blueprint_33333333-3333-4333-8333-333333333333",
+      "version": 1,
+      "created_at": "2026-06-08T00:00:00.000Z",
+      "updated_at": "2026-06-08T00:10:00.000Z",
+      "title": "Beneath Verath",
+      "description": "A drowned city of secret bells.",
+      "world_prompt": "## World\nVerath is a flooded city where bells remember old promises.",
+      "image": "emoji_bell",
+      "cover": {
+        "version": 2
+      },
+      "image_transform": {
+        "pan_x_percent": -8,
+        "pan_y_percent": 5,
+        "zoom_percent": 130
+      }
+    }
+  ],
+  "adventures": [
+    {
+      "adventure_id": "adventure_sheet_44444444-4444-4444-8444-444444444444",
+      "version": 1,
+      "created_at": "2026-06-08T00:11:00.000Z",
+      "updated_at": "2026-06-08T00:18:00.000Z",
+      "blueprint_id": "world_blueprint_33333333-3333-4333-8333-333333333333",
+      "world_title": "Beneath Verath",
+      "world_description": "A drowned city of secret bells.",
+      "world_image": "emoji_bell",
+      "world_cover": {
+        "version": 2
+      },
+      "world_image_transform": {
+        "pan_x_percent": -8,
+        "pan_y_percent": 5,
+        "zoom_percent": 130
+      },
+      "world_prompt": "## World\nVerath is a flooded city where bells remember old promises.",
+      "player_name": "Diver",
+      "player_attributes": "Carries a brass lantern and refuses easy bargains.",
+      "ai_model": "gpt-5.1",
+      "adventure_state": "{\"player\":{\"name\":\"Diver\"},\"current_situation\":{\"location\":\"bell tower\",\"time\":\"dusk\",\"day\":2}}",
+      "recent_summary": "The player recovered the lantern key.",
+      "significant_events": "[{\"id\":1,\"summary\":\"The tide receded from the bell tower.\",\"weight\":5}]",
+      "story_summary": "## Rolling Story\nThe player entered Verath.\n\n## Recent Turns\nThe lantern key began to hum.",
+      "story_status": "ongoing",
+      "has_completed": false,
+      "ready_status": "ready",
+      "ready_status_updated_at": "2026-06-08T00:18:00.000Z",
+      "diff_action_count": 7,
+      "next_significant_event_id": 2,
+      "previous_narrative": "The tower door opened under the tide line."
+    }
+  ],
+  "adventure_messages": [
+    {
+      "message_id": "adventure_message_55555555-5555-4555-8555-555555555555",
+      "version": 1,
+      "adventure_id": "adventure_sheet_44444444-4444-4444-8444-444444444444",
+      "created_at": "2026-06-08T00:12:00.000Z",
+      "message_type": "user_action",
+      "content": "I raise the lantern key."
+    },
+    {
+      "message_id": "adventure_message_66666666-6666-4666-8666-666666666666",
+      "version": 1,
+      "adventure_id": "adventure_sheet_44444444-4444-4444-8444-444444444444",
+      "created_at": "2026-06-08T00:13:00.000Z",
+      "message_type": "narration",
+      "content": "The drowned bells answer in sequence."
+    }
+  ],
+  "gm_proposals": [
+    {
+      "proposal_id": "gm_proposal_77777777-7777-4777-8777-777777777777",
+      "version": 1,
+      "adventure_id": "adventure_sheet_44444444-4444-4444-8444-444444444444",
+      "response_message_id": "adventure_message_66666666-6666-4666-8666-666666666666",
+      "created_at": "2026-06-08T00:14:00.000Z",
+      "proposed_adventure_state": "{\"player\":{\"name\":\"Diver\"},\"current_situation\":{\"location\":\"bell tower apex\",\"time\":\"dusk\",\"day\":2}}",
+      "proposed_world_prompt": "## World\nVerath is a flooded city where the bell tower has awakened.",
+      "proposed_recent_summary": "The tower awakened after the lantern key was raised.",
+      "proposed_significant_events": "[{\"id\":1,\"summary\":\"The bell tower awakened.\",\"weight\":6}]",
+      "proposed_story_summary": "## Rolling Story\nThe tower awakened.",
+      "changes": [
+        {
+          "target": "adventure_state",
+          "path": "/current_situation/location",
+          "before": "bell tower",
+          "after": "bell tower apex"
+        },
+        {
+          "target": "world_blueprint",
+          "path": "/world_prompt",
+          "before": "bells remember old promises",
+          "after": "the bell tower has awakened"
+        }
+      ],
+      "status": "pending"
+    }
+  ],
+  "character_builder_sessions": [
+    {
+      "character_id": "chr_11111111-1111-4111-8111-111111111111",
+      "messages": [
+        {
+          "message_id": "cbm_88888888-8888-4888-8888-888888888888",
+          "role": "user",
+          "content": "Make Lyra more watchful.",
+          "created_at": "2026-06-08T00:06:00.000Z"
+        },
+        {
+          "message_id": "cbm_99999999-9999-4999-8999-999999999999",
+          "role": "assistant",
+          "content": "I made Lyra quieter and more observant.",
+          "created_at": "2026-06-08T00:07:00.000Z"
+        }
+      ],
+      "snapshots": [
+        {
+          "snapshot_id": "cbs_aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "name": "Lyra",
+          "subtitle": "Moonlit guide",
+          "description": "A serene lantern keeper.",
+          "prompt": "You are Lyra, a calm guide.",
+          "initial_message": {
+            "Message": "Welcome back, traveler."
+          },
+          "captured_at": "2026-06-08T00:06:00.000Z"
+        }
+      ]
+    }
+  ],
+  "world_builder_sessions": [
+    {
+      "blueprint_id": "world_blueprint_33333333-3333-4333-8333-333333333333",
+      "messages": [
+        {
+          "message_id": "world_builder_message_aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "role": "user",
+          "content": "Add a bell tower mystery.",
+          "created_at": "2026-06-08T00:08:00.000Z"
+        },
+        {
+          "message_id": "world_builder_message_bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+          "role": "assistant",
+          "content": "I added the drowned bell tower as a central mystery.",
+          "created_at": "2026-06-08T00:09:00.000Z"
+        }
+      ],
+      "snapshots": [
+        {
+          "snapshot_id": "world_builder_snapshot_cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+          "title": "Beneath Verath",
+          "description": "A drowned city of secret bells.",
+          "world_prompt": "## World\nVerath is a flooded city.",
+          "captured_at": "2026-06-08T00:08:00.000Z"
+        }
+      ]
+    }
+  ],
+  "usage_metrics": [
+    {
+      "metric_id": "metric_aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "created_at": "2026-06-08T00:15:00.000Z",
+      "label": "adventure_action",
+      "chat_id": "chat_22222222-2222-4222-8222-222222222222",
+      "adventure_id": "adventure_sheet_44444444-4444-4444-8444-444444444444",
+      "blueprint_id": "world_blueprint_33333333-3333-4333-8333-333333333333",
+      "character_id": "chr_11111111-1111-4111-8111-111111111111",
+      "input_tokens": 1200,
+      "output_tokens": 240,
+      "cached_input_tokens": 800,
+      "ai_model": "gpt-5.1"
+    }
+  ],
+  "app_profile": {
+    "version": 1,
+    "name": "Steve",
+    "nickname": "Diver",
+    "primary_language": "english",
+    "avatar": {
+      "version": 1
+    },
+    "default_ai_model": "gpt-5.1"
+  },
+  "player_profile": {
+    "version": 1,
+    "player_name": "Diver",
+    "player_attributes": "Carries a brass lantern and refuses easy bargains.",
+    "prompt_extension": "Let the world respond with tactile, local detail."
+  },
+  "app_settings": {
+    "version": 1,
+    "color_theme": "teal",
+    "content_toggles": {
+      "adult_content": true
+    }
+  },
+  "drafts": [
+    {
+      "draft_id": "draft_aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa",
+      "version": 1,
+      "created_at": "2026-06-08T00:16:00.000Z",
+      "updated_at": "2026-06-08T00:17:00.000Z",
+      "scope": "chat",
+      "chat_id": "chat_22222222-2222-4222-8222-222222222222",
+      "content": "Ask Lyra about the seventh bell"
+    },
+    {
+      "draft_id": "draft_bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb",
+      "version": 1,
+      "created_at": "2026-06-08T00:16:00.000Z",
+      "updated_at": "2026-06-08T00:17:00.000Z",
+      "scope": "adventure",
+      "adventure_id": "adventure_sheet_44444444-4444-4444-8444-444444444444",
+      "content": "Listen for which bell rings first"
+    }
+  ]
+}
