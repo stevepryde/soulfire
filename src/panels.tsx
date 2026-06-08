@@ -156,6 +156,8 @@ export function UnlockSurface({
 export function WorldsPanel() {
   const [adventures, setAdventures] = useState<AdventureSummary[]>([]);
   const [blueprints, setBlueprints] = useState<WorldBlueprintSummary[]>([]);
+  const [blueprintCursor, setBlueprintCursor] = useState<string | null>(null);
+  const [blueprintsHaveMore, setBlueprintsHaveMore] = useState(false);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -174,6 +176,28 @@ export function WorldsPanel() {
       ]);
       setAdventures(active);
       setBlueprints(worlds.items);
+      setBlueprintCursor(worlds.nextCursor);
+      setBlueprintsHaveMore(worlds.hasMore);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadMoreBlueprints() {
+    if (!blueprintCursor) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const page = await command<ListPage<WorldBlueprintSummary>>("list_world_blueprints", {
+        search: search || null,
+        afterBlueprintId: blueprintCursor,
+        limit: 6,
+      });
+      setBlueprints((current) => [...current, ...page.items]);
+      setBlueprintCursor(page.nextCursor);
+      setBlueprintsHaveMore(page.hasMore);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -261,6 +285,11 @@ export function WorldsPanel() {
               </article>
             ))}
           </div>
+          {blueprintsHaveMore ? (
+            <button className="secondary-button list-footer-button" type="button" onClick={loadMoreBlueprints} disabled={loading}>
+              Load More
+            </button>
+          ) : null}
         </section>
       </div>
     </section>
@@ -269,6 +298,8 @@ export function WorldsPanel() {
 
 export function CharactersPanel() {
   const [characters, setCharacters] = useState<CharacterSummary[]>([]);
+  const [characterCursor, setCharacterCursor] = useState<string | null>(null);
+  const [charactersHaveMore, setCharactersHaveMore] = useState(false);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -283,6 +314,28 @@ export function CharactersPanel() {
         limit: 12,
       });
       setCharacters(page.items);
+      setCharacterCursor(page.nextCursor);
+      setCharactersHaveMore(page.hasMore);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadMoreCharacters() {
+    if (!characterCursor) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const page = await command<ListPage<CharacterSummary>>("list_characters", {
+        search: search || null,
+        afterCharacterId: characterCursor,
+        limit: 12,
+      });
+      setCharacters((current) => [...current, ...page.items]);
+      setCharacterCursor(page.nextCursor);
+      setCharactersHaveMore(page.hasMore);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -350,6 +403,11 @@ export function CharactersPanel() {
             </article>
           ))}
         </div>
+        {charactersHaveMore ? (
+          <button className="secondary-button list-footer-button" type="button" onClick={loadMoreCharacters} disabled={loading}>
+            Load More
+          </button>
+        ) : null}
       </div>
     </section>
   );

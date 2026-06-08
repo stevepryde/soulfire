@@ -501,6 +501,11 @@ textarea:focus {
   gap: 8px;
 }
 
+.list-footer-button {
+  justify-self: center;
+  margin-top: 2px;
+}
+
 .search-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
