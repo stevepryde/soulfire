@@ -22,6 +22,9 @@ pub fn run() {
             commands::save_player_profile,
             commands::get_app_settings,
             commands::save_app_settings,
+            commands::get_openai_credential_status,
+            commands::save_openai_credential,
+            commands::delete_openai_credential,
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Soulfire");

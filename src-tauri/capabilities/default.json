@@ -6,6 +6,7 @@
   "permissions": [
     "core:default",
     "allow-store-lifecycle",
-    "allow-profile-settings"
+    "allow-profile-settings",
+    "allow-credentials"
   ]
 }

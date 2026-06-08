@@ -177,6 +177,12 @@
       "description": "Permission identifier",
       "oneOf": [
         {
+          "description": "Allows the main Soulfire window to check, save, and clear the local OpenAI API key without exposing the raw stored secret.",
+          "type": "string",
+          "const": "allow-credentials",
+          "markdownDescription": "Allows the main Soulfire window to check, save, and clear the local OpenAI API key without exposing the raw stored secret."
+        },
+        {
           "description": "Allows the main Soulfire window to read and update the local singleton app profile, player profile, and app settings.",
           "type": "string",
           "const": "allow-profile-settings",
