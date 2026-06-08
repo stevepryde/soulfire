@@ -121,8 +121,10 @@ describe("App shell smoke", () => {
     render(<App />);
 
     expect(await screen.findByRole("heading", { name: "Worlds" })).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Adventures" })).toBeTruthy();
+    expect(await screen.findByText("Crystal Vale")).toBeTruthy();
+    fireEvent.click(screen.getByRole("tab", { name: "Worlds" }));
     expect(await screen.findByText("Lantern City")).toBeTruthy();
-    expect(screen.getByText("Crystal Vale")).toBeTruthy();
     expect(screen.getByText("1 total")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Characters" }));

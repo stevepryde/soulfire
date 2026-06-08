@@ -21,7 +21,8 @@ Status: current Tauri/React shell checklist. Update this file as new OG parity s
 
 - Worlds loads in-progress adventures and world blueprints through Tauri commands after unlock.
 - Standard pages start below the fixed Soulfire titlebar on desktop and mobile.
-- The world search field filters blueprints and does not affect active adventures.
+- The Worlds home uses Adventures and Worlds tabs, with Adventures selected first.
+- The world search field appears on the Worlds tab, filters blueprints, and does not affect active adventures.
 - Load More appears only when the blueprint list has another cursor page.
 - Selecting a blueprint opens a read-only detail panel with its description and world prompt.
 - Selecting an active adventure opens a read-only state/message panel and can show the next-turn prompt view.

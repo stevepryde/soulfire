@@ -632,6 +632,43 @@ textarea:focus {
   background: rgb(255 255 255 / 0.1);
 }
 
+.world-tabs {
+  justify-self: center;
+  display: inline-flex;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.045);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+
+.world-tabs button {
+  min-height: 38px;
+  border-radius: 999px;
+  padding: 0 18px;
+  color: var(--text-muted);
+  background: transparent;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.world-tabs button:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 0.08);
+}
+
+.world-tabs button.active {
+  color: #fff;
+  background: var(--color-primary);
+  box-shadow: 0 10px 24px rgb(139 92 246 / 0.26);
+}
+
+.world-tab-panel {
+  width: min(880px, 100%);
+  justify-self: center;
+}
+
 .data-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

@@ -164,7 +164,10 @@ export function UnlockSurface({
   );
 }
 
+type WorldsTab = "adventures" | "worlds";
+
 export function WorldsPanel() {
+  const [worldsTab, setWorldsTab] = useState<WorldsTab>("adventures");
   const [adventures, setAdventures] = useState<AdventureSummary[]>([]);
   const [selectedAdventure, setSelectedAdventure] = useState<AdventureDetail | null>(null);
   const [adventurePromptView, setAdventurePromptView] = useState<PromptView | null>(null);
@@ -310,6 +313,17 @@ export function WorldsPanel() {
     }
   }
 
+  function selectWorldsTab(next: WorldsTab) {
+    setWorldsTab(next);
+    if (next === "adventures") {
+      setSelectedWorld(null);
+      return;
+    }
+    setSelectedAdventure(null);
+    setAdventurePromptView(null);
+    setAdventureStats(null);
+  }
+
   useEffect(() => {
     void refresh();
   }, []);
@@ -345,40 +359,62 @@ export function WorldsPanel() {
           onConfirm={deleteSelectedContent}
         />
       ) : null}
-      <form
-        className="search-row"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void refresh();
-        }}
-      >
-        <Search className="search-icon" size={18} />
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search worlds"
-          spellCheck={false}
-        />
-        {search ? (
-          <button
-            className="search-clear"
-            type="button"
-            onClick={() => {
-              setSearch("");
-              void refresh("");
-            }}
-            aria-label="Clear world search"
-            disabled={loading}
-          >
-            <X size={16} />
-          </button>
-        ) : null}
-      </form>
-      <div className="split-grid">
-        <section className="list-panel">
+      <div className="world-tabs" role="tablist" aria-label="World sections">
+        <button
+          className={worldsTab === "adventures" ? "active" : ""}
+          type="button"
+          role="tab"
+          aria-selected={worldsTab === "adventures"}
+          onClick={() => selectWorldsTab("adventures")}
+        >
+          Adventures
+        </button>
+        <button
+          className={worldsTab === "worlds" ? "active" : ""}
+          type="button"
+          role="tab"
+          aria-selected={worldsTab === "worlds"}
+          onClick={() => selectWorldsTab("worlds")}
+        >
+          Worlds
+        </button>
+      </div>
+      {worldsTab === "worlds" ? (
+        <form
+          className="search-row"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void refresh();
+          }}
+        >
+          <Search className="search-icon" size={18} />
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search worlds"
+            spellCheck={false}
+          />
+          {search ? (
+            <button
+              className="search-clear"
+              type="button"
+              onClick={() => {
+                setSearch("");
+                void refresh("");
+              }}
+              aria-label="Clear world search"
+              disabled={loading}
+            >
+              <X size={16} />
+            </button>
+          ) : null}
+        </form>
+      ) : null}
+      {worldsTab === "adventures" ? (
+        <section className="list-panel world-tab-panel">
           <div className="list-title">
             <PlayCircle size={18} />
-            <h3>Active Adventures</h3>
+            <h3>Adventures</h3>
           </div>
           {loading ? <p className="muted">Loading adventures...</p> : null}
           {!loading && adventures.length === 0 ? (
@@ -401,10 +437,11 @@ export function WorldsPanel() {
             ))}
           </div>
         </section>
-        <section className="list-panel">
+      ) : (
+        <section className="list-panel world-tab-panel">
           <div className="list-title">
             <BookOpen size={18} />
-            <h3>World Blueprints</h3>
+            <h3>Worlds</h3>
             {blueprintCount !== null ? (
               <span className="count-chip">{formatNumber(blueprintCount)} total</span>
             ) : null}
@@ -435,7 +472,7 @@ export function WorldsPanel() {
             </button>
           ) : null}
         </section>
-      </div>
+      )}
       {selectedWorld ? (
         <section className="detail-panel">
           <div>
