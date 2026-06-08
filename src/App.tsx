@@ -28,11 +28,21 @@ export function App() {
 
   return (
     <div className="app-shell">
-      <aside className="side-nav" aria-label="Primary navigation">
-        <div className="side-brand">
+      <header className="titlebar">
+        <button
+          className="titlebar-logo"
+          type="button"
+          onClick={() => setNav("worlds")}
+          aria-label="Go to Worlds"
+        >
           <AppLogo />
+        </button>
+        <div className="titlebar-wordmark" aria-label="Soulfire">
           <span>Soulfire</span>
         </div>
+        <StatusPill status={status} />
+      </header>
+      <aside className="side-nav" aria-label="Primary navigation">
         <nav>
           <NavButton
             active={nav === "worlds"}
@@ -61,11 +71,6 @@ export function App() {
         </nav>
       </aside>
       <div className="main-column">
-        <header className="titlebar">
-          <AppLogo />
-          <strong>Soulfire</strong>
-          <StatusPill status={status} />
-        </header>
         <main className="content">{panel}</main>
       </div>
     </div>
