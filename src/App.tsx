@@ -18,7 +18,7 @@ export function App() {
   const panel = useMemo(() => {
     if (nav === "characters") return <CharactersPanel />;
     if (nav === "stats") return <StatsPanel />;
-    if (nav === "settings") return <SettingsPanel status={status} />;
+    if (nav === "settings") return <SettingsPanel status={status} onStatus={setStatus} />;
     return <WorldsPanel />;
   }, [nav, status]);
 

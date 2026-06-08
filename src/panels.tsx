@@ -807,7 +807,13 @@ export function StatsPanel() {
   );
 }
 
-export function SettingsPanel({ status }: { status: StoreStatus }) {
+export function SettingsPanel({
+  status,
+  onStatus,
+}: {
+  status: StoreStatus;
+  onStatus: (status: StoreStatus) => void;
+}) {
   const [credential, setCredential] = useState<CredentialStatus | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
@@ -907,6 +913,18 @@ export function SettingsPanel({ status }: { status: StoreStatus }) {
     }
   }
 
+  async function lockStore() {
+    setBusy(true);
+    setError(null);
+    try {
+      onStatus(await command<StoreStatus>("lock_store"));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   useEffect(() => {
     void refresh();
   }, []);
@@ -998,6 +1016,16 @@ export function SettingsPanel({ status }: { status: StoreStatus }) {
             Save
           </button>
         </form>
+      </section>
+      <section className="settings-card">
+        <div className="list-title">
+          <ShieldCheck size={18} />
+          <h3>Storage</h3>
+        </div>
+        <p className="muted">Lock the encrypted store and return to the unlock screen.</p>
+        <button className="secondary-button list-footer-button" type="button" onClick={lockStore} disabled={busy}>
+          Lock Store
+        </button>
       </section>
       <section className="settings-card">
         <div className="list-title">
