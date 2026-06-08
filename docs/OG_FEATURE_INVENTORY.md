@@ -178,7 +178,7 @@ The current repo has a React shell only. These OG UI surfaces are required unles
 | World play screen | Missing | Port immersive layout, composer, stream status, current adventure affordances, GM proposal cards. Tauri draft bridge for adventure composers exists; React can inspect active adventure state and next-turn prompt sections from the shell, but play UI remains missing. |
 | World create/edit | Missing | Port tabs, template affordances, manual editor, image selector/transform, builder entry. |
 | World builder | Missing | Port chat + editable prompt/fields pattern. |
-| Character list | Partial data-backed shell | React loads/searches cursor-paged saved characters through Tauri commands with OG-style search chrome, loading/error/empty states, total count chip, read-only character detail panels, and in-app delete confirmation. Port OG card art, create, editor, and chat entry behavior. |
+| Character list | Partial data-backed shell | React loads/searches cursor-paged saved characters through Tauri commands with OG-style search chrome, stacked avatar rows, loading/error/empty states, total count chip, read-only character detail panels, and in-app delete confirmation. Port OG portrait art, create, editor, and chat entry behavior. |
 | Character create/edit | Missing | Port Profile/Prompt/Initial Message/Settings tabs, image selector/transform, builder entry. |
 | Character builder | Missing | Port chat + prompt tab pairing. |
 | Character chat | Missing | Port bubbles, streaming feel, reactions, draft behavior, status labels. |

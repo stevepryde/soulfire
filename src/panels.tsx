@@ -2,6 +2,7 @@ import {
   AlertCircle,
   BarChart3,
   BookOpen,
+  ChevronRight,
   KeyRound,
   Library,
   MessageCircle,
@@ -711,17 +712,25 @@ export function CharactersPanel() {
             detail="Character drafts and refinements will appear here."
           />
         ) : null}
-        <div className="character-grid">
+        <div className="character-list">
           {characters.map((character) => (
             <button
-              className="character-card character-card-button"
+              className={`character-row${selectedCharacter?.character_id === character.character_id ? " active" : ""}`}
               key={character.character_id}
               type="button"
               onClick={() => loadCharacterDetail(character.character_id)}
             >
-              <h4>{character.name}</h4>
-              <p>{character.subtitle || character.description || "No subtitle"}</p>
-              <span>{formatDate(character.updated_at)}</span>
+              <span className="character-avatar" aria-hidden="true">
+                {initialsFromName(character.name)}
+              </span>
+              <span className="character-row-copy">
+                <strong>{character.name}</strong>
+                <span>{character.subtitle || character.description || "No subtitle"}</span>
+              </span>
+              <span className="character-row-meta">
+                <time>{formatDate(character.updated_at)}</time>
+                <ChevronRight size={17} aria-hidden="true" />
+              </span>
             </button>
           ))}
         </div>
@@ -771,6 +780,12 @@ export function CharactersPanel() {
 
 function formatNumber(value: number): string {
   return new Intl.NumberFormat().format(value);
+}
+
+function initialsFromName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const initials = parts.slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join("");
+  return initials || "?";
 }
 
 function totalTokens(totals: TokenTotals): number {
