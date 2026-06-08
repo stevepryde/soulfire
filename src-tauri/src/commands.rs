@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use serde::Serialize;
 use soulfire_core::model::profile::{AppProfile, PlayerProfile};
 use soulfire_core::model::settings::AppSettings;
-use soulfire_core::store::Store;
+use soulfire_core::store::{AsyncStore, Store};
 use tauri::State;
 
 use crate::error::CommandError;
@@ -36,53 +36,53 @@ fn parse_master_password(password: String) -> Result<String, CommandError> {
     Ok(password)
 }
 
-fn status_for(path: &PathBuf, state: &AppState) -> Result<StoreStatus, CommandError> {
+async fn status_for(path: &PathBuf, state: &AppState) -> Result<StoreStatus, CommandError> {
     Ok(StoreStatus {
-        initialized: Store::is_initialized(path),
+        initialized: AsyncStore::is_initialized(path).await?,
         unlocked: state.is_unlocked(),
-        schema_version: state.schema_version()?,
+        schema_version: state.schema_version().await?,
     })
 }
 
 #[tauri::command]
-pub fn store_exists(data_dir: String) -> Result<bool, CommandError> {
-    Ok(Store::is_initialized(parse_data_dir(data_dir)?))
+pub async fn store_exists(data_dir: String) -> Result<bool, CommandError> {
+    Ok(AsyncStore::is_initialized(parse_data_dir(data_dir)?).await?)
 }
 
 #[tauri::command]
-pub fn setup_store(
+pub async fn setup_store(
     data_dir: String,
     master_password: String,
     state: State<'_, AppState>,
 ) -> Result<StoreStatus, CommandError> {
     let path = parse_data_dir(data_dir)?;
     let password = parse_master_password(master_password)?;
-    let store = Store::initialize(&path, &password)?;
+    let store = AsyncStore::initialize(&path, password).await?;
     state.set_store(store);
-    status_for(&path, &state)
+    status_for(&path, &state).await
 }
 
 #[tauri::command]
-pub fn unlock_store(
+pub async fn unlock_store(
     data_dir: String,
     master_password: String,
     state: State<'_, AppState>,
 ) -> Result<StoreStatus, CommandError> {
     let path = parse_data_dir(data_dir)?;
     let password = parse_master_password(master_password)?;
-    let store = Store::unlock(&path, &password)?;
+    let store = AsyncStore::unlock(&path, password).await?;
     state.set_store(store);
-    status_for(&path, &state)
+    status_for(&path, &state).await
 }
 
 #[tauri::command]
-pub fn lock_store(
+pub async fn lock_store(
     data_dir: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<StoreStatus, CommandError> {
     state.clear_store();
     let initialized = match data_dir {
-        Some(path) => Store::is_initialized(parse_data_dir(path)?),
+        Some(path) => AsyncStore::is_initialized(parse_data_dir(path)?).await?,
         None => false,
     };
     Ok(StoreStatus {
@@ -93,65 +93,71 @@ pub fn lock_store(
 }
 
 #[tauri::command]
-pub fn store_status(
+pub async fn store_status(
     data_dir: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<StoreStatus, CommandError> {
     let initialized = match data_dir {
-        Some(path) => Store::is_initialized(parse_data_dir(path)?),
+        Some(path) => AsyncStore::is_initialized(parse_data_dir(path)?).await?,
         None => false,
     };
     Ok(StoreStatus {
         initialized,
         unlocked: state.is_unlocked(),
-        schema_version: state.schema_version()?,
+        schema_version: state.schema_version().await?,
     })
 }
 
 #[tauri::command]
-pub fn get_app_profile(state: State<'_, AppState>) -> Result<AppProfile, CommandError> {
-    state.with_store(Store::app_profile)
+pub async fn get_app_profile(state: State<'_, AppState>) -> Result<AppProfile, CommandError> {
+    state.with_store(Store::app_profile).await
 }
 
 #[tauri::command]
-pub fn save_app_profile(
+pub async fn save_app_profile(
     profile: AppProfile,
     state: State<'_, AppState>,
 ) -> Result<AppProfile, CommandError> {
-    state.with_store(|store| {
-        store.save_app_profile(&profile)?;
-        Ok(profile)
-    })
+    state
+        .with_store(move |store| {
+            store.save_app_profile(&profile)?;
+            Ok(profile)
+        })
+        .await
 }
 
 #[tauri::command]
-pub fn get_player_profile(state: State<'_, AppState>) -> Result<PlayerProfile, CommandError> {
-    state.with_store(Store::player_profile)
+pub async fn get_player_profile(state: State<'_, AppState>) -> Result<PlayerProfile, CommandError> {
+    state.with_store(Store::player_profile).await
 }
 
 #[tauri::command]
-pub fn save_player_profile(
+pub async fn save_player_profile(
     profile: PlayerProfile,
     state: State<'_, AppState>,
 ) -> Result<PlayerProfile, CommandError> {
-    state.with_store(|store| {
-        store.save_player_profile(&profile)?;
-        Ok(profile)
-    })
+    state
+        .with_store(move |store| {
+            store.save_player_profile(&profile)?;
+            Ok(profile)
+        })
+        .await
 }
 
 #[tauri::command]
-pub fn get_app_settings(state: State<'_, AppState>) -> Result<AppSettings, CommandError> {
-    state.with_store(Store::app_settings)
+pub async fn get_app_settings(state: State<'_, AppState>) -> Result<AppSettings, CommandError> {
+    state.with_store(Store::app_settings).await
 }
 
 #[tauri::command]
-pub fn save_app_settings(
+pub async fn save_app_settings(
     settings: AppSettings,
     state: State<'_, AppState>,
 ) -> Result<AppSettings, CommandError> {
-    state.with_store(|store| {
-        store.save_app_settings(&settings)?;
-        Ok(settings)
-    })
+    state
+        .with_store(move |store| {
+            store.save_app_settings(&settings)?;
+            Ok(settings)
+        })
+        .await
 }

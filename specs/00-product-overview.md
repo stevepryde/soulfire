@@ -69,7 +69,9 @@ relative to Soulfire-OG, and the licensing posture.
 - **PROD-17** The user interface never owns durable product truth directly: it may hold view state,
   form drafts, optimistic affordances, and request status, but persisted entities, prompt assembly,
   AI request construction, credentials, and storage are owned by the Rust core. The interface must
-  not access the database, persist API keys, or assemble production prompts itself.
+  not access the database, persist API keys, or assemble production prompts itself. Storage-backed,
+  AI-backed, image-backed, and import/export actions cross the interface/core boundary as
+  non-blocking operations with typed results, status, or event feedback.
 
 ## Acceptance criteria
 
@@ -103,3 +105,6 @@ relative to Soulfire-OG, and the licensing posture.
 - Soulfire-OG used browser APIs for things like websockets and interaction with the backend. The
   rebuild replaces those transports with Tauri command and event boundaries; React renders state and
   interaction while Rust remains the source of durable truth.
+- Store-backed Tauri commands should use async command handlers and the core async store facade so
+  encrypted SQLite work stays off the UI/runtime path. Direct synchronous store access belongs inside
+  core internals and tests, not in app-shell command handlers.

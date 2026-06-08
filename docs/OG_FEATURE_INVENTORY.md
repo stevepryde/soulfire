@@ -54,7 +54,7 @@ Local source areas scanned:
 | Phase 1: spec update pass | Done enough for implementation | Specs describe the Tauri v2 + React stack, local-only removals, cursor pagination, and React/Tauri testing expectations. |
 | Phase 2: feature inventory and diff | Done here | This document is the first concrete OG parity matrix. Keep it current as work lands. |
 | Phase 3: Rust core | Partial | A broad Rust core exists, including encrypted SQLite, models, chat, worlds, builders, images, metrics, pagination, request-level config coverage, representative prompt hash snapshots, and OG-to-local data fixtures. Some trust checks remain. |
-| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, typed setup/unlock/profile/settings commands, and the first event DTO vocabulary. Feature commands and event emission remain. |
+| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, async typed setup/unlock/profile/settings commands, and the first event DTO vocabulary. Feature commands and event emission remain. |
 | Phase 5: React UI fidelity port | Missing | No React/Vite/Tailwind app exists in this checkout. OG UI remains reference-only. |
 | Phase 6: desktop/mobile readiness | Missing | No Tauri app to launch/package yet. |
 | Phase 7: validation | Partial | Core tests exist; OG prompt/config fixture parity, service-flow parity, Tauri command checks, React visual/smoke tests, and manual smoke docs remain. |
@@ -72,7 +72,7 @@ These are intentionally removed, not parity gaps:
 | Admin tooling, analytics dashboard, moderation queues, AI eval admin UI | Removed | No service operator/admin surface. Local token stats replace user-facing usage insight. |
 | Public worlds, publication status, review submission, ratings | Removed | No public/shared content surface. Starter content is bundled locally. |
 | Daily/global request limits and free-plan image limits | Removed | Provider/account limits come from the user's own API key; local app does not impose service quotas. |
-| HTTP routes, websocket server, service-worker/PWA/deployment concerns | Adapted | Rebuild as typed Tauri commands and event channels; setup/unlock/profile/settings commands now exist. |
+| HTTP routes, websocket server, service-worker/PWA/deployment concerns | Adapted | Rebuild as typed Tauri commands and event channels; async setup/unlock/profile/settings commands now exist. |
 | Mongo repositories and server migrations | Adapted | Rebuild as encrypted SQLite repositories and local forward migrations. |
 | Gemini provider implementation | Deferred/removed for launch | Specs target OpenAI BYOK first while keeping a provider abstraction. |
 | Landing, terms, privacy, subscribe, manage subscription pages | Removed | Public website/account flows are not app surfaces. |
@@ -208,7 +208,7 @@ The current repo has no React app yet. These OG UI surfaces are required unless 
 | Cursor pagination tests | Partial | Existing tests cover keyset behavior; verify all database-backed UI lists use the cursor contract. |
 | Prompt/config golden tests | Partial | Request-level config assertions cover chat, summary/state updater, builders, extraction, images, world intro/turn/diff/full update, and `/gm`; `tests/prompt_snapshots.rs` pins representative full rendered prompts with SHA-256 snapshots and anchors. Broaden with request-object snapshots as bridge/UI work exposes more DTO paths. |
 | Data/service-flow fixture tests | Partial | Data fixture covers representative adapted records through serde and store persistence; core flow tests cover representative behavior. Add broader OG-derived success/failure/recovery fixtures. |
-| Tauri command/event tests | Partial | `soulfire-app` has state-boundary tests plus event serialization tests for React-facing names/fields. Add command invocation tests as feature commands/events land. |
+| Tauri command/event tests | Partial | `soulfire-app` has async state-boundary tests plus event serialization tests for React-facing names/fields. Add command invocation tests as feature commands/events land. |
 | React smoke/visual tests | Missing | Blocked until React app exists. |
 | Manual smoke checklist | Missing | Add alongside first vertical slice. |
 

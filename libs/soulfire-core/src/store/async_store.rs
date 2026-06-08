@@ -19,6 +19,12 @@ pub struct AsyncStore {
 }
 
 impl AsyncStore {
+    /// Check store initialization on a blocking worker.
+    pub async fn is_initialized(data_dir: impl AsRef<Path>) -> CoreResult<bool> {
+        let data_dir = data_dir.as_ref().to_path_buf();
+        spawn_store_task(move || Ok(Store::is_initialized(data_dir))).await
+    }
+
     /// First-run setup on a blocking worker, returning a UI-safe async handle.
     pub async fn initialize(
         data_dir: impl AsRef<Path>,

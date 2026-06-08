@@ -256,15 +256,19 @@ Expose the Rust core through a typed Tauri API.
 1. Define command DTOs and event payloads from the Rust core types.
 2. Add commands for setup/unlock/settings, worlds, adventures, chat, builders, images, prompts, and
    stats.
-3. Add event channels for streaming chat/adventure output, long-running task status, and errors.
-4. Enforce command permissions/capabilities narrowly.
-5. Ensure secrets never cross into frontend persistence or logs.
-6. Add integration tests for command behavior where practical.
+3. Keep store-backed and long-running commands async so encrypted storage, AI work, image work, and
+   import/export never block the UI/runtime path.
+4. Add event channels for streaming chat/adventure output, long-running task status, and errors.
+5. Enforce command permissions/capabilities narrowly.
+6. Ensure secrets never cross into frontend persistence or logs.
+7. Add integration tests for command behavior where practical.
 
 Exit criteria:
 
 - The React app can do useful work only through typed Tauri commands/events.
 - Command boundaries do not leak API keys, raw secrets, or storage internals.
+- Store-backed commands enter storage through the async core facade rather than direct synchronous
+  store calls from the app shell.
 - Long-running work has cancellation, timeout, and backpressure behavior.
 
 ## Phase 5: React UI Fidelity Port

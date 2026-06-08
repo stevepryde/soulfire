@@ -84,6 +84,10 @@ of duplicating. [`specs/README.md`](specs/README.md) is the index and ID registr
   reproduced exactly except where a spec deliberately changes them. Do not invent behavior OG lacks
   (e.g. unimplemented "chat modes", `PROD-14`); do not reintroduce its accounts/billing/admin/
   moderation/ratings/public-content framing (`PROD-11`).
+- **Async app bridge.** Tauri command handlers that touch storage, AI, image generation, import/export,
+  or any other potentially blocking work must be `async` and must enter encrypted storage through the
+  core async store facade. Do not call the synchronous `Store` directly from app-shell commands; keep
+  it inside core internals, blocking workers, and focused tests.
 - **No cut corners.** Build the full-featured version, not an MVP. If something is under-specified,
   fix the spec — don't ship a stub.
 - **Native/local app.** The approved direction is Tauri v2 + React with Rust owning durable product
