@@ -183,6 +183,12 @@
           "markdownDescription": "Allows the main Soulfire window to start adventures and submit adventure turns through the typed command/event bridge."
         },
         {
+          "description": "Allows the main Soulfire window to use character and world builders and extract NPCs through typed commands.",
+          "type": "string",
+          "const": "allow-builders",
+          "markdownDescription": "Allows the main Soulfire window to use character and world builders and extract NPCs through typed commands."
+        },
+        {
           "description": "Allows the main Soulfire window to open character chats and send chat messages through the typed command/event bridge.",
           "type": "string",
           "const": "allow-chat",

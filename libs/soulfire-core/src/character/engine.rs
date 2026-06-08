@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::model::ai_model::AiModel;
 use crate::model::character::{
@@ -42,7 +42,7 @@ const EXTRACTION_STATE_MAX_TOKENS: u32 = 2000;
 
 /// The structured result of a builder turn (`CHAR-7`). Null fields mean
 /// "leave unchanged".
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct BuilderResult {
     pub assistant_message: String,
     #[serde(default)]

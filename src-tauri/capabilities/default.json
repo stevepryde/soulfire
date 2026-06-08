@@ -8,6 +8,7 @@
     "allow-store-lifecycle",
     "allow-profile-settings",
     "allow-credentials",
+    "allow-builders",
     "allow-images",
     "allow-prompts",
     "allow-stats",

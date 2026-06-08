@@ -1,4 +1,5 @@
 pub(crate) mod adventure;
+pub(crate) mod builders;
 pub(crate) mod characters;
 pub(crate) mod chat;
 mod common;

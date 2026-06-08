@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::model::ai_model::AiModel;
 use crate::model::ids::{WorldBlueprintId, WorldBuilderMessageId, WorldBuilderSnapshotId};
@@ -27,7 +27,7 @@ const BUILDER_TEMPERATURE: f64 = 0.8;
 const BUILDER_MAX_TOKENS: u32 = 9000;
 
 /// The structured result of a world-builder turn (`WORLD-21`). Null = unchanged.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct WorldBuilderResult {
     pub assistant_message: String,
     #[serde(default)]

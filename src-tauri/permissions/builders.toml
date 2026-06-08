@@ -1,0 +1,12 @@
+[[permission]]
+identifier = "allow-builders"
+description = "Allows the main Soulfire window to use character and world builders and extract NPCs through typed commands."
+commands.allow = [
+  "get_character_builder_state",
+  "send_character_builder_message",
+  "undo_character_builder",
+  "extract_npc",
+  "get_world_builder_state",
+  "send_world_builder_message",
+  "undo_world_builder",
+]

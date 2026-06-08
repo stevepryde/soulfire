@@ -54,7 +54,7 @@ Local source areas scanned:
 | Phase 1: spec update pass | Done enough for implementation | Specs describe the Tauri v2 + React stack, local-only removals, cursor pagination, and React/Tauri testing expectations. |
 | Phase 2: feature inventory and diff | Done here | This document is the first concrete OG parity matrix. Keep it current as work lands. |
 | Phase 3: Rust core | Partial | A broad Rust core exists, including encrypted SQLite, models, chat, worlds, builders, images, metrics, pagination, request-level config coverage, representative prompt hash snapshots, and OG-to-local data fixtures. Some trust checks remain. |
-| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, token-stats read/clear commands, image load/generate/upload/clear commands, character prompt-view/save-section commands, character save/list/load/delete, chat load/delete/open/send, world save/list/load/delete, adventure list/load/delete/start/turn/GM-proposal decision commands, and the first event DTO vocabulary. Remaining builder commands and adventure prompt-view commands are still missing. |
+| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, token-stats read/clear commands, image load/generate/upload/clear commands, character prompt-view/save-section commands, character save/list/load/delete, character/world builder state/send/undo commands, NPC extraction commands, chat load/delete/open/send, world save/list/load/delete, adventure list/load/delete/start/turn/GM-proposal decision commands, and the first event DTO vocabulary. Adventure prompt-view commands remain missing. |
 | Phase 5: React UI fidelity port | Missing | No React/Vite/Tailwind app exists in this checkout. OG UI remains reference-only. |
 | Phase 6: desktop/mobile readiness | Missing | No Tauri app to launch/package yet. |
 | Phase 7: validation | Partial | Core tests exist; OG prompt/config fixture parity, service-flow parity, Tauri command checks, React visual/smoke tests, and manual smoke docs remain. |
@@ -140,8 +140,8 @@ These are intentionally removed, not parity gaps:
 | --- | --- | --- | --- |
 | Manual character create/edit | `model/character.rs`, store character repos, `src-tauri/src/commands/characters.rs` | Partial bridge / missing UI | Field model and persistence exist. Tauri exposes save/list/load/delete commands and clamps creativity on save. React editor UI remains missing. |
 | Character list/search | `store/repo/characters.rs`, `src-tauri/src/commands/characters.rs` | Partial bridge / missing UI | Keyset list exists and Tauri exposes cursor list/load/delete commands. React list UI remains missing. |
-| Character builder service | `character/engine.rs`, `character/prompts.rs` | Ported | Structured full-field replacement, snapshots, history, undo, and request config parity exist. |
-| Character NPC extraction from worlds | `character/engine.rs`, `character/prompts.rs` | Ported | Core extraction path and request config parity exist. |
+| Character builder service | `character/engine.rs`, `character/prompts.rs`, `src-tauri/src/commands/builders.rs` | Partial bridge | Structured full-field replacement, snapshots, history, undo, and request config parity exist. Tauri exposes builder state/send/undo; React UI remains missing. |
+| Character NPC extraction from worlds | `character/engine.rs`, `character/prompts.rs`, `src-tauri/src/commands/builders.rs` | Partial bridge | Core extraction path and request config parity exist. Tauri exposes extraction with task status and character-ready event; React UI remains missing. |
 | Portrait generation/upload/clear | `image/mod.rs`, `store/repo/images.rs`, `src-tauri/src/commands/images.rs` | Partial bridge | AI generation plus local image bytes exist; upload is local-only beyond OG. Tauri exposes byte load, generate/regenerate, upload, clear, and image-ready events; React UI remains missing. |
 | Portrait transform editor | none | Missing | React implementation should port OG geometry/interaction behavior. |
 | Finish builder image step | `image/mod.rs` plus builder | Partial | Core image generation and image bridge commands exist; combined builder finish command/UI missing. |
@@ -151,7 +151,7 @@ These are intentionally removed, not parity gaps:
 | OG source | Local source | Status | Notes |
 | --- | --- | --- | --- |
 | World blueprint create/read/update/delete/list/count | `model/world.rs`, `store/repo/worlds.rs`, `src-tauri/src/commands/worlds.rs` | Partial bridge | Core model and repository exist. Tauri exposes save, cursor list, load, and delete commands; count command and UI remain missing. |
-| World builder service | `world/builder.rs` | Ported | Structured full-field replacement, snapshots, chat history, undo, metrics, and request config parity exist. |
+| World builder service | `world/builder.rs`, `src-tauri/src/commands/builders.rs` | Partial bridge | Structured full-field replacement, snapshots, chat history, undo, metrics, and request config parity exist. Tauri exposes builder state/send/undo; React UI remains missing. |
 | Adventure list/load/delete | `store/repo/worlds.rs`, `src-tauri/src/commands/worlds.rs` | Partial bridge | Core persistence exists. Tauri exposes cursor list, in-progress list, load-with-messages/pending-proposals, and delete commands. React UI remains missing. |
 | Adventure start and intro | `world/engine.rs`, `world/prompts.rs`, `src-tauri/src/commands.rs` | Partial bridge | Streams intro narration and persists initial state. Tauri `start_adventure` creates from a blueprint and emits intro completion/status events. Needs fixture parity tests. |
 | Player turn narration | `world/engine.rs`, `world/prompts.rs`, `src-tauri/src/events.rs`, `src-tauri/src/commands.rs` | Partial bridge | Tauri `take_adventure_turn` emits user action echo, narration chunks, narration completion, ready-status, task-status, and error events around the core streamed turn. |
@@ -225,9 +225,9 @@ Work in this order unless the roadmap changes:
    GmProposal, builder-session, metric, settings, profile, and draft records.
 3. **Phase 4 command breadth:** setup/unlock/settings/profile/credential, stats,
    character save/list-load-delete, chat load-delete/open-send, world save/list-load-delete,
-   adventure list-load-delete/start-turn, image load-generate-upload-clear, character prompt-view,
-   and GM proposal accept/reject commands exist; next expose remaining builder and adventure
-   prompt-viewer commands.
+   adventure list-load-delete/start-turn, image load-generate-upload-clear, character/world builder,
+   NPC extraction, character prompt-view, and GM proposal accept/reject commands exist; next expose
+   remaining adventure prompt-viewer commands.
 4. **Phase 5 React shell:** scaffold Vite/React/Tailwind/Bun with OG tokens, custom controls, shell
    navigation, setup/unlock, and the two vertical-slice screens.
 5. **Phase 5 fidelity expansion:** port the remaining editors, builders, image framing, prompt viewer,

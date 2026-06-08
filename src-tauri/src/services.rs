@@ -1,13 +1,14 @@
 use std::sync::Arc;
 
 use soulfire_core::ai::{AiService, ApiKeySource, OpenAiProvider};
+use soulfire_core::character::CharacterEngine;
 use soulfire_core::chat::ChatEngine;
 use soulfire_core::clock::SystemClock;
 use soulfire_core::image::ImageEngine;
 use soulfire_core::model::ai_model::AiVendor;
 use soulfire_core::secret::Secret;
 use soulfire_core::store::{AsyncStore, Store};
-use soulfire_core::world::WorldEngine;
+use soulfire_core::world::{WorldBuilderEngine, WorldEngine};
 
 struct StoreKeySource {
     store: Arc<Store>,
@@ -28,9 +29,19 @@ pub fn chat_engine(store: &AsyncStore) -> ChatEngine {
     ChatEngine::new(store, ai, Arc::new(SystemClock))
 }
 
+pub fn character_engine(store: &AsyncStore) -> CharacterEngine {
+    let (store, ai) = ai_runtime(store);
+    CharacterEngine::new(store, ai, Arc::new(SystemClock))
+}
+
 pub fn world_engine(store: &AsyncStore) -> WorldEngine {
     let (store, ai) = ai_runtime(store);
     WorldEngine::new(store, ai, Arc::new(SystemClock))
+}
+
+pub fn world_builder_engine(store: &AsyncStore) -> WorldBuilderEngine {
+    let (store, ai) = ai_runtime(store);
+    WorldBuilderEngine::new(store, ai, Arc::new(SystemClock))
 }
 
 pub fn image_engine(store: &AsyncStore) -> ImageEngine {
