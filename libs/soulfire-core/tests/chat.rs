@@ -32,7 +32,7 @@ struct Harness {
     _dir: tempfile::TempDir,
     store: Arc<Store>,
     provider: Arc<RecordingProvider>,
-    clock: Arc<MockClock>,
+    _clock: Arc<MockClock>,
     engine: ChatEngine,
 }
 
@@ -47,7 +47,7 @@ fn harness() -> Harness {
         _dir: dir,
         store,
         provider,
-        clock,
+        _clock: clock,
         engine,
     }
 }

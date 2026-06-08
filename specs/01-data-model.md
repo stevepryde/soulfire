@@ -165,6 +165,10 @@ Image bytes/storage are owned by `IMG`.
 - **DATA-23** All reads and writes are consistent within a single process: a saved change is visible
   to subsequent reads, and the persisted record is the single source of truth for what the UI shows
   and what the AI layer sends.
+- **DATA-27** Every database-backed list that can grow with user content is paginated by a stable
+  cursor contract rather than offset paging. The ordering for each list is total and deterministic,
+  using an entity-specific sort key plus a unique tie-breaker, so paging through results visits each
+  matching row once without duplicates or gaps.
 
 ## Acceptance criteria
 
@@ -186,6 +190,9 @@ Image bytes/storage are owned by `IMG`.
   token counts, and applicable entity associations; a zero/zero call writes none.
 - **AC-DATA-g** (DATA-26) Saving a chat or adventure draft replaces any prior draft for that scope;
   reopening the same chat/adventure restores the draft; submitting or deleting the parent clears it.
+- **AC-DATA-h** (DATA-27) Paging through characters, blueprints, adventures, and other growing list
+  surfaces with a small page size returns the same ordered entity IDs as one large fetch, without
+  duplicates or gaps, including when multiple rows share the primary sort value.
 
 ## Design notes (non-normative)
 

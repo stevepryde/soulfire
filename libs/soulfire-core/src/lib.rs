@@ -32,4 +32,4 @@ pub use paste;
 pub use clock::{Clock, MockClock, SystemClock};
 pub use error::{CoreError, CoreResult};
 pub use keychain::{InMemoryKeychain, Keychain};
-pub use store::{ImageOwnerKind, Store, StorePaths, StoredImage};
+pub use store::{AsyncStore, ImageOwnerKind, Store, StorePaths, StoredImage};

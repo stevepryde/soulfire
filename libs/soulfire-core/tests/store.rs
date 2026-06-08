@@ -21,7 +21,7 @@ use soulfire_core::model::world::{
     Adventure, AdventureMessage, AdventureMessageType, WorldBlueprint,
 };
 
-use soulfire_core::store::Store;
+use soulfire_core::store::{AsyncStore, Store};
 
 fn temp_store() -> (tempfile::TempDir, Store) {
     let dir = tempfile::tempdir().unwrap();
@@ -407,4 +407,51 @@ fn keyset_paging_worlds_and_adventures_match_full_order() {
     }
     assert_eq!(adv_paged, adv_ref);
     assert_eq!(adv_paged.iter().collect::<HashSet<_>>().len(), 15);
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn async_store_runs_database_work_without_blocking_the_async_runtime() {
+    // UI-24 / PROD-17: Tauri async commands can drive the synchronous encrypted
+    // store through AsyncStore without running rusqlite work on the UI/runtime
+    // thread. This pins the bridge contract before the Tauri shell is added.
+    let dir = tempfile::tempdir().unwrap();
+    let store = AsyncStore::initialize(dir.path(), "test-password")
+        .await
+        .unwrap();
+
+    let character = sample_character("Async Lyra");
+    let character_id = character.character_id.clone();
+    store
+        .run(move |store| store.save_character(&character))
+        .await
+        .unwrap();
+
+    let loaded = store
+        .run(move |store| store.character(&character_id))
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(loaded.name.as_str(), "Async Lyra");
+
+    let (started_tx, started_rx) = tokio::sync::oneshot::channel();
+    let store_for_task = store.clone();
+    let handle = tokio::spawn(async move {
+        store_for_task
+            .run(move |store| {
+                let _ = started_tx.send(());
+                std::thread::sleep(std::time::Duration::from_millis(150));
+                store.count_characters()
+            })
+            .await
+    });
+
+    started_rx.await.unwrap();
+    tokio::time::timeout(
+        std::time::Duration::from_millis(50),
+        tokio::time::sleep(std::time::Duration::from_millis(1)),
+    )
+    .await
+    .expect("async runtime should continue ticking while store work is blocking");
+
+    assert_eq!(handle.await.unwrap().unwrap(), 1);
 }

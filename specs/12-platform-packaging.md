@@ -7,8 +7,9 @@ mechanics are owned by `SEC`; licensing posture by `PROD`.
 
 ### Targets
 - **PKG-1** Soulfire builds and runs as a native application on **Windows, macOS, Linux, Android, and
-  iOS** from a single Rust + Dioxus codebase (`PROD-3`). Each platform launches to the lock/setup
-  screen and is fully functional (subject to a configured API key for AI features).
+  iOS** from one Tauri v2 application with a Rust core and React/TypeScript interface (`PROD-3`).
+  Each platform launches to the lock/setup screen and is fully functional (subject to a configured
+  API key for AI features).
 - **PKG-2** The UI adapts to each platform's form factor (`UI-3`): desktop window resizing and the
   sidebar nav; mobile touch, safe areas, and the bottom nav. There is no functional divergence between
   platforms beyond input/layout adaptation and platform-secure-store availability (`SEC-7`).
@@ -42,20 +43,19 @@ mechanics are owned by `SEC`; licensing posture by `PROD`.
 
 ## Design notes (non-normative)
 
-- Dioxus desktop (via its native renderer) covers Windows/macOS/Linux; Dioxus mobile covers
-  Android/iOS. A small workspace with a shared core crate (models, store, AI, prompt/turn engines)
-  and a thin per-platform UI shell keeps PKG-2 cheap. `rusqlite` with bundled SQLCipher links the
-  encrypted store on every target (`SEC`).
+- Tauri v2 provides the desktop/mobile app shell. A small workspace with a shared core crate
+  (models, store, AI, prompt/turn engines) and a React/TypeScript UI keeps platform-specific code
+  narrow. `rusqlite` with bundled SQLCipher links the encrypted store on every target (`SEC`).
 - **Dependency decision — vendor, no private/SSH deps.** This repo must build from a plain `git
   clone` with no private access (it is public, `PROD-16`). Soulfire-OG's own crates — `ai-client`,
   `sp-ui`, `sp-markdown`, `sp-std`, `stripe-client` (all consumed there as SSH git deps) — are **not**
   used as git or crates.io dependencies. Instead the **needed parts are vendored** into this workspace
   as path crates under `libs/`, licensed `MIT OR Apache-2.0` to match the app, copying only what is
   used and trimming the rest:
-  - `sp-ui` → vendored and **adapted from web to native** (strip `wasm-bindgen`/`web-sys`/`gloo`/
-    `js-sys` paths; keep the component contracts the UI relies on — toasts, context menu, dropdown,
-    text input, query client, debounce, color-theme selector).
-  - `sp-markdown` → vendored (chat-bubble markdown rendering).
+  - `sp-ui` → not vendored as a runtime UI crate for the React app. Its component behavior, tokens,
+    and interaction details remain a reference for the React component system.
+  - `sp-markdown` → not vendored for the React app; markdown rendering uses a mature React renderer
+    while preserving the chat-bubble rendering contract in `UI`.
   - `sp-std` → vendor only the helpers actually referenced (not the `full` surface).
   - `ai-client` → vendored and **trimmed to OpenAI only**; the unmaintained/untested Gemini path is
     dropped (consistent with `PROD-15`/`AI-2`; additional providers are added later behind the
@@ -67,6 +67,6 @@ mechanics are owned by `SEC`; licensing posture by `PROD`.
   app sandbox is the natural location; on desktop a clearly named app folder under the user profile.
 - CI should build all five targets; signing/notarization are environment-specific and configured per
   release rather than in the default build.
-- Porting note: Soulfire-OG's web build (`Dioxus.toml` web platform, service worker, PWA manifest) is
-  replaced by desktop/mobile bundles; keep the asset pipeline (Tailwind build, bundled fonts/icons/
-  character art) but drop web-only files.
+- Porting note: Soulfire-OG's web build (`Dioxus.toml` web platform, service worker, PWA manifest)
+  is replaced by a Tauri desktop/mobile bundle. Keep useful assets (Tailwind tokens, bundled
+  fonts/icons/character art) while dropping browser/PWA deployment-only files.

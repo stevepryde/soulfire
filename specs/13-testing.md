@@ -17,7 +17,7 @@ Prefix: `TEST`.
   engine, the memory ladder, the state validator, builders, summarizers, metering — is plain Rust
   exercised by the project's Rust harness, with **pure logic covered by unit tests** and multi-step
   flows covered by integration tests. The product is a native desktop/mobile app, not a web service;
-  no browser/JavaScript E2E stack is introduced.
+  service behavior is tested through the local core and command/event boundaries, not HTTP routes.
 - **TEST-3 Observable, deterministic, isolated.** Every test asserts **observable** behavior at a
   boundary (a returned result, persisted on-disk state, an emitted event/stream, an error condition,
   a timing/limit) and is **deterministic**: the same inputs produce the same pass/fail every run.
@@ -41,9 +41,9 @@ Prefix: `TEST`.
   `WORLD-15`), draft handling, status/label derivation, streaming-buffer assembly, markdown/reaction
   rendering decisions, list/pagination state — is factored into **pure, unit-testable functions** kept
   out of the component tree and tested directly. The **visual/interaction contract** in `UI` (layout,
-  theming, immersive vs standard chrome, responsiveness, touch targets) is validated by a **documented
-  manual smoke checklist** per platform, because no mature automated end-to-end harness exists for the
-  native UI; optional lightweight component-render smoke tests may supplement but do not replace it.
+  theming, immersive vs standard chrome, responsiveness, touch targets) is validated by React
+  component/visual smoke checks where practical and a **documented manual smoke checklist** per
+  platform.
 - **TEST-7 Data & store coverage.** Automated tests cover: round-trip persistence of every entity with
   fields intact; ID prefix correctness; validation and clamping on save (creativity controls, length
   bounds); reaction filtering to the allowed emoji set; singleton enforcement (one app profile, one
@@ -144,7 +144,7 @@ as they land. Each landed test names, in its body or name, the requirement ID(s)
 
 | Area | Requirements | Validated by |
 |------|--------------|--------------|
-| Data model & store | [01-data-model.md](01-data-model.md) DATA-1..26 incl. DATA-20a | store unit + integration tests (round-trip, id prefixes, validation/clamping, reaction filtering, fresh-store defaults, starter seed ledger, usage associations, draft restore/clear, singletons, cascade-delete integrity) |
+| Data model & store | [01-data-model.md](01-data-model.md) DATA-1..27 incl. DATA-20a | store unit + integration tests (round-trip, id prefixes, validation/clamping, reaction filtering, fresh-store defaults, starter seed ledger, usage associations, draft restore/clear, singletons, cascade-delete integrity, cursor pagination) |
 | Storage & security | [02-storage-security.md](02-storage-security.md) SEC-1..13 | encryption + unlock tests (ciphertext-on-disk, password required, wrong-password lock, re-key, substituted-keychain remember/remove, biometric gate when implemented, key-never-leaks) |
 | AI integration | [03-ai-integration.md](03-ai-integration.md) AI-1..16 | AI-layer tests vs substituted provider (missing-key, structured + fence parse, model precedence/persist, streaming + idle-timeout, retry/error, metering) |
 | System prompts | [04-system-prompts.md](04-system-prompts.md) PROMPT-1..12 | prompt assembly unit tests + golden snapshots (section order, locked/editable, toggles incl. adult content, viewer↔editor one-source) |
@@ -174,12 +174,10 @@ as they land. Each landed test names, in its body or name, the requirement ID(s)
 - **Golden prompts (TEST-10).** Snapshot the assembled prompt per scenario (plain character,
   world-linked character with dynamic state, adventure narration, each toggle on/off) so OG-fidelity
   drift is caught in review; update snapshots only when a `PROMPT`/`CHAT`/`WORLD` change intends it.
-- **Dioxus UI reality (TEST-6).** Dioxus desktop/mobile has no mature end-to-end driver, so the
-  strategy is to keep components thin and push logic into pure functions tested directly; the visual
-  and interaction contract (`UI`) is verified by a per-platform manual smoke checklist at
-  `docs/MANUAL_SMOKE.md`. A `VirtualDom`-level render smoke (mount a screen, assert it builds and key
-  text/affordances are present) is acceptable as a supplement, not a substitute. Revisit automated UI
-  testing if the Dioxus tooling matures.
+- **React/Tauri UI reality (TEST-6).** Keep components thin and push logic into pure functions tested
+  directly. React component/render smoke checks and visual comparison can catch regressions in the
+  webview layer, while the full native interaction contract (`UI`) is still verified by a
+  per-platform manual smoke checklist at `docs/MANUAL_SMOKE.md`.
 - **Reference local check set:** format check, build, lint (deny warnings), and the test suite, run
   per target where feasible; mobile targets at least build in CI. Non-normative — TEST-1..17 are the
   contract.

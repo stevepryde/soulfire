@@ -12,8 +12,9 @@ relative to Soulfire-OG, and the licensing posture.
 - **PROD-2** Soulfire is **BYOK** (bring-your-own-key): the user supplies their own AI provider API
   key(s). The app never ships or proxies keys, and makes AI calls directly from the local device to
   the provider.
-- **PROD-3** Soulfire runs on **Windows, macOS, Linux, Android, and iOS** from a single Rust + Dioxus
-  codebase (see `PKG`).
+- **PROD-3** Soulfire runs on **Windows, macOS, Linux, Android, and iOS** as a Tauri v2 application:
+  Rust owns the durable product core and local storage, and a React/TypeScript interface owns
+  presentation and interaction (see `PKG`/`UI`).
 - **PROD-4** All persistent state lives in a single local encrypted database on the device (see
   `SEC`, `DATA`). No data leaves the device except the content the user sends to their AI provider.
 
@@ -65,6 +66,10 @@ relative to Soulfire-OG, and the licensing posture.
 - **PROD-16** Soulfire is open source: the source is publicly available and licensed under **"MIT OR
   Apache-2.0"** (dual license, user's choice). The repository ships both license texts and declares
   the dual license in its package metadata and README.
+- **PROD-17** The user interface never owns durable product truth directly: it may hold view state,
+  form drafts, optimistic affordances, and request status, but persisted entities, prompt assembly,
+  AI request construction, credentials, and storage are owned by the Rust core. The interface must
+  not access the database, persist API keys, or assemble production prompts itself.
 
 ## Acceptance criteria
 
@@ -86,8 +91,9 @@ relative to Soulfire-OG, and the licensing posture.
 - Soulfire-OG is a Rust workspace (`lib-soulfire` shared models, `soulfire-api` Axum backend,
   `soulfire-ui` Dioxus CSR + Tailwind). The rebuild collapses backend orchestration into the local
   app: prompt assembly, the turn engine, builders, summarizers, and the state validator move from
-  the Axum services into in-process modules the Dioxus app drives directly. The shared model crate
-  ports nearly intact (minus account/billing/moderation types).
+  the Axum services into Rust core modules exposed to the React shell through typed native commands
+  and event streams. The shared model crate ports nearly intact (minus account/billing/moderation
+  types).
 - The reference manifest positions Soulfire as "an AI companion for meaningful conversation and
   immersive storyplay" with a north star of "self-discovery and personal growth through deep
   conversation and immersive roleplay." Keep this voice in onboarding and marketing surfaces (`ONB`,
@@ -95,5 +101,5 @@ relative to Soulfire-OG, and the licensing posture.
 - Soulfire-OG also had a never-finished optional "Shopping List" utility module; it is intentionally
   not part of this rebuild.
 - Soulfire-OG used browser APIs for things like websockets and interaction with the backend. The
-  rebuild does not need, nor can it use, browser APIs. Dioxus Desktop and Dioxus Mobile do not
-  surface these, relying instead on native code where the UI is just the rendering layer.
+  rebuild replaces those transports with Tauri command and event boundaries; React renders state and
+  interaction while Rust remains the source of durable truth.

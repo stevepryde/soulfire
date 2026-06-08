@@ -54,10 +54,9 @@ the priority order:
 
 The tradeoff is real: React means the UI cannot be ported line-for-line from OG Dioxus. That is an
 acceptable cost because fidelity will be enforced by specs, visual comparison, prompt/config golden
-tests, and smoke tests instead of by sharing a UI framework.
-
-Important rule: do not revive the previous tiny Tauri shell. If Tauri + React is the chosen path, it
-must be a deliberate ground-up app with a real Rust core and a serious UI port.
+tests, and smoke tests instead of by sharing a UI framework. We do however want the UI to look
+and feel almost identical to the OG UI in every way, adapted for the new single-user "native"
+direction.
 
 ## Product Boundaries
 
