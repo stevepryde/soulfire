@@ -189,6 +189,12 @@
           "markdownDescription": "Allows the main Soulfire window to open character chats and send chat messages through the typed command/event bridge."
         },
         {
+          "description": "Allows the main Soulfire window to list, load, and delete local characters, worlds, and adventures through typed commands.",
+          "type": "string",
+          "const": "allow-content",
+          "markdownDescription": "Allows the main Soulfire window to list, load, and delete local characters, worlds, and adventures through typed commands."
+        },
+        {
           "description": "Allows the main Soulfire window to check, save, and clear the local OpenAI API key without exposing the raw stored secret.",
           "type": "string",
           "const": "allow-credentials",

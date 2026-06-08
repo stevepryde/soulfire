@@ -4,7 +4,7 @@ use soulfire_core::model::chat::{Chat, ChatMessage};
 use soulfire_core::model::ids::{CharacterId, ChatId};
 use tauri::{AppHandle, Runtime, State};
 
-use crate::commands::common::{emit_error, emit_event, parse_message_text};
+use crate::commands::common::{DeleteResult, emit_error, emit_event, parse_message_text};
 use crate::error::CommandError;
 use crate::events::{BridgeEvent, TaskKind, TaskStatus, emit_bridge_event};
 use crate::services;
@@ -25,6 +25,43 @@ pub struct ChatSendResult {
     pub reply: ChatMessage,
     pub summary_due: bool,
     pub state_update_due: bool,
+}
+
+#[tauri::command]
+pub async fn load_chat(
+    chat_id: ChatId,
+    state: State<'_, AppState>,
+) -> Result<ChatThread, CommandError> {
+    let store = state.store_handle()?;
+    let chat_for_load = chat_id.clone();
+    let chat = store
+        .run(move |store| {
+            store
+                .chat(&chat_for_load)?
+                .ok_or_else(|| soulfire_core::CoreError::NotFound(chat_for_load.to_string()))
+        })
+        .await?;
+    let messages = store
+        .run(move |store| store.chat_messages(&chat_id))
+        .await?;
+
+    Ok(ChatThread { chat, messages })
+}
+
+#[tauri::command]
+pub async fn delete_chat(
+    chat_id: ChatId,
+    state: State<'_, AppState>,
+) -> Result<DeleteResult, CommandError> {
+    state
+        .with_store(move |store| {
+            let deleted = store.chat(&chat_id)?.is_some();
+            if deleted {
+                store.delete_chat(&chat_id)?;
+            }
+            Ok(DeleteResult { deleted })
+        })
+        .await
 }
 
 #[tauri::command]

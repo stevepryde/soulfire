@@ -8,12 +8,21 @@ use crate::error::CommandError;
 use crate::events::{BridgeEvent, TaskKind, TaskStatus, emit_bridge_event};
 use crate::state::AppState;
 
+const DEFAULT_LIST_LIMIT: u32 = 30;
+const MAX_LIST_LIMIT: u32 = 100;
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StoreStatus {
     pub initialized: bool,
     pub unlocked: bool,
     pub schema_version: Option<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DeleteResult {
+    pub deleted: bool,
 }
 
 pub(super) fn parse_data_dir(path: String) -> Result<PathBuf, CommandError> {
@@ -53,6 +62,16 @@ pub(super) fn parse_message_text(text: String) -> Result<String, CommandError> {
         ));
     }
     Ok(trimmed.to_string())
+}
+
+pub(super) fn normalize_search(search: Option<String>) -> Option<String> {
+    search
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+}
+
+pub(super) fn normalize_list_limit(limit: Option<u32>) -> u32 {
+    limit.unwrap_or(DEFAULT_LIST_LIMIT).clamp(1, MAX_LIST_LIMIT)
 }
 
 pub(super) fn emit_event<R: Runtime>(

@@ -8,6 +8,7 @@
     "allow-store-lifecycle",
     "allow-profile-settings",
     "allow-credentials",
+    "allow-content",
     "allow-chat",
     "allow-adventure"
   ]

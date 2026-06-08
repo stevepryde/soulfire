@@ -2,6 +2,8 @@
 identifier = "allow-chat"
 description = "Allows the main Soulfire window to open character chats and send chat messages through the typed command/event bridge."
 commands.allow = [
+  "load_chat",
+  "delete_chat",
   "open_character_chat",
   "send_chat_message",
 ]
