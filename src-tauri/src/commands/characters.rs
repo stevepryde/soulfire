@@ -16,6 +16,20 @@ pub struct CharacterListPage {
 }
 
 #[tauri::command]
+pub async fn save_character(
+    mut character: Character,
+    state: State<'_, AppState>,
+) -> Result<Character, CommandError> {
+    character.clamp_creativity();
+    state
+        .with_store(move |store| {
+            store.save_character(&character)?;
+            Ok(character)
+        })
+        .await
+}
+
+#[tauri::command]
 pub async fn list_characters(
     search: Option<String>,
     after_character_id: Option<CharacterId>,

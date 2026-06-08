@@ -32,6 +32,19 @@ pub struct AdventureDetail {
 }
 
 #[tauri::command]
+pub async fn save_world_blueprint(
+    blueprint: WorldBlueprint,
+    state: State<'_, AppState>,
+) -> Result<WorldBlueprint, CommandError> {
+    state
+        .with_store(move |store| {
+            store.save_blueprint(&blueprint)?;
+            Ok(blueprint)
+        })
+        .await
+}
+
+#[tauri::command]
 pub async fn list_world_blueprints(
     search: Option<String>,
     after_blueprint_id: Option<WorldBlueprintId>,
