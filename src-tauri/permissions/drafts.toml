@@ -1,0 +1,11 @@
+[[permission]]
+identifier = "allow-drafts"
+description = "Allows the main Soulfire window to restore, save, and clear local composer drafts for chats and adventures."
+commands.allow = [
+  "get_chat_draft",
+  "save_chat_draft",
+  "clear_chat_draft",
+  "get_adventure_draft",
+  "save_adventure_draft",
+  "clear_adventure_draft",
+]

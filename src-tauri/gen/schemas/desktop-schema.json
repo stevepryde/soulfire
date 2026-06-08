@@ -207,6 +207,12 @@
           "markdownDescription": "Allows the main Soulfire window to check, save, and clear the local OpenAI API key without exposing the raw stored secret."
         },
         {
+          "description": "Allows the main Soulfire window to restore, save, and clear local composer drafts for chats and adventures.",
+          "type": "string",
+          "const": "allow-drafts",
+          "markdownDescription": "Allows the main Soulfire window to restore, save, and clear local composer drafts for chats and adventures."
+        },
+        {
           "description": "Allows the main Soulfire window to load, generate, upload, and clear local character portraits and world covers.",
           "type": "string",
           "const": "allow-images",

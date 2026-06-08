@@ -132,7 +132,7 @@ These are intentionally removed, not parity gaps:
 | Reactions | `model/chat.rs`, `chat/engine.rs` | Ported | Allowed emoji filtering and persistence exist. UI missing. |
 | Character state update after chat | `chat/engine.rs`, `chat/prompts.rs` | Ported | Coalesced state update path exists. Needs fixture coverage. |
 | Chat list/search UI | none | Missing | React implementation required. |
-| Chat composer draft restore/clear | `model/draft.rs`, store drafts | Ported core / missing UI | Core persistence exists; UI and bridge missing. |
+| Chat composer draft restore/clear | `model/draft.rs`, store drafts, `src-tauri/src/commands/drafts.rs` | Partial bridge / missing UI | Core persistence exists; Tauri exposes get/save/clear chat draft commands. Composer UI remains missing. |
 
 ## Characters And Character Builder
 
@@ -175,7 +175,7 @@ The current repo has a React shell only. These OG UI surfaces are required unles
 | First-run/onboarding | Partial | Setup/unlock scaffold exists. Provider key flow, starter worlds, and first-run content affordances remain. |
 | Unlock/setup screens | Partial | Local-native setup/unlock calls the async Tauri store commands and works in browser preview fallback. Password/security UX still needs full smoke coverage. |
 | Worlds home | Partial data-backed shell | React loads in-progress adventures plus searchable, cursor-paged world blueprints through Tauri commands with loading/error/empty states and read-only blueprint detail panels. Port OG card richness, create, and full editor/play entry behavior, minus public/admin tabs. |
-| World play screen | Missing | Port immersive layout, composer, stream status, current adventure affordances, GM proposal cards. |
+| World play screen | Missing | Port immersive layout, composer, stream status, current adventure affordances, GM proposal cards. Tauri draft bridge for adventure composers exists; UI remains missing. |
 | World create/edit | Missing | Port tabs, template affordances, manual editor, image selector/transform, builder entry. |
 | World builder | Missing | Port chat + editable prompt/fields pattern. |
 | Character list | Partial data-backed shell | React loads/searches cursor-paged saved characters through Tauri commands with loading/error/empty states and read-only character detail panels. Port OG card art, create, editor, and chat entry behavior. |

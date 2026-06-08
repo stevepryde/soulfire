@@ -11,6 +11,7 @@
     "allow-builders",
     "allow-images",
     "allow-prompts",
+    "allow-drafts",
     "allow-stats",
     "allow-content",
     "allow-chat",
