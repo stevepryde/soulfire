@@ -219,7 +219,8 @@ textarea:focus {
 }
 
 .danger-button,
-.icon-button {
+.icon-button,
+.danger-text-button {
   border: 1px solid var(--line);
   background: transparent;
 }
@@ -228,6 +229,15 @@ textarea:focus {
   width: 42px;
   color: #ffc6d2;
   border-color: rgb(186 95 116 / 0.52);
+}
+
+.danger-text-button {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 7px;
+  color: #ffc6d2;
+  border-color: rgb(186 95 116 / 0.52);
+  cursor: pointer;
 }
 
 .icon-button {
@@ -607,6 +617,29 @@ textarea:focus {
   white-space: nowrap;
 }
 
+.danger-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid rgb(186 95 116 / 0.42);
+  border-radius: 8px;
+  background: rgb(186 95 116 / 0.08);
+}
+
+.danger-zone h3,
+.confirm-dialog h2 {
+  margin: 0;
+}
+
+.danger-zone p,
+.confirm-dialog p {
+  margin: 5px 0 0;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
 .settings-list {
   display: grid;
   gap: 1px;
@@ -703,6 +736,36 @@ textarea:focus {
   accent-color: var(--teal);
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgb(0 0 0 / 0.58);
+}
+
+.confirm-dialog {
+  width: min(420px, 100%);
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-raised);
+  box-shadow: var(--shadow);
+}
+
+.confirm-dialog h2 {
+  font-size: 1.12rem;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
 @media (max-width: 760px) {
   body {
     overflow: auto;
@@ -764,6 +827,11 @@ textarea:focus {
 
   .metric-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .danger-zone {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .panel-heading.with-action {

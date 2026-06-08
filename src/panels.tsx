@@ -33,7 +33,7 @@ import {
   formatDate,
   labelFromSnake,
 } from "./bridge";
-import { AppLogo, InlineNotice, ToolbarButton } from "./chrome";
+import { AppLogo, ConfirmDialog, InlineNotice, ToolbarButton } from "./chrome";
 
 export function UnlockSurface({
   status,
@@ -352,6 +352,8 @@ function StatsTable({
 export function StatsPanel() {
   const [report, setReport] = useState<TokenStatsReport | null>(null);
   const [loading, setLoading] = useState(true);
+  const [clearing, setClearing] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function refresh() {
@@ -363,6 +365,19 @@ export function StatsPanel() {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function clearStats() {
+    setClearing(true);
+    setError(null);
+    try {
+      setReport(await command<TokenStatsReport>("clear_token_stats"));
+      setConfirmClear(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setClearing(false);
     }
   }
 
@@ -381,9 +396,19 @@ export function StatsPanel() {
           icon={<RefreshCcw size={16} />}
           label="Refresh"
           onClick={refresh}
-          disabled={loading}
+          disabled={loading || clearing}
         />
       </div>
+      {confirmClear ? (
+        <ConfirmDialog
+          title="Clear Token Stats"
+          detail="This removes the local token-usage history stored in this encrypted Soulfire store."
+          confirmLabel="Clear"
+          busy={clearing}
+          onCancel={() => setConfirmClear(false)}
+          onConfirm={clearStats}
+        />
+      ) : null}
       {error ? (
         <InlineNotice icon={<AlertCircle size={20} />} title="Stats unavailable" detail={error} />
       ) : null}
@@ -422,6 +447,20 @@ export function StatsPanel() {
           {loading ? <p className="muted">Loading stats...</p> : null}
           {report ? <StatsTable rows={report.byModel} labelKey="model" /> : null}
         </section>
+      </div>
+      <div className="danger-zone">
+        <div>
+          <h3>Token History</h3>
+          <p>Clearing history only removes local usage metrics. It does not affect chats, adventures, or provider billing records.</p>
+        </div>
+        <button
+          className="danger-text-button"
+          type="button"
+          onClick={() => setConfirmClear(true)}
+          disabled={loading || clearing || (report?.metricCount ?? 0) === 0}
+        >
+          Clear History
+        </button>
       </div>
     </section>
   );

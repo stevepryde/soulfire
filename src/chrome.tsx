@@ -83,3 +83,36 @@ export function ToolbarButton({
     </button>
   );
 }
+
+export function ConfirmDialog({
+  title,
+  detail,
+  confirmLabel,
+  busy,
+  onCancel,
+  onConfirm,
+}: {
+  title: string;
+  detail: string;
+  confirmLabel: string;
+  busy?: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="modal-backdrop" role="presentation">
+      <section className="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+        <h2 id="confirm-title">{title}</h2>
+        <p>{detail}</p>
+        <div className="dialog-actions">
+          <button className="secondary-button" type="button" onClick={onCancel} disabled={busy}>
+            Cancel
+          </button>
+          <button className="danger-text-button" type="button" onClick={onConfirm} disabled={busy}>
+            {confirmLabel}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
