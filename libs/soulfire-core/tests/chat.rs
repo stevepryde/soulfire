@@ -223,6 +223,25 @@ async fn summary_regenerates_and_failure_preserves_prior() {
     );
     assert_eq!(after.messages_since_summary, 0);
 
+    // TEST-10 / OG parity: summary generation is a utility-model developer
+    // prompt with no sampling overrides.
+    let summary_req = h.provider.last_request().unwrap();
+    assert_eq!(summary_req.model, AiModel::Gpt5_4Nano);
+    assert!(summary_req.instructions.is_none());
+    assert_eq!(summary_req.config, Default::default());
+    assert_eq!(summary_req.messages.len(), 1);
+    assert_eq!(summary_req.messages[0].role, Role::Developer);
+    assert!(
+        summary_req.messages[0]
+            .content
+            .contains("Summarize this conversation in 2-3 paragraphs")
+    );
+    assert!(
+        summary_req.messages[0]
+            .content
+            .contains("Previous summary:")
+    );
+
     // A failed summary pass preserves the prior summary.
     h.provider
         .push(Scripted::Error(ProviderError::RateLimited("429".into())));
@@ -261,6 +280,27 @@ async fn character_state_update_evolves_state_and_failure_preserves() {
         updated.character_state.unwrap().as_str(),
         "You feel a growing warmth toward the player."
     );
+
+    // TEST-10 / OG parity: the world-extracted character-state updater is a
+    // utility-model pass with the OG 2000 / 0.3 / 0.95 / 3 sampling controls.
+    let state_req = h.provider.last_request().unwrap();
+    assert_eq!(state_req.model, AiModel::Gpt5_4Nano);
+    assert!(state_req.instructions.is_none());
+    assert_eq!(state_req.config.max_output_tokens, Some(2000));
+    assert_eq!(state_req.config.temperature, Some(0.3));
+    assert_eq!(state_req.config.top_p, Some(0.95));
+    assert_eq!(state_req.config.top_k, Some(3));
+    assert_eq!(state_req.config.reasoning_effort, None);
+    assert!(state_req.config.json.is_none());
+    assert_eq!(state_req.messages.len(), 2);
+    assert_eq!(state_req.messages[0].role, Role::Developer);
+    assert!(
+        state_req.messages[0]
+            .content
+            .contains("Lyra: a steadfast guide.")
+    );
+    assert_eq!(state_req.messages[1].role, Role::User);
+    assert!(state_req.messages[1].content.contains("dynamic state"));
 
     // A failed update leaves the prior state intact (CHAT-13). Use a
     // non-transient error so it fails fast without retry/backoff.

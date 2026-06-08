@@ -115,7 +115,7 @@ These are intentionally removed, not parity gaps:
 | --- | --- | --- | --- |
 | `services/ai/openai.rs` | `ai/openai.rs`, `libs/ai-client` | Adapted | Uses the OpenAI Responses API path and BYOK key source. |
 | `services/ai/gemini.rs` | none | Deferred/removed for launch | Provider abstraction remains; Gemini safety-setting behavior is not launch scope. |
-| AI config/task defaults | `ai/types.rs`, `ai/registry.rs`, call-site configs | Partial | Request-level tests now pin the main chat, builder, extraction, adventure, state-update, and `/gm` configs; full OG fixture snapshots remain. |
+| AI config/task defaults | `ai/types.rs`, `ai/registry.rs`, call-site configs | Partial | Request-level tests now pin the main chat, chat summary, character state update, builder, extraction, adventure, forced full-state update, `/gm`, and image request configs; full OG fixture snapshots remain. |
 | Structured JSON output and fence rescue | `ai/types.rs`, `ai/fence.rs` | Ported | Schema and lenient parse helpers exist. |
 | Missing-key and transient retry behavior | `ai/service.rs` | Adapted | Local key source guards requests; retry is implemented in the service. |
 | Token usage capture | `model/metric.rs`, store metrics, engines | Adapted | Local stats replace OG billing/rate-limit accounting. |
@@ -206,7 +206,7 @@ The current repo has no React app yet. These OG UI surfaces are required unless 
 | Core model round-trip tests | Partial | Existing tests cover many local models; add OG fixture imports for current feature records. |
 | Store security tests | Partial | Existing encrypted store tests exist; re-audit logs/errors and key handling before app bridge. |
 | Cursor pagination tests | Partial | Existing tests cover keyset behavior; verify all database-backed UI lists use the cursor contract. |
-| Prompt/config golden tests | Partial | Request-level config assertions cover chat, builders, extraction, world intro/turn/update, and `/gm`; add fixture-backed full prompt snapshots next. |
+| Prompt/config golden tests | Partial | Request-level config assertions cover chat, summary/state updater, builders, extraction, images, world intro/turn/diff/full update, and `/gm`; add fixture-backed full prompt snapshots next. |
 | Service-flow fixture tests | Partial | Core tests cover representative flows; add OG-derived success/failure/recovery fixtures. |
 | Tauri command tests | Missing | Blocked until Tauri bridge exists. |
 | React smoke/visual tests | Missing | Blocked until React app exists. |
@@ -218,8 +218,8 @@ Work in this order unless the roadmap changes:
 
 1. **Phase 3 trust pass:** add OG fixture files and full prompt snapshots for one character chat,
    one character builder turn, one NPC extraction, one world builder turn, one world intro, one world
-   turn, one state update, and one `/gm` proposal. Request-level config assertions for these paths
-   already exist in the Rust core tests.
+   turn, one state update, one image request, and one `/gm` proposal. Request-level config
+   assertions for these paths already exist in the Rust core tests.
 2. **Phase 3 data proof:** add OG-to-local model mapping fixtures for Character, Chat, ChatMessage,
    WorldBlueprint, Adventure, AdventureMessage, GmProposal, builder sessions, metrics, and settings.
 3. **Phase 4 bridge scaffold:** create the Tauri app crate, typed command DTO modules, app state,

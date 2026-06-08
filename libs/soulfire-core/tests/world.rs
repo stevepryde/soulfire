@@ -240,6 +240,55 @@ async fn state_update_failure_keeps_narration_and_state_unchanged() {
 }
 
 #[tokio::test]
+async fn forced_full_state_update_uses_og_request_config() {
+    // TEST-10 / WORLD-13: after enough diff updates, the engine skips the diff
+    // path and asks for a full state replacement with the OG full budget.
+    let h = harness();
+    let mut adv = start(&h).await;
+    adv.diff_action_count = soulfire_core::world::engine::FULL_STATE_UPDATE_THRESHOLD;
+    h.store.save_adventure(&adv).unwrap();
+
+    h.provider
+        .push(Scripted::stream(vec!["The hall opens."], 100, 10));
+    h.provider.push(Scripted::text(
+        "{\"updated_state\":{\"player\":{\"name\":\"Diver\"},\"current_situation\":{\"location\":\"open hall\",\"time\":\"dawn\",\"day\":2}},\"recent_events\":[\"Opened the hall\"],\"story_summary\":\"## Rolling Story\\nThe hall opened.\",\"story_status\":\"ongoing\"}",
+        70,
+        35,
+    ));
+
+    let outcome = h
+        .engine
+        .take_turn(&adv.adventure_id, "open the hall", |_| {})
+        .await
+        .unwrap();
+    assert!(matches!(outcome, TurnOutcome::Narration { .. }));
+
+    let reloaded = h.store.adventure(&adv.adventure_id).unwrap().unwrap();
+    assert_eq!(reloaded.diff_action_count, 0);
+    assert!(reloaded.adventure_state.as_str().contains("open hall"));
+
+    let requests = h.provider.requests();
+    assert_eq!(requests.len(), 4); // start intro/state + narration/full update
+    let full = &requests[3];
+    assert_eq!(full.model, AiModel::Gpt5_1);
+    assert_eq!(full.config.max_output_tokens, Some(24_576));
+    assert_eq!(full.config.temperature, Some(0.15));
+    assert!(matches!(full.config.json.as_ref(), Some(JsonMode::Json)));
+    assert!(full.config.cache_hint);
+    assert!(
+        full.instructions
+            .as_ref()
+            .unwrap()
+            .contains("output the updated adventure state")
+    );
+    assert!(
+        full.messages
+            .iter()
+            .any(|m| m.content.contains("open the hall"))
+    );
+}
+
+#[tokio::test]
 async fn lock_refuses_concurrent_turn_then_self_heals() {
     // AC-WORLD-b: a second action mid-turn is refused; the stale lock self-heals.
     let h = harness();

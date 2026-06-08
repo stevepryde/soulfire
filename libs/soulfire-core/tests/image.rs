@@ -4,9 +4,13 @@
 use std::str::FromStr;
 use std::sync::Arc;
 
-use soulfire_core::model::ai_model::AiVendor;
+use soulfire_core::model::ai_model::{AiModel, AiVendor};
 use soulfire_core::model::character::{Character, InitialMessage};
-use soulfire_core::model::strings::{CharacterName, InitialMessageText};
+use soulfire_core::model::strings::{
+    CharacterDescription, CharacterName, InitialMessageText, WorldDescription, WorldPrompt,
+    WorldTitle,
+};
+use soulfire_core::model::world::WorldBlueprint;
 use soulfire_core::secret::Secret;
 
 use soulfire_core::ai::fake::{RecordingProvider, Scripted};
@@ -50,6 +54,7 @@ async fn generate_then_regenerate_bumps_version_failure_keeps_prior() {
 
     let c = Character::builder()
         .name(CharacterName::from_str("Lyra").unwrap())
+        .description(CharacterDescription::coerce("A serene lantern keeper."))
         .initial_message(InitialMessage::Message(InitialMessageText::coerce("hi")))
         .build();
     store.save_character(&c).unwrap();
@@ -61,6 +66,14 @@ async fn generate_then_regenerate_bumps_version_failure_keeps_prior() {
         .await
         .unwrap();
     assert_eq!(r1.version, 1);
+    let requests = provider.image_requests();
+    assert_eq!(requests.len(), 1);
+    assert_eq!(requests[0].model, AiModel::Gpt5_1);
+    assert!(requests[0].prompt.contains("Lyra"));
+    assert!(requests[0].prompt.contains("serene lantern keeper"));
+    assert!(requests[0].prompt.contains("character portrait"));
+    assert!(requests[0].prompt.contains("Head-and-shoulders"));
+
     let stored = store
         .image(ImageOwnerKind::Character, &c.character_id.to_string())
         .unwrap()
@@ -128,6 +141,52 @@ async fn generate_then_regenerate_bumps_version_failure_keeps_prior() {
             .unwrap()
             .is_none()
     );
+}
+
+#[tokio::test]
+async fn world_cover_request_uses_blueprint_prompt_and_default_model() {
+    // TEST-10 / IMG-1: world covers use the narrative default model and a
+    // cinematic cover prompt derived from the local blueprint.
+    let dir = tempfile::tempdir().unwrap();
+    let store = Arc::new(Store::initialize(dir.path(), "pw").unwrap());
+    let provider = Arc::new(RecordingProvider::new());
+    let ai = AiService::new(provider.clone(), Arc::new(Keys));
+    let engine = ImageEngine::new(
+        store.clone(),
+        ai,
+        Arc::new(MockClock::at_epoch()) as Arc<dyn Clock>,
+    );
+
+    let bp = WorldBlueprint::builder()
+        .title(WorldTitle::from_str("Beneath Verath").unwrap())
+        .description(WorldDescription::coerce("A drowned city of secret bells."))
+        .world_prompt(
+            WorldPrompt::from_str("A long world prompt that is not needed here.").unwrap(),
+        )
+        .build();
+    store.save_blueprint(&bp).unwrap();
+
+    provider.push(img(b"PNGDATA-WORLD"));
+    let cover = engine.generate_world_cover(&bp.blueprint_id).await.unwrap();
+    assert_eq!(cover.version, 1);
+
+    let requests = provider.image_requests();
+    assert_eq!(requests.len(), 1);
+    assert_eq!(requests[0].model, AiModel::Gpt5_1);
+    assert!(requests[0].prompt.contains("Beneath Verath"));
+    assert!(requests[0].prompt.contains("Wide cinematic cover art"));
+    assert!(
+        requests[0]
+            .prompt
+            .contains("A drowned city of secret bells.")
+    );
+    assert!(requests[0].prompt.contains("no text"));
+
+    let stored = store
+        .image(ImageOwnerKind::World, &bp.blueprint_id.to_string())
+        .unwrap()
+        .unwrap();
+    assert_eq!(stored.version, 1);
 }
 
 #[tokio::test]
