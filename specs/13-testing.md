@@ -152,7 +152,7 @@ as they land. Each landed test names, in its body or name, the requirement ID(s)
 | Characters | [06-characters.md](06-characters.md) CHAR-1..13 | editor + builder tests (validation/clamp, full-replacement apply, snapshot/undo, NPC extraction, failure leaves nothing) |
 | Worlds | [07-worlds.md](07-worlds.md) WORLD-1..21 | turn-engine + state tests (turn ordering, non-fatal state update, single-flight lock + stale-heal, state schema init, memory caps/pruning/no-wipe, diff-first + full fallback, validator rejects, `/gm` stage/accept/reject) |
 | Images | [08-images.md](08-images.md) IMG-1..8 | image tests vs substituted provider (async gen, failure keeps prior, version bump, ciphertext bytes, transform persist, precedence) |
-| UI logic & contract | [09-ui.md](09-ui.md) UI-1..23 | extracted view-logic unit tests (input parse, status/label, streaming buffer, drafts) + manual smoke checklist (`docs/MANUAL_SMOKE.md`) |
+| UI logic & contract | [09-ui.md](09-ui.md) UI-1..23 | extracted view-logic unit tests (input parse, status/label, streaming buffer, drafts), React shell smoke (`src/App.smoke.test.tsx`), and manual smoke checklist (`docs/MANUAL_SMOKE.md`) |
 | Onboarding | [10-onboarding.md](10-onboarding.md) ONB-1..7 | onboarding tests (setup gates AI, starter seed no-dup/no-resurrect, returning-user continue) + manual smoke |
 | Token statistics | [11-token-stats.md](11-token-stats.md) STAT-1..6 | metering aggregation tests (per-call entry, separate input/cached/output, aggregates partition, clear, rollup reconcile, no cost) |
 | Platform & packaging | [12-platform-packaging.md](12-platform-packaging.md) PKG-1..6 | build/launch checks per target (CI/manual), data-location + forward-migration tests, license-presence check |
@@ -178,6 +178,9 @@ as they land. Each landed test names, in its body or name, the requirement ID(s)
   directly. React component/render smoke checks and visual comparison can catch regressions in the
   webview layer, while the full native interaction contract (`UI`) is still verified by a
   per-platform manual smoke checklist at `docs/MANUAL_SMOKE.md`.
+- **React smoke harness.** `bun run test:ui` runs the current React/jsdom smoke suite against mocked
+  Tauri commands. It is a fast guardrail for shell navigation and data-backed panels, not a substitute
+  for native-webview visual comparison or the full app-journey smoke in TEST-17.
 - **Reference local check set:** format check, build, lint (deny warnings), and the test suite, run
   per target where feasible; mobile targets at least build in CI. Non-normative — TEST-1..17 are the
   contract.
