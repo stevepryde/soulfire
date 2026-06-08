@@ -81,8 +81,8 @@ textarea {
 
 input:focus,
 textarea:focus {
-  border-color: var(--teal);
-  box-shadow: 0 0 0 3px rgb(79 184 173 / 0.18);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgb(139 92 246 / 0.22);
 }
 
 #root {
@@ -219,8 +219,8 @@ textarea:focus {
 }
 
 .primary-button {
-  color: #201311;
-  background: linear-gradient(135deg, var(--gold), #f0c372);
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-primary), var(--primary-dark));
   font-weight: 720;
 }
 
@@ -254,7 +254,7 @@ textarea:focus {
 
 .icon-button:hover {
   color: var(--text);
-  background: #2d2723;
+  background: rgb(255 255 255 / 0.08);
 }
 
 .error-line {
@@ -305,11 +305,11 @@ textarea:focus {
 .nav-button:hover,
 .nav-button.active {
   color: var(--text);
-  background: #2d2723;
+  background: rgb(139 92 246 / 0.12);
 }
 
 .nav-button.active {
-  box-shadow: inset 3px 0 0 var(--teal);
+  box-shadow: inset 3px 0 0 var(--color-primary);
 }
 
 .main-column {
@@ -437,7 +437,7 @@ textarea:focus {
 
 .panel-heading {
   gap: 10px;
-  color: #fff3e0;
+  color: #fff;
 }
 
 .panel-heading.with-action {
@@ -475,7 +475,7 @@ textarea:focus {
 
 .feature-row > svg {
   flex: 0 0 auto;
-  color: var(--gold);
+  color: var(--primary-light);
 }
 
 .feature-row div {
@@ -543,12 +543,12 @@ textarea:focus {
   align-items: center;
   gap: 9px;
   min-width: 0;
-  color: #fff3e0;
+  color: #fff;
 }
 
 .list-title > svg {
   flex: 0 0 auto;
-  color: var(--teal);
+  color: var(--primary-light);
 }
 
 .list-title h3 {
@@ -1212,9 +1212,9 @@ textarea:focus {
 }
 
 .option-button.active {
-  border-color: var(--gold);
-  color: #fff3e0;
-  background: rgb(210 168 85 / 0.12);
+  border-color: var(--color-primary);
+  color: #fff;
+  background: rgb(139 92 246 / 0.14);
 }
 
 .profile-form .primary-button {
@@ -1246,8 +1246,8 @@ textarea:focus {
 }
 
 .swatch-button.active {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 2px rgb(210 168 85 / 0.18);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgb(139 92 246 / 0.2);
 }
 
 .toggle-row {
@@ -1260,7 +1260,7 @@ textarea:focus {
 .toggle-row input {
   width: 18px;
   min-height: 18px;
-  accent-color: var(--teal);
+  accent-color: var(--color-primary);
 }
 
 .modal-backdrop {
@@ -1332,7 +1332,7 @@ textarea:focus {
   }
 
   .nav-button.active {
-    box-shadow: inset 0 3px 0 var(--teal);
+    box-shadow: inset 0 3px 0 var(--color-primary);
   }
 
   .main-column {
