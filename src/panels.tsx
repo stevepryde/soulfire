@@ -26,6 +26,7 @@ import {
   DEFAULT_DATA_DIR,
   ListPage,
   PlayerProfile,
+  PromptSection,
   PromptView,
   StoreStatus,
   TokenStatsReport,
@@ -466,6 +467,28 @@ export function CharactersPanel() {
     }
   }
 
+  async function saveCharacterPromptSection(source: string, body: string) {
+    if (!selectedCharacter) return;
+    setDetailLoading(true);
+    setError(null);
+    try {
+      setPromptView(
+        await command<PromptView>("save_character_prompt_section", {
+          characterId: selectedCharacter.character_id,
+          source,
+          body,
+        }),
+      );
+      setSelectedCharacter(await command<CharacterDetail>("load_character", {
+        characterId: selectedCharacter.character_id,
+      }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDetailLoading(false);
+    }
+  }
+
   useEffect(() => {
     void refresh();
   }, []);
@@ -552,7 +575,13 @@ export function CharactersPanel() {
           >
             Prompt View
           </button>
-          {promptView ? <PromptViewPanel promptView={promptView} /> : null}
+          {promptView ? (
+            <PromptViewPanel
+              promptView={promptView}
+              onSaveSection={saveCharacterPromptSection}
+              saving={detailLoading}
+            />
+          ) : null}
         </section>
       ) : detailLoading ? (
         <p className="muted">Loading character...</p>
@@ -569,7 +598,58 @@ function totalTokens(totals: TokenTotals): number {
   return totals.inputTokens + totals.outputTokens;
 }
 
-function PromptViewPanel({ promptView }: { promptView: PromptView }) {
+function PromptSectionCard({
+  section,
+  onSave,
+  saving,
+}: {
+  section: PromptSection;
+  onSave?: (source: string, body: string) => void;
+  saving?: boolean;
+}) {
+  const [body, setBody] = useState(section.body);
+  const canEdit = !section.locked && onSave;
+
+  useEffect(() => {
+    setBody(section.body);
+  }, [section.body]);
+
+  return (
+    <article className="prompt-section">
+      <header>
+        <h4>{section.header}</h4>
+        <span>{section.locked ? "Locked" : "Editable"}</span>
+      </header>
+      <p>{labelFromSnake(section.source)}</p>
+      {canEdit ? (
+        <>
+          <textarea value={body} onChange={(event) => setBody(event.target.value)} rows={6} />
+          <button
+            className="secondary-button list-footer-button"
+            type="button"
+            onClick={() => onSave(section.source, body)}
+            disabled={saving || body === section.body}
+          >
+            Save Section
+          </button>
+        </>
+      ) : (
+        <pre>{section.body}</pre>
+      )}
+      <small>{formatNumber(section.tokenEstimate)} tokens</small>
+    </article>
+  );
+}
+
+function PromptViewPanel({
+  promptView,
+  onSaveSection,
+  saving,
+}: {
+  promptView: PromptView;
+  onSaveSection?: (source: string, body: string) => void;
+  saving?: boolean;
+}) {
   return (
     <div className="prompt-view">
       <div className="prompt-total">
@@ -577,15 +657,12 @@ function PromptViewPanel({ promptView }: { promptView: PromptView }) {
         <span>estimated tokens</span>
       </div>
       {promptView.sections.map((section) => (
-        <article className="prompt-section" key={`${section.source}-${section.header}`}>
-          <header>
-            <h4>{section.header}</h4>
-            <span>{section.locked ? "Locked" : "Editable"}</span>
-          </header>
-          <p>{labelFromSnake(section.source)}</p>
-          <pre>{section.body}</pre>
-          <small>{formatNumber(section.tokenEstimate)} tokens</small>
-        </article>
+        <PromptSectionCard
+          key={`${section.source}-${section.header}`}
+          section={section}
+          onSave={onSaveSection}
+          saving={saving}
+        />
       ))}
     </div>
   );
