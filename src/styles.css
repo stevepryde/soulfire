@@ -584,9 +584,55 @@ textarea:focus {
 }
 
 .search-row {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #1a1a1d;
+}
+
+.search-row .search-icon {
+  position: absolute;
+  left: 16px;
+  color: rgb(255 255 255 / 0.35);
+  pointer-events: none;
+}
+
+.search-row input {
+  min-height: 48px;
+  border: 0;
+  border-radius: 0;
+  padding: 0 48px;
+  background: transparent;
+  font-size: 0.94rem;
+}
+
+.search-row input:focus {
+  box-shadow: none;
+}
+
+.search-row:focus-within {
+  border-color: rgb(255 255 255 / 0.15);
+}
+
+.search-clear {
+  position: absolute;
+  right: 10px;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 999px;
+  color: rgb(255 255 255 / 0.42);
+  background: transparent;
+  cursor: pointer;
+}
+
+.search-clear:hover {
+  color: rgb(255 255 255 / 0.82);
+  background: rgb(255 255 255 / 0.1);
 }
 
 .data-row {

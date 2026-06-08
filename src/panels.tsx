@@ -7,11 +7,13 @@ import {
   MessageCircle,
   PlayCircle,
   RefreshCcw,
+  Search,
   Settings,
   ShieldCheck,
   Sparkles,
   Trash2,
   UserRound,
+  X,
 } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 
@@ -349,15 +351,27 @@ export function WorldsPanel() {
           void refresh();
         }}
       >
+        <Search className="search-icon" size={18} />
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search worlds"
           spellCheck={false}
         />
-        <button className="secondary-button" type="submit" disabled={loading}>
-          Search
-        </button>
+        {search ? (
+          <button
+            className="search-clear"
+            type="button"
+            onClick={() => {
+              setSearch("");
+              void refresh("");
+            }}
+            aria-label="Clear world search"
+            disabled={loading}
+          >
+            <X size={16} />
+          </button>
+        ) : null}
       </form>
       <div className="split-grid">
         <section className="list-panel">
@@ -659,15 +673,27 @@ export function CharactersPanel() {
           void refresh();
         }}
       >
+        <Search className="search-icon" size={18} />
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search characters"
           spellCheck={false}
         />
-        <button className="secondary-button" type="submit" disabled={loading}>
-          Search
-        </button>
+        {search ? (
+          <button
+            className="search-clear"
+            type="button"
+            onClick={() => {
+              setSearch("");
+              void refresh("");
+            }}
+            aria-label="Clear character search"
+            disabled={loading}
+          >
+            <X size={16} />
+          </button>
+        ) : null}
       </form>
       <div className="list-panel">
         <div className="list-title">
