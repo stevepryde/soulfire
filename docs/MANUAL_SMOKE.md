@@ -40,6 +40,7 @@ Status: current Tauri/React shell checklist. Update this file as new OG parity s
 
 - Store status, schema version, runtime, accent, and adult-content state render after unlock.
 - OpenAI key status never reveals the full key; save/delete only show masked status.
+- Deleting the OpenAI key opens an in-app confirmation modal; Cancel preserves the configured key.
 - Accent swatches save through `save_app_settings`; no native select appears.
 - Adult Content toggles through `save_app_settings`.
 - Player profile fields save through `save_player_profile`.

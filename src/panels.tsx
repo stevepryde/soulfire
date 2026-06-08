@@ -966,6 +966,7 @@ export function SettingsPanel({
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [apiKey, setApiKey] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirmDeleteCredential, setConfirmDeleteCredential] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function refresh() {
@@ -1011,6 +1012,7 @@ export function SettingsPanel({
     try {
       const next = await command<CredentialStatus>("delete_openai_credential");
       setCredential(next);
+      setConfirmDeleteCredential(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -1115,6 +1117,16 @@ export function SettingsPanel({
       </div>
       {error ? (
         <InlineNotice icon={<AlertCircle size={20} />} title="Settings unavailable" detail={error} />
+      ) : null}
+      {confirmDeleteCredential ? (
+        <ConfirmDialog
+          title="Delete OpenAI Key"
+          detail="This removes the provider key from the encrypted local store. AI actions will require a new key."
+          confirmLabel="Delete"
+          busy={busy}
+          onCancel={() => setConfirmDeleteCredential(false)}
+          onConfirm={deleteCredential}
+        />
       ) : null}
       <dl className="settings-list">
         <div>
@@ -1313,7 +1325,7 @@ export function SettingsPanel({
           <button
             className="danger-button"
             type="button"
-            onClick={deleteCredential}
+            onClick={() => setConfirmDeleteCredential(true)}
             disabled={busy || !credential?.configured}
             title="Delete OpenAI key"
             aria-label="Delete OpenAI key"
