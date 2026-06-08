@@ -54,7 +54,7 @@ Local source areas scanned:
 | Phase 1: spec update pass | Done enough for implementation | Specs describe the Tauri v2 + React stack, local-only removals, cursor pagination, and React/Tauri testing expectations. |
 | Phase 2: feature inventory and diff | Done here | This document is the first concrete OG parity matrix. Keep it current as work lands. |
 | Phase 3: Rust core | Partial | A broad Rust core exists, including encrypted SQLite, models, chat, worlds, builders, images, metrics, pagination, request-level config coverage, representative prompt hash snapshots, and OG-to-local data fixtures. Some trust checks remain. |
-| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, token-stats read/clear commands, image load/generate/upload/clear commands, character prompt-view/save-section commands, character save/list/load/delete, character/world builder state/send/undo commands, NPC extraction commands, chat load/delete/open/send, world save/list/load/delete, adventure list/load/delete/start/turn/GM-proposal decision commands, and the first event DTO vocabulary. Adventure prompt-view commands remain missing. |
+| Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, token-stats read/clear commands, image load/generate/upload/clear commands, character prompt-view/save-section commands, adventure prompt-view commands, character save/list/load/delete, character/world builder state/send/undo commands, NPC extraction commands, chat load/delete/open/send, world save/list/load/delete, adventure list/load/delete/start/turn/GM-proposal decision commands, and the first event DTO vocabulary. |
 | Phase 5: React UI fidelity port | Partial | Vite/React/Tailwind/Bun scaffold exists with local setup/unlock, shell navigation, and first placeholder workspace bands. OG UI screens remain reference-only until the fidelity port lands. |
 | Phase 6: desktop/mobile readiness | Partial | Tauri app crate/config, command bridge, permissions, and frontend build path exist. Launch/package readiness still needs end-to-end smoke and packaging checks. |
 | Phase 7: validation | Partial | Core tests exist; OG prompt/config fixture parity, service-flow parity, Tauri command checks, React visual/smoke tests, and manual smoke docs remain. |
@@ -119,7 +119,7 @@ These are intentionally removed, not parity gaps:
 | Structured JSON output and fence rescue | `ai/types.rs`, `ai/fence.rs` | Ported | Schema and lenient parse helpers exist. |
 | Missing-key and transient retry behavior | `ai/service.rs` | Adapted | Local key source guards requests; retry is implemented in the service. |
 | Token usage capture | `model/metric.rs`, store metrics, engines | Adapted | Local stats replace OG billing/rate-limit accounting. |
-| Prompt viewer sections | `prompt/*`, `src-tauri/src/commands/prompts.rs` | Partial bridge | Core character section model exists. Tauri exposes character prompt view with per-section token estimates and editable authored-prompt save; adventure prompt-view commands and React UI remain missing. |
+| Prompt viewer sections | `prompt/*`, `world/prompts.rs`, `src-tauri/src/commands/prompts.rs` | Partial bridge | Core character and adventure narration prompt section models exist. Tauri exposes character prompt view with per-section token estimates and editable authored-prompt save, plus read-only adventure next-turn prompt view with dynamic context sections. React UI remains missing. |
 
 ## Character Chat
 
@@ -182,7 +182,7 @@ The current repo has a React shell only. These OG UI surfaces are required unles
 | Character create/edit | Missing | Port Profile/Prompt/Initial Message/Settings tabs, image selector/transform, builder entry. |
 | Character builder | Missing | Port chat + prompt tab pairing. |
 | Character chat | Missing | Port bubbles, streaming feel, reactions, draft behavior, status labels. |
-| Prompt viewer/editor | Missing | Port locked/editable section treatment; editable system prompts are deferred unless specs change. |
+| Prompt viewer/editor | Partial bridge / missing UI | Character and adventure prompt-view commands exist. Port locked/editable section treatment; editable system prompts are deferred unless specs change. |
 | Settings/profile | Partial shell | Store status/schema/runtime surface exists. Port provider key management, theme/accent, player profile, content toggle, local-only storage actions. |
 | Token stats | Partial bridge / missing UI | Tauri exposes aggregate, per-chat, per-adventure, and clear-history token stats commands built from local metrics. React stats screen remains missing. |
 | Modals/toasts/confirmation/error/loading/empty states | Missing | Port visible behaviors and local destructive-action confirmation patterns. |
@@ -226,8 +226,9 @@ Work in this order unless the roadmap changes:
 3. **Phase 4 command breadth:** setup/unlock/settings/profile/credential, stats,
    character save/list-load-delete, chat load-delete/open-send, world save/list-load-delete,
    adventure list-load-delete/start-turn, image load-generate-upload-clear, character/world builder,
-   NPC extraction, character prompt-view, and GM proposal accept/reject commands exist; next expose
-   remaining adventure prompt-viewer commands.
+   NPC extraction, character/adventure prompt-view, and GM proposal accept/reject commands exist; next
+   add direct command invocation tests where command behavior is not already covered by core or event
+   serialization tests.
 4. **Phase 5 data-backed shell:** replace the placeholder Worlds, Characters, and Settings bands with
    Tauri-backed list/status/provider-key surfaces while preserving the custom-control rule.
 5. **Phase 5 fidelity expansion:** port the remaining editors, builders, image framing, prompt viewer,

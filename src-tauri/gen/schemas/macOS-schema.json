@@ -219,10 +219,10 @@
           "markdownDescription": "Allows the main Soulfire window to read and update the local singleton app profile, player profile, and app settings."
         },
         {
-          "description": "Allows the main Soulfire window to inspect character prompt sections and save editable prompt sections.",
+          "description": "Allows the main Soulfire window to inspect character and adventure prompt sections and save editable character prompt sections.",
           "type": "string",
           "const": "allow-prompts",
-          "markdownDescription": "Allows the main Soulfire window to inspect character prompt sections and save editable prompt sections."
+          "markdownDescription": "Allows the main Soulfire window to inspect character and adventure prompt sections and save editable character prompt sections."
         },
         {
           "description": "Allows the main Soulfire window to read and clear local token usage statistics through typed commands.",

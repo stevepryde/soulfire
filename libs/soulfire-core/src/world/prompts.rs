@@ -6,6 +6,7 @@
 //! call site (`PROMPT-6`).
 
 use crate::ai::types::PromptMessage;
+use crate::prompt::{AssembledPrompt, PromptSection, SectionSource};
 
 /// Intensity/agency-balance stance (`PROMPT-5`).
 pub const STATE_UPDATE_INTENSITY_AND_AGENCY_BALANCE: &str = r###"## Intensity and agency balance:
@@ -109,6 +110,83 @@ pub fn narrative_instructions(
         }
     }
     instructions.join("\n\n")
+}
+
+/// Inputs for rendering the adventure narration prompt viewer (`PROMPT-9`).
+#[derive(Debug, Clone, Default)]
+pub struct AdventureNarrativePromptInput<'a> {
+    pub world_prompt: &'a str,
+    pub prompt_extension: Option<&'a str>,
+    pub adult_content: bool,
+    pub significant_events: &'a str,
+    pub adventure_state: &'a str,
+    pub story_summary: &'a str,
+    pub recent_summary: &'a str,
+    pub previous_narrative: &'a str,
+    pub action: &'a str,
+}
+
+fn section_from_constant(section: &str, source: SectionSource) -> PromptSection {
+    if let Some((header, body)) = section.split_once('\n') {
+        PromptSection::locked(header.trim_end(), body.trim_start_matches('\n'), source)
+    } else {
+        PromptSection::locked(section, "", source)
+    }
+}
+
+/// Assemble the next adventure narration prompt as prompt-view sections. The
+/// generation engine still calls `narrative_instructions` and
+/// `narrative_input`; this structured view mirrors that request without
+/// becoming a second prompt source of truth.
+pub fn build_adventure_narrative_prompt(
+    input: &AdventureNarrativePromptInput<'_>,
+) -> AssembledPrompt {
+    let mut sections = vec![PromptSection::locked(
+        "# Game Master Instructions",
+        format!("{NARRATIVE_INTRO}\n\n{NARRATIVE_TASK}"),
+        SectionSource::GameMasterInstructions,
+    )];
+    if input.adult_content {
+        sections.push(section_from_constant(
+            MATURE_ROLEPLAY_STANCE,
+            SectionSource::GameMasterInstructions,
+        ));
+    }
+    sections.push(section_from_constant(
+        CONSENT_GATING_BAN,
+        SectionSource::GameMasterInstructions,
+    ));
+    sections.push(PromptSection::locked(
+        "# World Blueprint",
+        input.world_prompt,
+        SectionSource::AuthoredWorldPrompt,
+    ));
+    if let Some(ext) = input.prompt_extension.filter(|ext| !ext.is_empty()) {
+        sections.push(PromptSection::locked(
+            "# Additional Directives",
+            ext,
+            SectionSource::AdventureContext,
+        ));
+    }
+    sections.extend(
+        narrative_input(
+            input.significant_events,
+            input.adventure_state,
+            input.story_summary,
+            input.recent_summary,
+            input.previous_narrative,
+            input.action,
+        )
+        .into_iter()
+        .map(|message| {
+            let (header, body) = message
+                .content
+                .split_once('\n')
+                .unwrap_or((message.content.as_str(), ""));
+            PromptSection::locked(header, body, SectionSource::AdventureContext)
+        }),
+    );
+    AssembledPrompt::new(sections)
 }
 
 /// Narration input messages, ordered durable→volatile for prefix caching
@@ -735,6 +813,60 @@ mod tests {
         assert!(off.contains("## Consent gating")); // always present (structural)
         let on = narrative_instructions("A world.", None, true);
         assert!(on.contains("## Mature roleplay"));
+    }
+
+    #[test]
+    fn adventure_prompt_view_sections_are_ordered_and_locked() {
+        let input = AdventureNarrativePromptInput {
+            world_prompt: "A castle above a storm.",
+            prompt_extension: Some("Prefer grounded sensory detail."),
+            significant_events: "evt_1: The bridge fell.",
+            adventure_state: "{\"location\":\"gate\"}",
+            story_summary: "## Rolling Story\nThey arrived.",
+            recent_summary: "The guards are watching.",
+            previous_narrative: "Rain lashes the stones.",
+            action: "Knock on the gate.",
+            ..Default::default()
+        };
+        let prompt = build_adventure_narrative_prompt(&input);
+        let outline = prompt.outline();
+        assert_eq!(outline[0], ("# Game Master Instructions".to_string(), true));
+        assert!(outline.iter().all(|(_, locked)| *locked));
+        assert_eq!(
+            prompt
+                .sections
+                .iter()
+                .map(|section| section.header.as_str())
+                .collect::<Vec<_>>(),
+            vec![
+                "# Game Master Instructions",
+                "## Consent gating:",
+                "# World Blueprint",
+                "# Additional Directives",
+                "# Significant Events (long-term memory — major plot points, pivotal decisions, and lasting consequences anchored by when and where they happened):",
+                "# Story Summary and Recent Turns (rolling recap plus the last 3-5 player/GM exchanges):",
+                "# Current Adventure State (the live source of truth — player stats, location, inventory, NPCs, relationships, quests, world conditions as they are NOW):",
+                "# Recent Events (continuity details not already captured by story_summary's Recent Turns section):",
+                "# Previous Narrative:",
+                "# Player's Action:",
+            ]
+        );
+        assert!(prompt.instructions().contains("Knock on the gate."));
+    }
+
+    #[test]
+    fn adventure_prompt_view_gates_mature_stance() {
+        let off = build_adventure_narrative_prompt(&AdventureNarrativePromptInput {
+            world_prompt: "A world.",
+            ..Default::default()
+        });
+        assert!(!off.instructions().contains("## Mature roleplay"));
+        let on = build_adventure_narrative_prompt(&AdventureNarrativePromptInput {
+            world_prompt: "A world.",
+            adult_content: true,
+            ..Default::default()
+        });
+        assert!(on.instructions().contains("## Mature roleplay"));
     }
 
     #[test]

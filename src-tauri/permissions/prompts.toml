@@ -1,7 +1,8 @@
 [[permission]]
 identifier = "allow-prompts"
-description = "Allows the main Soulfire window to inspect character prompt sections and save editable prompt sections."
+description = "Allows the main Soulfire window to inspect character and adventure prompt sections and save editable character prompt sections."
 commands.allow = [
   "get_character_prompt_view",
+  "get_adventure_prompt_view",
   "save_character_prompt_section",
 ]

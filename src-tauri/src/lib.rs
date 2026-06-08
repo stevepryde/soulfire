@@ -35,6 +35,7 @@ pub fn run() {
             commands::images::clear_character_portrait,
             commands::images::clear_world_cover,
             commands::prompts::get_character_prompt_view,
+            commands::prompts::get_adventure_prompt_view,
             commands::prompts::save_character_prompt_section,
             commands::builders::get_character_builder_state,
             commands::builders::send_character_builder_message,

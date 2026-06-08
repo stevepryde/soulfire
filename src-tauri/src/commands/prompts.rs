@@ -4,12 +4,16 @@ use serde::{Deserialize, Serialize};
 use soulfire_core::ai::registry::estimate_tokens;
 use soulfire_core::error::CoreResult;
 use soulfire_core::model::character::Character;
-use soulfire_core::model::ids::CharacterId;
+use soulfire_core::model::ids::{AdventureId, CharacterId};
 use soulfire_core::model::strings::CharacterPrompt;
 use soulfire_core::prompt::{
     CharacterPromptInput, PromptSection, SectionSource, build_character_prompt,
 };
 use soulfire_core::store::Store;
+use soulfire_core::world::prompts::{
+    AdventureNarrativePromptInput, build_adventure_narrative_prompt, narrative_input,
+    narrative_instructions,
+};
 use tauri::State;
 
 use crate::error::CommandError;
@@ -110,6 +114,66 @@ fn prompt_view(input: OwnedCharacterPromptInput) -> PromptViewDto {
     }
 }
 
+struct OwnedAdventurePromptInput {
+    world_prompt: String,
+    prompt_extension: Option<String>,
+    adult_content: bool,
+    significant_events: String,
+    adventure_state: String,
+    story_summary: String,
+    recent_summary: String,
+    previous_narrative: String,
+    action: String,
+}
+
+impl OwnedAdventurePromptInput {
+    fn as_ref(&self) -> AdventureNarrativePromptInput<'_> {
+        AdventureNarrativePromptInput {
+            world_prompt: &self.world_prompt,
+            prompt_extension: self.prompt_extension.as_deref(),
+            adult_content: self.adult_content,
+            significant_events: &self.significant_events,
+            adventure_state: &self.adventure_state,
+            story_summary: &self.story_summary,
+            recent_summary: &self.recent_summary,
+            previous_narrative: &self.previous_narrative,
+            action: &self.action,
+        }
+    }
+}
+
+fn full_adventure_prompt(input: &OwnedAdventurePromptInput) -> String {
+    let prompt = input.as_ref();
+    let mut parts = vec![narrative_instructions(
+        prompt.world_prompt,
+        prompt.prompt_extension,
+        prompt.adult_content,
+    )];
+    parts.extend(
+        narrative_input(
+            prompt.significant_events,
+            prompt.adventure_state,
+            prompt.story_summary,
+            prompt.recent_summary,
+            prompt.previous_narrative,
+            prompt.action,
+        )
+        .into_iter()
+        .map(|message| message.content),
+    );
+    parts.join("\n\n")
+}
+
+fn adventure_prompt_view(input: OwnedAdventurePromptInput) -> PromptViewDto {
+    let full_prompt = full_adventure_prompt(&input);
+    let assembled = build_adventure_narrative_prompt(&input.as_ref());
+    PromptViewDto {
+        sections: assembled.sections.into_iter().map(section_dto).collect(),
+        token_estimate: estimate_tokens(&full_prompt),
+        full_prompt,
+    }
+}
+
 fn character_prompt_input(
     store: &Store,
     character: &Character,
@@ -151,6 +215,34 @@ pub async fn get_character_prompt_view(
                 .character(&character_id)?
                 .ok_or_else(|| soulfire_core::CoreError::NotFound(character_id.to_string()))?;
             Ok(prompt_view(character_prompt_input(store, &character)?))
+        })
+        .await
+}
+
+#[tauri::command]
+pub async fn get_adventure_prompt_view(
+    adventure_id: AdventureId,
+    draft_action: Option<String>,
+    state: State<'_, AppState>,
+) -> Result<PromptViewDto, CommandError> {
+    state
+        .with_store(move |store| {
+            let adventure = store
+                .adventure(&adventure_id)?
+                .ok_or_else(|| soulfire_core::CoreError::NotFound(adventure_id.to_string()))?;
+            let settings = store.app_settings()?;
+            let player = store.player_profile()?;
+            Ok(adventure_prompt_view(OwnedAdventurePromptInput {
+                world_prompt: adventure.world_prompt.to_string(),
+                prompt_extension: player.prompt_extension.map(|prompt| prompt.to_string()),
+                adult_content: settings.content_toggles.adult_content,
+                significant_events: adventure.significant_events.to_string(),
+                adventure_state: adventure.adventure_state.to_string(),
+                story_summary: adventure.story_summary.to_string(),
+                recent_summary: adventure.recent_summary.to_string(),
+                previous_narrative: adventure.previous_narrative.unwrap_or_default(),
+                action: draft_action.unwrap_or_default(),
+            }))
         })
         .await
 }

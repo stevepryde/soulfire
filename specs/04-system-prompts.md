@@ -103,6 +103,10 @@ sections is carried verbatim from Soulfire-OG in implementation (it is the behav
   when the user enlarges an editable section.
 - **AC-PROMPT-f** (PROMPT-12) A change made in the prompt view appears in the normal editor and vice
   versa.
+- **AC-PROMPT-g** (PROMPT-9, PROMPT-10, PROMPT-11) An adventure prompt view lists the next-turn
+  game-master instruction sections, the adventure's private world-prompt snapshot, and the dynamic
+  adventure context sections in order; all existing-adventure sections are read-only, and the view
+  shows a total token estimate plus per-section estimates.
 
 ## Design notes (non-normative)
 
