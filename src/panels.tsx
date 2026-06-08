@@ -19,6 +19,7 @@ import {
   AdventureSummary,
   AppSettings,
   COLOR_THEMES,
+  CharacterDetail,
   CharacterSummary,
   CredentialStatus,
   DEFAULT_DATA_DIR,
@@ -28,6 +29,7 @@ import {
   TokenStatsReport,
   TokenTotals,
   WorldBlueprintSummary,
+  WorldBlueprintDetail,
   canInvokeTauri,
   command,
   formatDate,
@@ -156,10 +158,12 @@ export function UnlockSurface({
 export function WorldsPanel() {
   const [adventures, setAdventures] = useState<AdventureSummary[]>([]);
   const [blueprints, setBlueprints] = useState<WorldBlueprintSummary[]>([]);
+  const [selectedWorld, setSelectedWorld] = useState<WorldBlueprintDetail | null>(null);
   const [blueprintCursor, setBlueprintCursor] = useState<string | null>(null);
   const [blueprintsHaveMore, setBlueprintsHaveMore] = useState(false);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function refresh(nextSearch = search) {
@@ -202,6 +206,20 @@ export function WorldsPanel() {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadWorldDetail(blueprintId: string) {
+    setDetailLoading(true);
+    setError(null);
+    try {
+      setSelectedWorld(
+        await command<WorldBlueprintDetail>("load_world_blueprint", { blueprintId }),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDetailLoading(false);
     }
   }
 
@@ -276,13 +294,18 @@ export function WorldsPanel() {
           ) : null}
           <div className="item-list">
             {blueprints.map((world) => (
-              <article className="data-row" key={world.blueprint_id}>
+              <button
+                className="data-row data-row-button"
+                key={world.blueprint_id}
+                type="button"
+                onClick={() => loadWorldDetail(world.blueprint_id)}
+              >
                 <div>
                   <h4>{world.title}</h4>
                   <p>{world.description || "No description"}</p>
                 </div>
                 <span>{formatDate(world.updated_at)}</span>
-              </article>
+              </button>
             ))}
           </div>
           {blueprintsHaveMore ? (
@@ -292,16 +315,29 @@ export function WorldsPanel() {
           ) : null}
         </section>
       </div>
+      {selectedWorld ? (
+        <section className="detail-panel">
+          <div>
+            <h3>{selectedWorld.title}</h3>
+            <p>{selectedWorld.description || "No description"}</p>
+          </div>
+          <pre>{selectedWorld.world_prompt}</pre>
+        </section>
+      ) : detailLoading ? (
+        <p className="muted">Loading world...</p>
+      ) : null}
     </section>
   );
 }
 
 export function CharactersPanel() {
   const [characters, setCharacters] = useState<CharacterSummary[]>([]);
+  const [selectedCharacter, setSelectedCharacter] = useState<CharacterDetail | null>(null);
   const [characterCursor, setCharacterCursor] = useState<string | null>(null);
   const [charactersHaveMore, setCharactersHaveMore] = useState(false);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function refresh(nextSearch = search) {
@@ -340,6 +376,18 @@ export function CharactersPanel() {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadCharacterDetail(characterId: string) {
+    setDetailLoading(true);
+    setError(null);
+    try {
+      setSelectedCharacter(await command<CharacterDetail>("load_character", { characterId }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDetailLoading(false);
     }
   }
 
@@ -396,11 +444,16 @@ export function CharactersPanel() {
         ) : null}
         <div className="character-grid">
           {characters.map((character) => (
-            <article className="character-card" key={character.character_id}>
+            <button
+              className="character-card character-card-button"
+              key={character.character_id}
+              type="button"
+              onClick={() => loadCharacterDetail(character.character_id)}
+            >
               <h4>{character.name}</h4>
               <p>{character.subtitle || character.description || "No subtitle"}</p>
               <span>{formatDate(character.updated_at)}</span>
-            </article>
+            </button>
           ))}
         </div>
         {charactersHaveMore ? (
@@ -409,6 +462,17 @@ export function CharactersPanel() {
           </button>
         ) : null}
       </div>
+      {selectedCharacter ? (
+        <section className="detail-panel">
+          <div>
+            <h3>{selectedCharacter.name}</h3>
+            <p>{selectedCharacter.subtitle || selectedCharacter.description || "No subtitle"}</p>
+          </div>
+          <pre>{selectedCharacter.prompt || "No character prompt"}</pre>
+        </section>
+      ) : detailLoading ? (
+        <p className="muted">Loading character...</p>
+      ) : null}
     </section>
   );
 }

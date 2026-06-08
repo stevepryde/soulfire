@@ -16,11 +16,21 @@ export type CharacterSummary = {
   updated_at?: string;
 };
 
+export type CharacterDetail = CharacterSummary & {
+  prompt?: string;
+  extracted_context?: string | null;
+  character_state?: string | null;
+};
+
 export type WorldBlueprintSummary = {
   blueprint_id: string;
   title: string;
   description?: string;
   updated_at?: string;
+};
+
+export type WorldBlueprintDetail = WorldBlueprintSummary & {
+  world_prompt: string;
 };
 
 export type AdventureSummary = {
