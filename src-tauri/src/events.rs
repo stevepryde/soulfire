@@ -1,9 +1,7 @@
 use serde::{Deserialize, Serialize};
 use soulfire_core::model::character::Character;
 use soulfire_core::model::chat::{Chat, ChatMessage};
-use soulfire_core::model::ids::{
-    AdventureId, AdventureMessageId, CharacterId, ChatId, MessageId, WorldBlueprintId,
-};
+use soulfire_core::model::ids::{AdventureId, CharacterId, ChatId, MessageId, WorldBlueprintId};
 use soulfire_core::model::images::StoredImageRef;
 use soulfire_core::model::world::{Adventure, AdventureMessage, AdventureReadyStatus, GmProposal};
 use tauri::{AppHandle, Emitter, Runtime};
@@ -52,7 +50,6 @@ pub enum BridgeEvent {
     },
     ChatMessageChunk {
         chat_id: ChatId,
-        message_id: MessageId,
         chunk: String,
     },
     ChatMessageComplete {
@@ -71,7 +68,6 @@ pub enum BridgeEvent {
     },
     AdventureNarrationChunk {
         adventure_id: AdventureId,
-        message_id: AdventureMessageId,
         chunk: String,
     },
     AdventureNarrationComplete {
@@ -148,5 +144,30 @@ mod tests {
             json["entityId"],
             "chat_11111111-1111-4111-8111-111111111111"
         );
+    }
+
+    #[test]
+    fn stream_chunks_do_not_claim_final_message_ids() {
+        let event = BridgeEvent::ChatMessageChunk {
+            chat_id: ChatId::new(),
+            chunk: "hello".to_string(),
+        };
+        let json = serde_json::to_value(&event).unwrap();
+
+        assert_eq!(json["type"], "chat_message_chunk");
+        assert!(json.get("chatId").is_some());
+        assert!(json.get("messageId").is_none());
+        assert_eq!(json["chunk"], "hello");
+
+        let event = BridgeEvent::AdventureNarrationChunk {
+            adventure_id: AdventureId::new(),
+            chunk: "north".to_string(),
+        };
+        let json = serde_json::to_value(&event).unwrap();
+
+        assert_eq!(json["type"], "adventure_narration_chunk");
+        assert!(json.get("adventureId").is_some());
+        assert!(json.get("messageId").is_none());
+        assert_eq!(json["chunk"], "north");
     }
 }
