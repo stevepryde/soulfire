@@ -20,7 +20,7 @@ use crate::model::world::{
 use crate::ai::collect_streamed;
 use crate::ai::registry::resolve_model;
 use crate::ai::service::AiService;
-use crate::ai::types::{GenerationConfig, GenerationRequest, JsonMode, Usage};
+use crate::ai::types::{GenerationConfig, GenerationRequest, JsonMode, ReasoningEffort, Usage};
 use crate::clock::Clock;
 use crate::error::{CoreError, CoreResult};
 use crate::store::Store;
@@ -45,7 +45,11 @@ pub const STATE_UPDATE_TEMPERATURE: f64 = 0.15;
 /// Temperature for narration (`WORLD` design notes).
 pub const NARRATION_TEMPERATURE: f64 = 0.9;
 const NARRATION_MAX_TOKENS: u32 = 2048;
+const INITIAL_STATE_MAX_TOKENS: u32 = 16_384;
+const DIFF_STATE_MAX_TOKENS: u32 = 4_096;
 const FULL_STATE_MAX_TOKENS: u32 = 24_576;
+const GM_CLASSIFY_MAX_TOKENS: u32 = 128;
+const GM_RESPONSE_TEMPERATURE: f64 = 0.2;
 const STREAM_IDLE_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// The result of a turn (`WORLD-6`, `WORLD-16`).
@@ -137,8 +141,8 @@ impl WorldEngine {
                 )),
             ],
             config: GenerationConfig {
-                max_output_tokens: Some(FULL_STATE_MAX_TOKENS),
-                temperature: Some(STATE_UPDATE_TEMPERATURE),
+                max_output_tokens: Some(INITIAL_STATE_MAX_TOKENS),
+                temperature: Some(0.0),
                 json: Some(JsonMode::Json),
                 ..Default::default()
             },
@@ -345,6 +349,7 @@ impl WorldEngine {
                     input.clone(),
                     MetricLabel::AdventureDiffStateUpdate,
                     adventure,
+                    DIFF_STATE_MAX_TOKENS,
                 )
                 .await
             {
@@ -375,6 +380,7 @@ impl WorldEngine {
                 input,
                 MetricLabel::AdventureFullStateUpdate,
                 adventure,
+                FULL_STATE_MAX_TOKENS,
             )
             .await?;
         let next_id = next_id_from_events(&parse_significant_events(
@@ -474,13 +480,14 @@ impl WorldEngine {
         input: Vec<crate::ai::types::PromptMessage>,
         label: MetricLabel,
         adventure: &Adventure,
+        max_output_tokens: u32,
     ) -> CoreResult<crate::ai::types::GenerationResponse> {
         let req = GenerationRequest {
             model,
             instructions: Some(instructions),
             messages: input,
             config: GenerationConfig {
-                max_output_tokens: Some(FULL_STATE_MAX_TOKENS),
+                max_output_tokens: Some(max_output_tokens),
                 temperature: Some(STATE_UPDATE_TEMPERATURE),
                 json: Some(JsonMode::Json),
                 cache_hint: true,
@@ -515,27 +522,28 @@ impl WorldEngine {
         );
         self.store.save_adventure_message(&req_msg)?;
 
-        let model = adventure
-            .ai_model
-            .unwrap_or_else(AiModel::default_chat_narrative);
         let adult = self.store.app_settings()?.content_toggles.adult_content;
 
         // Classify (WORLD-16).
+        let classify_model = AiModel::Gpt5_4Nano;
         let classify = self
             .ai
             .generate(GenerationRequest {
-                model,
+                model: classify_model,
                 instructions: Some(prompts::gm_classification_instructions()),
                 messages: vec![crate::ai::types::PromptMessage::user(request.to_string())],
                 config: GenerationConfig {
+                    max_output_tokens: Some(GM_CLASSIFY_MAX_TOKENS),
+                    temperature: Some(0.0),
                     json: Some(JsonMode::Json),
+                    reasoning_effort: None,
                     ..Default::default()
                 },
             })
             .await?;
         self.meter(
             MetricLabel::GmCommand,
-            model,
+            classify_model,
             classify.usage,
             Some(adventure_id),
             None,
@@ -553,23 +561,28 @@ impl WorldEngine {
         );
 
         if intent == GmIntent::AnswerOnly {
+            let answer_model = AiModel::Gpt5_4Nano;
             let resp = self
                 .ai
                 .generate(GenerationRequest {
-                    model,
+                    model: answer_model,
                     instructions: Some(prompts::gm_answer_instructions(
                         adventure.world_prompt.as_str(),
                     )),
                     messages: input,
                     config: GenerationConfig {
+                        max_output_tokens: Some(FULL_STATE_MAX_TOKENS),
+                        temperature: Some(GM_RESPONSE_TEMPERATURE),
                         json: Some(JsonMode::Json),
+                        reasoning_effort: Some(ReasoningEffort::Low),
+                        cache_hint: true,
                         ..Default::default()
                     },
                 })
                 .await?;
             self.meter(
                 MetricLabel::GmCommand,
-                model,
+                answer_model,
                 resp.usage,
                 Some(adventure_id),
                 None,
@@ -587,10 +600,11 @@ impl WorldEngine {
         }
 
         // Change proposal (WORLD-16, WORLD-17): staged, not applied.
+        let proposal_model = AiModel::Gpt5_4Mini;
         let resp = self
             .ai
             .generate(GenerationRequest {
-                model,
+                model: proposal_model,
                 instructions: Some(prompts::gm_proposal_instructions(
                     adventure.world_prompt.as_str(),
                     intent.as_str(),
@@ -598,14 +612,18 @@ impl WorldEngine {
                 )),
                 messages: input,
                 config: GenerationConfig {
+                    max_output_tokens: Some(FULL_STATE_MAX_TOKENS),
+                    temperature: Some(GM_RESPONSE_TEMPERATURE),
                     json: Some(JsonMode::Json),
+                    reasoning_effort: Some(ReasoningEffort::Low),
+                    cache_hint: true,
                     ..Default::default()
                 },
             })
             .await?;
         self.meter(
             MetricLabel::GmCommand,
-            model,
+            proposal_model,
             resp.usage,
             Some(adventure_id),
             None,

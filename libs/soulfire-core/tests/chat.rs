@@ -5,7 +5,8 @@
 use std::str::FromStr;
 use std::sync::Arc;
 
-use soulfire_core::model::ai_model::AiVendor;
+use soulfire_core::ai::types::Role;
+use soulfire_core::model::ai_model::{AiModel, AiVendor};
 use soulfire_core::model::character::{Character, InitialMessage};
 use soulfire_core::model::chat::AI_REACTOR;
 use soulfire_core::model::strings::{
@@ -142,6 +143,32 @@ async fn send_streams_reply_finalizes_and_meters() {
     // Title generated from the first exchange (CHAT-3).
     let reloaded = h.store.chat(&chat.chat_id).unwrap().unwrap();
     assert_eq!(reloaded.title.as_str(), "A Warm Greeting");
+
+    // TEST-10 / OG parity: the chat request keeps the stable character prompt as
+    // a cacheable prefix and sends the bounded recent history as role turns.
+    let requests = h.provider.requests();
+    assert_eq!(requests.len(), 2); // reply + title
+    let reply_req = &requests[0];
+    assert_eq!(reply_req.model, AiModel::Gpt5_1);
+    assert_eq!(reply_req.config.max_output_tokens, Some(2000));
+    assert_eq!(reply_req.config.temperature, Some(1.0));
+    assert_eq!(reply_req.config.top_p, Some(0.95));
+    assert_eq!(reply_req.config.top_k, Some(3));
+    assert_eq!(reply_req.config.reasoning_effort, None);
+    assert!(reply_req.config.json.is_none());
+    assert!(reply_req.config.cache_hint);
+
+    let instructions = reply_req.instructions.as_ref().unwrap();
+    assert!(instructions.contains("## Character Prompt"));
+    assert!(instructions.contains("## How to Be This Character"));
+    assert!(instructions.contains("## Reactions"));
+    assert!(instructions.contains("You are Lyra, a calm guide."));
+
+    assert_eq!(reply_req.messages.len(), 2);
+    assert_eq!(reply_req.messages[0].role, Role::Model);
+    assert_eq!(reply_req.messages[0].content, "Hi.");
+    assert_eq!(reply_req.messages[1].role, Role::User);
+    assert_eq!(reply_req.messages[1].content, "Hello!");
 }
 
 #[tokio::test]

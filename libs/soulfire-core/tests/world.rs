@@ -5,7 +5,8 @@
 use std::str::FromStr;
 use std::sync::Arc;
 
-use soulfire_core::model::ai_model::AiVendor;
+use soulfire_core::ai::types::{JsonMode, ReasoningEffort};
+use soulfire_core::model::ai_model::{AiModel, AiVendor};
 use soulfire_core::model::strings::{WorldPrompt, WorldTitle};
 use soulfire_core::model::world::{
     AdventureMessageType, GmProposalStatus, StoryStatus, WorldBlueprint,
@@ -19,7 +20,7 @@ use soulfire_core::ai::types::ProviderError;
 use soulfire_core::clock::{Clock, MockClock};
 use soulfire_core::error::CoreError;
 use soulfire_core::store::Store;
-use soulfire_core::world::{TurnOutcome, WorldEngine};
+use soulfire_core::world::{TurnOutcome, WorldBuilderEngine, WorldEngine};
 
 struct Keys;
 impl ApiKeySource for Keys {
@@ -142,6 +143,57 @@ async fn turn_echoes_action_streams_narration_and_applies_diff() {
         soulfire_core::model::world::AdventureReadyStatus::Ready
     );
     assert_eq!(reloaded.diff_action_count, 1);
+
+    // TEST-10 / OG parity: start + turn calls preserve the OG per-call model
+    // settings and token budgets.
+    let requests = h.provider.requests();
+    assert_eq!(requests.len(), 4); // intro, initial state, narration, diff update
+
+    let intro = &requests[0];
+    assert_eq!(intro.model, AiModel::Gpt5_1);
+    assert_eq!(intro.config.max_output_tokens, Some(2048));
+    assert_eq!(intro.config.temperature, Some(0.9));
+    assert_eq!(intro.config.reasoning_effort, None);
+    assert!(intro.config.json.is_none());
+    assert!(intro.config.cache_hint);
+    assert!(
+        intro
+            .instructions
+            .as_ref()
+            .unwrap()
+            .contains("Write an engaging introduction paragraph")
+    );
+
+    let initial_state = &requests[1];
+    assert_eq!(initial_state.model, AiModel::Gpt5_1);
+    assert_eq!(initial_state.config.max_output_tokens, Some(16_384));
+    assert_eq!(initial_state.config.temperature, Some(0.0));
+    assert!(matches!(
+        initial_state.config.json.as_ref(),
+        Some(JsonMode::Json)
+    ));
+    assert!(!initial_state.config.cache_hint);
+
+    let narration = &requests[2];
+    assert_eq!(narration.model, AiModel::Gpt5_1);
+    assert_eq!(narration.config.max_output_tokens, Some(2048));
+    assert_eq!(narration.config.temperature, Some(0.9));
+    assert_eq!(narration.config.reasoning_effort, None);
+    assert!(narration.config.cache_hint);
+    assert!(
+        narration
+            .instructions
+            .as_ref()
+            .unwrap()
+            .contains("# World Blueprint")
+    );
+
+    let diff = &requests[3];
+    assert_eq!(diff.model, AiModel::Gpt5_1);
+    assert_eq!(diff.config.max_output_tokens, Some(4096));
+    assert_eq!(diff.config.temperature, Some(0.15));
+    assert!(matches!(diff.config.json.as_ref(), Some(JsonMode::Json)));
+    assert!(diff.config.cache_hint);
 }
 
 #[tokio::test]
@@ -238,6 +290,59 @@ async fn unknown_and_empty_commands_warn() {
 }
 
 #[tokio::test]
+async fn world_builder_applies_changes_and_uses_og_request_config() {
+    // AC-WORLD-g / TEST-10: a world-builder turn can revise editable fields and
+    // its structured request keeps the OG 0.8 / 9000 / medium-reasoning config.
+    let h = harness();
+    let bp = blueprint();
+    h.store.save_blueprint(&bp).unwrap();
+    h.provider.push(Scripted::text(
+        r#"{"assistant_message":"Made it stranger.","description":"A city under black glass.","world_prompt":"A sunken city sealed beneath obsidian glass."}"#,
+        90,
+        40,
+    ));
+
+    let builder = WorldBuilderEngine::new(
+        h.store.clone(),
+        AiService::new(h.provider.clone(), Arc::new(Keys)),
+        h.clock.clone() as Arc<dyn Clock>,
+    );
+    let result = builder
+        .builder_send(&bp.blueprint_id, "make it stranger")
+        .await
+        .unwrap();
+
+    assert_eq!(result.assistant_message, "Made it stranger.");
+    let updated = h.store.blueprint(&bp.blueprint_id).unwrap().unwrap();
+    assert_eq!(updated.description.as_str(), "A city under black glass.");
+    assert!(updated.world_prompt.as_str().contains("obsidian glass"));
+
+    let session = h
+        .store
+        .world_builder_session(&bp.blueprint_id)
+        .unwrap()
+        .unwrap();
+    assert_eq!(session.snapshots.len(), 1);
+
+    let req = h.provider.last_request().unwrap();
+    assert_eq!(req.model, AiModel::Gpt5_1);
+    assert_eq!(req.config.max_output_tokens, Some(9000));
+    assert_eq!(req.config.temperature, Some(0.8));
+    assert_eq!(req.config.reasoning_effort, Some(ReasoningEffort::Medium));
+    assert!(matches!(req.config.json.as_ref(), Some(JsonMode::Json)));
+    assert_eq!(req.messages.len(), 1);
+    assert!(req.messages[0].content.contains("Current world:"));
+    assert!(
+        req.messages[0]
+            .content
+            .contains("Latest user message:\nmake it stranger")
+    );
+    let instructions = req.instructions.unwrap();
+    assert!(instructions.contains("collaborative world builder"));
+    assert!(instructions.contains("Return only JSON with this exact shape"));
+}
+
+#[tokio::test]
 async fn gm_change_is_staged_and_accept_applies_reject_does_not() {
     // AC-WORLD-e: /gm yields a staged proposal; Accept applies it, Reject doesn't.
     let h = harness();
@@ -262,6 +367,34 @@ async fn gm_change_is_staged_and_accept_applies_reject_does_not() {
     };
     assert_eq!(proposal.status, GmProposalStatus::Pending);
     assert!(!proposal.changes.is_empty()); // a readable diff was computed
+
+    // TEST-10 / OG parity: /gm uses the utility model for classification and the
+    // mini model with low reasoning for change proposals.
+    let requests = h.provider.requests();
+    assert_eq!(requests.len(), 4); // start intro/state + classify/proposal
+    let classify = &requests[2];
+    assert_eq!(classify.model, AiModel::Gpt5_4Nano);
+    assert_eq!(classify.config.max_output_tokens, Some(128));
+    assert_eq!(classify.config.temperature, Some(0.0));
+    assert_eq!(classify.config.reasoning_effort, None);
+    assert!(matches!(
+        classify.config.json.as_ref(),
+        Some(JsonMode::Json)
+    ));
+
+    let gm_proposal = &requests[3];
+    assert_eq!(gm_proposal.model, AiModel::Gpt5_4Mini);
+    assert_eq!(gm_proposal.config.max_output_tokens, Some(24_576));
+    assert_eq!(gm_proposal.config.temperature, Some(0.2));
+    assert_eq!(
+        gm_proposal.config.reasoning_effort,
+        Some(ReasoningEffort::Low)
+    );
+    assert!(matches!(
+        gm_proposal.config.json.as_ref(),
+        Some(JsonMode::Json)
+    ));
+    assert!(gm_proposal.config.cache_hint);
 
     // Reject changes nothing.
     let before = h

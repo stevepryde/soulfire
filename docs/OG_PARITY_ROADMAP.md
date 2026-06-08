@@ -1,6 +1,7 @@
 # Soulfire Open Source Roadmap
 
-Status: planning document only. This does not change the spec.
+Status: planning document. This does not change the spec. The concrete Phase 2 feature matrix lives
+in [`OG_FEATURE_INVENTORY.md`](OG_FEATURE_INVENTORY.md).
 
 Soulfire is an open-source, local-first, BYOK port of Soulfire-OG to a desktop/mobile stack that is
 easier for other people to use, inspect, fork, modify, and extend.
@@ -193,6 +194,9 @@ Exit criteria:
 ## Phase 2: Feature Inventory And Diff
 
 Build a feature matrix from `~/projects/app-world/soulfire`.
+
+Current artifact: [`OG_FEATURE_INVENTORY.md`](OG_FEATURE_INVENTORY.md). Keep it current as parity work
+lands.
 
 Inventory these areas:
 

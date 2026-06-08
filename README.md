@@ -3,6 +3,7 @@ Interactive Fiction and AI experience app.
 
 A single-user, local, BYOK desktop/mobile app being ported to Tauri v2 + React with a Rust core.
 See [`docs/OG_PARITY_ROADMAP.md`](docs/OG_PARITY_ROADMAP.md) for the current roadmap,
+[`docs/OG_FEATURE_INVENTORY.md`](docs/OG_FEATURE_INVENTORY.md) for the OG parity matrix,
 [`specs/`](specs/) for the design source of truth, and [`AGENTS.md`](AGENTS.md) for how it's built.
 
 The current Rust workspace is intentionally small: `soulfire-core` contains the product/domain core,

@@ -16,13 +16,15 @@ use crate::model::world::{
 use crate::ai::fence::parse_lenient;
 use crate::ai::registry::resolve_model;
 use crate::ai::service::AiService;
-use crate::ai::types::{GenerationConfig, GenerationRequest, JsonMode, PromptMessage, Usage};
+use crate::ai::types::{
+    GenerationConfig, GenerationRequest, JsonMode, PromptMessage, ReasoningEffort, Usage,
+};
 use crate::clock::Clock;
 use crate::error::{CoreError, CoreResult};
 use crate::store::Store;
 
 const BUILDER_TEMPERATURE: f64 = 0.8;
-const BUILDER_MAX_TOKENS: u32 = 6000;
+const BUILDER_MAX_TOKENS: u32 = 9000;
 
 /// The structured result of a world-builder turn (`WORLD-21`). Null = unchanged.
 #[derive(Debug, Clone, Deserialize)]
@@ -95,6 +97,7 @@ impl WorldBuilderEngine {
             config: GenerationConfig {
                 max_output_tokens: Some(BUILDER_MAX_TOKENS),
                 temperature: Some(BUILDER_TEMPERATURE),
+                reasoning_effort: Some(ReasoningEffort::Medium),
                 json: Some(JsonMode::Json),
                 ..Default::default()
             },

@@ -3,7 +3,8 @@
 use std::str::FromStr;
 use std::sync::Arc;
 
-use soulfire_core::model::ai_model::AiVendor;
+use soulfire_core::ai::types::{JsonMode, ReasoningEffort, Role};
+use soulfire_core::model::ai_model::{AiModel, AiVendor};
 use soulfire_core::model::character::{Character, InitialMessage};
 use soulfire_core::model::strings::{
     CharacterName, CharacterPrompt, InitialMessageText, WorldPrompt, WorldTitle,
@@ -84,6 +85,27 @@ async fn builder_applies_changes_and_pushes_snapshot_then_undo_restores() {
         updated.prompt.as_str(),
         "You are Lyra, bold and sharp-tongued."
     );
+
+    // TEST-10 / OG parity: character-builder calls use the OG structured JSON
+    // config: narrative model, temperature 0.8, 6000 output tokens, and medium
+    // reasoning.
+    let req = h.provider.last_request().unwrap();
+    assert_eq!(req.model, AiModel::Gpt5_1);
+    assert_eq!(req.config.max_output_tokens, Some(6000));
+    assert_eq!(req.config.temperature, Some(0.8));
+    assert_eq!(req.config.reasoning_effort, Some(ReasoningEffort::Medium));
+    assert!(matches!(req.config.json.as_ref(), Some(JsonMode::Json)));
+    assert_eq!(req.messages.len(), 1);
+    assert_eq!(req.messages[0].role, Role::User);
+    assert!(req.messages[0].content.contains("Current character:"));
+    assert!(
+        req.messages[0]
+            .content
+            .contains("Latest user message:\nmake her bolder")
+    );
+    let instructions = req.instructions.unwrap();
+    assert!(instructions.contains("collaborative character builder"));
+    assert!(instructions.contains("Return only JSON with this exact shape"));
 
     // A snapshot was captured.
     let session = h
@@ -192,6 +214,45 @@ async fn extraction_produces_character_with_context_state_origin_and_chat() {
     let msgs = h.store.chat_messages(&chat_id).unwrap();
     assert_eq!(msgs.len(), 1);
     assert_eq!(msgs[0].message.as_str(), "Hello again, traveler.");
+
+    // TEST-10 / OG parity: NPC extraction keeps the rich persona pass on the
+    // preferred narrative model and the dynamic-state pass on the utility model,
+    // matching OG sampling controls.
+    let requests = h.provider.requests();
+    assert_eq!(requests.len(), 3); // persona, initial state, opening message
+
+    let persona = &requests[0];
+    assert_eq!(persona.model, AiModel::Gpt5_1);
+    assert_eq!(persona.config.max_output_tokens, Some(8000));
+    assert_eq!(persona.config.temperature, Some(0.7));
+    assert_eq!(persona.config.top_p, Some(0.95));
+    assert_eq!(persona.config.top_k, Some(3));
+    assert!(persona.config.json.is_none());
+    assert_eq!(persona.messages.len(), 1);
+    assert_eq!(persona.messages[0].role, Role::User);
+    assert!(persona.messages[0].content.contains("Mara"));
+    assert!(
+        persona
+            .instructions
+            .as_ref()
+            .unwrap()
+            .contains("extracting an NPC")
+    );
+
+    let initial_state = &requests[1];
+    assert_eq!(initial_state.model, AiModel::Gpt5_4Nano);
+    assert_eq!(initial_state.config.max_output_tokens, Some(2000));
+    assert_eq!(initial_state.config.temperature, Some(0.7));
+    assert_eq!(initial_state.config.top_p, Some(0.95));
+    assert_eq!(initial_state.config.top_k, Some(3));
+    assert!(initial_state.config.json.is_none());
+    assert!(
+        initial_state
+            .instructions
+            .as_ref()
+            .unwrap()
+            .contains("initial dynamic state")
+    );
 }
 
 #[tokio::test]

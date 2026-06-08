@@ -22,7 +22,9 @@ use crate::model::strings::{
 use crate::ai::fence::parse_lenient;
 use crate::ai::registry::resolve_model;
 use crate::ai::service::AiService;
-use crate::ai::types::{GenerationConfig, GenerationRequest, JsonMode, PromptMessage, Usage};
+use crate::ai::types::{
+    GenerationConfig, GenerationRequest, JsonMode, PromptMessage, ReasoningEffort, Usage,
+};
 use crate::chat::ChatEngine;
 use crate::clock::Clock;
 use crate::error::{CoreError, CoreResult};
@@ -35,6 +37,8 @@ pub const BUILDER_TEMPERATURE: f64 = 0.8;
 const BUILDER_MAX_TOKENS: u32 = 6000;
 /// Persona-extraction temperature (`CHAR` design note).
 pub const EXTRACTION_PROFILE_TEMPERATURE: f64 = 0.7;
+const EXTRACTION_PROFILE_MAX_TOKENS: u32 = 8000;
+const EXTRACTION_STATE_MAX_TOKENS: u32 = 2000;
 
 /// The structured result of a builder turn (`CHAR-7`). Null fields mean
 /// "leave unchanged".
@@ -116,6 +120,7 @@ impl CharacterEngine {
             config: GenerationConfig {
                 max_output_tokens: Some(BUILDER_MAX_TOKENS),
                 temperature: Some(BUILDER_TEMPERATURE),
+                reasoning_effort: Some(ReasoningEffort::Medium),
                 json: Some(JsonMode::Json),
                 ..Default::default()
             },
@@ -203,8 +208,10 @@ impl CharacterEngine {
                 "Extract the character \"{npc_name}\" into a complete profile."
             ))],
             config: GenerationConfig {
-                max_output_tokens: Some(2000),
+                max_output_tokens: Some(EXTRACTION_PROFILE_MAX_TOKENS),
                 temperature: Some(EXTRACTION_PROFILE_TEMPERATURE),
+                top_p: Some(0.95),
+                top_k: Some(3),
                 ..Default::default()
             },
         };
@@ -224,8 +231,10 @@ impl CharacterEngine {
                 "Write this character's current dynamic state.",
             )],
             config: GenerationConfig {
-                max_output_tokens: Some(2000),
-                temperature: Some(0.3),
+                max_output_tokens: Some(EXTRACTION_STATE_MAX_TOKENS),
+                temperature: Some(EXTRACTION_PROFILE_TEMPERATURE),
+                top_p: Some(0.95),
+                top_k: Some(3),
                 ..Default::default()
             },
         };
