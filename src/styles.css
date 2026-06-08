@@ -501,6 +501,12 @@ textarea:focus {
   gap: 8px;
 }
 
+.search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
 .data-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -822,6 +828,10 @@ textarea:focus {
   }
 
   .split-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .search-row {
     grid-template-columns: 1fr;
   }
 

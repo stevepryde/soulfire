@@ -156,17 +156,18 @@ export function UnlockSurface({
 export function WorldsPanel() {
   const [adventures, setAdventures] = useState<AdventureSummary[]>([]);
   const [blueprints, setBlueprints] = useState<WorldBlueprintSummary[]>([]);
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  async function refresh() {
+  async function refresh(nextSearch = search) {
     setLoading(true);
     setError(null);
     try {
       const [active, worlds] = await Promise.all([
         command<AdventureSummary[]>("list_in_progress_adventures", { limit: 6 }),
         command<ListPage<WorldBlueprintSummary>>("list_world_blueprints", {
-          search: null,
+          search: nextSearch || null,
           afterBlueprintId: null,
           limit: 6,
         }),
@@ -201,6 +202,23 @@ export function WorldsPanel() {
       {error ? (
         <InlineNotice icon={<AlertCircle size={20} />} title="Worlds unavailable" detail={error} />
       ) : null}
+      <form
+        className="search-row"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void refresh();
+        }}
+      >
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search worlds"
+          spellCheck={false}
+        />
+        <button className="secondary-button" type="submit" disabled={loading}>
+          Search
+        </button>
+      </form>
       <div className="split-grid">
         <section className="list-panel">
           <div className="list-title">
@@ -251,15 +269,16 @@ export function WorldsPanel() {
 
 export function CharactersPanel() {
   const [characters, setCharacters] = useState<CharacterSummary[]>([]);
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  async function refresh() {
+  async function refresh(nextSearch = search) {
     setLoading(true);
     setError(null);
     try {
       const page = await command<ListPage<CharacterSummary>>("list_characters", {
-        search: null,
+        search: nextSearch || null,
         afterCharacterId: null,
         limit: 12,
       });
@@ -292,6 +311,23 @@ export function CharactersPanel() {
       {error ? (
         <InlineNotice icon={<AlertCircle size={20} />} title="Characters unavailable" detail={error} />
       ) : null}
+      <form
+        className="search-row"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void refresh();
+        }}
+      >
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search characters"
+          spellCheck={false}
+        />
+        <button className="secondary-button" type="submit" disabled={loading}>
+          Search
+        </button>
+      </form>
       <div className="list-panel">
         <div className="list-title">
           <MessageCircle size={18} />

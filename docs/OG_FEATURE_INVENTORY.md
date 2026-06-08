@@ -174,11 +174,11 @@ The current repo has a React shell only. These OG UI surfaces are required unles
 | App shell, route tree, bottom nav/sidebar, titlebar | Partial | React shell, titlebar, desktop sidebar, and mobile bottom nav exist. Route/detail surfaces remain to be wired. |
 | First-run/onboarding | Partial | Setup/unlock scaffold exists. Provider key flow, starter worlds, and first-run content affordances remain. |
 | Unlock/setup screens | Partial | Local-native setup/unlock calls the async Tauri store commands and works in browser preview fallback. Password/security UX still needs full smoke coverage. |
-| Worlds home | Partial data-backed shell | React loads in-progress adventures and world blueprints through Tauri commands with loading/error/empty states. Port OG list/card/search/create/detail behavior, minus public/admin tabs. |
+| Worlds home | Partial data-backed shell | React loads in-progress adventures and searchable world blueprints through Tauri commands with loading/error/empty states. Port OG card richness, create, and detail behavior, minus public/admin tabs. |
 | World play screen | Missing | Port immersive layout, composer, stream status, current adventure affordances, GM proposal cards. |
 | World create/edit | Missing | Port tabs, template affordances, manual editor, image selector/transform, builder entry. |
 | World builder | Missing | Port chat + editable prompt/fields pattern. |
-| Character list | Partial data-backed shell | React loads saved characters through the Tauri list command with loading/error/empty states. Port OG card art, search, create, and detail/chat entry behavior. |
+| Character list | Partial data-backed shell | React loads/searches saved characters through the Tauri list command with loading/error/empty states. Port OG card art, create, and detail/chat entry behavior. |
 | Character create/edit | Missing | Port Profile/Prompt/Initial Message/Settings tabs, image selector/transform, builder entry. |
 | Character builder | Missing | Port chat + prompt tab pairing. |
 | Character chat | Missing | Port bubbles, streaming feel, reactions, draft behavior, status labels. |
