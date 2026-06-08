@@ -55,7 +55,7 @@ Local source areas scanned:
 | Phase 2: feature inventory and diff | Done here | This document is the first concrete OG parity matrix. Keep it current as work lands. |
 | Phase 3: Rust core | Partial | A broad Rust core exists, including encrypted SQLite, models, chat, worlds, builders, images, metrics, pagination, request-level config coverage, representative prompt hash snapshots, and OG-to-local data fixtures. Some trust checks remain. |
 | Phase 4: Tauri bridge | Partial | `src-tauri` now provides the Tauri v2 crate/config/capability scaffold, narrow app command permissions, async typed setup/unlock/profile/settings/credential commands, token-stats read/clear commands, image load/generate/upload/clear commands, character prompt-view/save-section commands, adventure prompt-view commands, character save/list/load/delete, character/world builder state/send/undo commands, NPC extraction commands, chat load/delete/open/send, world save/list/load/delete, adventure list/load/delete/start/turn/GM-proposal decision commands, and the first event DTO vocabulary. |
-| Phase 5: React UI fidelity port | Partial | Vite/React/Tailwind/Bun scaffold exists with local setup/unlock, shell navigation, and first placeholder workspace bands. OG UI screens remain reference-only until the fidelity port lands. |
+| Phase 5: React UI fidelity port | Partial | Vite/React/Tailwind/Bun scaffold exists with local setup/unlock, shell navigation, Tauri-backed Worlds/Characters read surfaces, and OpenAI credential status/save/delete in Settings. OG detail/editor/play screens remain reference-only until the fidelity port lands. |
 | Phase 6: desktop/mobile readiness | Partial | Tauri app crate/config, command bridge, permissions, and frontend build path exist. Launch/package readiness still needs end-to-end smoke and packaging checks. |
 | Phase 7: validation | Partial | Core tests exist; OG prompt/config fixture parity, service-flow parity, Tauri command checks, React visual/smoke tests, and manual smoke docs remain. |
 | Phase 8: public readiness | Deferred | Do after the app is functionally real. |
@@ -174,16 +174,16 @@ The current repo has a React shell only. These OG UI surfaces are required unles
 | App shell, route tree, bottom nav/sidebar, titlebar | Partial | React shell, titlebar, desktop sidebar, and mobile bottom nav exist. Route/detail surfaces remain to be wired. |
 | First-run/onboarding | Partial | Setup/unlock scaffold exists. Provider key flow, starter worlds, and first-run content affordances remain. |
 | Unlock/setup screens | Partial | Local-native setup/unlock calls the async Tauri store commands and works in browser preview fallback. Password/security UX still needs full smoke coverage. |
-| Worlds home | Partial shell | Placeholder workspace band exists. Port OG list/card/search/empty/loading/error behavior, minus public/admin tabs. |
+| Worlds home | Partial data-backed shell | React loads in-progress adventures and world blueprints through Tauri commands with loading/error/empty states. Port OG list/card/search/create/detail behavior, minus public/admin tabs. |
 | World play screen | Missing | Port immersive layout, composer, stream status, current adventure affordances, GM proposal cards. |
 | World create/edit | Missing | Port tabs, template affordances, manual editor, image selector/transform, builder entry. |
 | World builder | Missing | Port chat + editable prompt/fields pattern. |
-| Character list | Partial shell | Placeholder workspace band exists. Port cards, search, empty/loading/error states. |
+| Character list | Partial data-backed shell | React loads saved characters through the Tauri list command with loading/error/empty states. Port OG card art, search, create, and detail/chat entry behavior. |
 | Character create/edit | Missing | Port Profile/Prompt/Initial Message/Settings tabs, image selector/transform, builder entry. |
 | Character builder | Missing | Port chat + prompt tab pairing. |
 | Character chat | Missing | Port bubbles, streaming feel, reactions, draft behavior, status labels. |
 | Prompt viewer/editor | Partial bridge / missing UI | Character and adventure prompt-view commands exist. Port locked/editable section treatment; editable system prompts are deferred unless specs change. |
-| Settings/profile | Partial shell | Store status/schema/runtime surface exists. Port provider key management, theme/accent, player profile, content toggle, local-only storage actions. |
+| Settings/profile | Partial data-backed shell | Store status/schema/runtime, app settings readout, and OpenAI credential status/save/delete exist. Port theme/accent controls, player profile, content toggle editing, and local-only storage actions. |
 | Token stats | Partial bridge / missing UI | Tauri exposes aggregate, per-chat, per-adventure, and clear-history token stats commands built from local metrics. React stats screen remains missing. |
 | Modals/toasts/confirmation/error/loading/empty states | Missing | Port visible behaviors and local destructive-action confirmation patterns. |
 | Admin, auth, billing, terms/privacy/landing | Removed | Not part of local app surface. |
@@ -229,9 +229,7 @@ Work in this order unless the roadmap changes:
    NPC extraction, character/adventure prompt-view, and GM proposal accept/reject commands exist; next
    add direct command invocation tests where command behavior is not already covered by core or event
    serialization tests.
-4. **Phase 5 data-backed shell:** replace the placeholder Worlds, Characters, and Settings bands with
-   Tauri-backed list/status/provider-key surfaces while preserving the custom-control rule.
-5. **Phase 5 fidelity expansion:** port the remaining editors, builders, image framing, prompt viewer,
+4. **Phase 5 fidelity expansion:** port the remaining editors, builders, image framing, prompt viewer,
    settings/profile, stats, and smoke/visual checks.
 
 ## Definition Of Done For Phase 2
